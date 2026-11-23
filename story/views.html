@@ -1,0 +1,84 @@
+  <!-- BOT ESCAPE: the map is the screen; story arrives as dialogue, code sits in the console beside it -->
+  <section class="view" id="view-bot">
+    <div class="hud">
+      <button class="btn" id="botLevelsBtn">Levels</button>
+      <div class="hud-title"><small id="botChapter"></small><b id="botTitle"></b></div>
+      <span class="sp"></span>
+      <div class="hud-meters" aria-label="Robot status">
+        <span class="meter" title="Battery"><span class="meter-label">Battery</span><span class="meter-bar"><i id="batFill"></i></span></span>
+        <span class="count" title="Keys carried"><i class="ico key"></i><b id="bagKey">0</b></span>
+        <span class="count" title="Coins carried"><i class="ico coin"></i><b id="bagCoin">0</b></span>
+        <span class="hud-stars" id="botStars" title="Best stars on this mission"></span>
+      </div>
+    </div>
+    <div class="game">
+      <div class="stage bot-stage">
+        <div class="maps" id="botMaps" role="tablist" aria-label="Maps"></div>
+        <div class="grid-wrap"><div class="grid" id="botGrid" aria-label="Robot world"></div></div>
+        <div class="banner" id="botBanner" hidden></div>
+        <div class="dialog" id="botDialog"></div>
+      </div>
+      <div class="console">
+        <div class="powercard" id="botPower"></div>
+        <div class="bench-bar">
+          <button class="btn primary" id="botRun" title="Run on the map shown and watch the robot (Ctrl+Enter)">Run</button>
+          <button class="btn" id="botStep" title="Run your code one line at a time and watch the variables">Step through</button>
+          <button class="btn go" id="botCheck" title="Run on every map: the mission is complete when all of them work">Test all maps</button>
+          <span class="sp"></span>
+          <label class="status" for="botSpeed">Speed</label>
+          <input type="range" id="botSpeed" min="1" max="10" value="5" aria-label="Animation speed">
+        </div>
+        <div class="bench-bar sub">
+          <button class="btn mini" id="botHint">Hint</button>
+          <button class="btn mini ghost" id="botSol">Solution</button>
+          <button class="btn mini ghost" id="botApi">Robot controls</button>
+          <span class="sp"></span>
+          <button class="btn mini ghost" id="botReset" title="Restore the starter code">Reset code</button>
+        </div>
+        <div id="botEditor"></div>
+        <p class="ex-note" id="botStdin" hidden></p>
+        <div class="out" id="botOut"><p class="hint">Press Run to watch the robot follow your code.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASE FILES: a corkboard of suspects and clues, a records terminal beside it -->
+  <section class="view" id="view-case" hidden>
+    <div class="hud">
+      <button class="btn" id="caseListBtn">Cases</button>
+      <div class="hud-title"><small id="caseNo"></small><b id="caseTitle"></b></div>
+      <span class="sp"></span>
+      <div class="hud-meters"><span class="count" title="Leads solved"><i class="ico clue"></i><b id="caseLeads"></b></span></div>
+    </div>
+    <div class="game">
+      <div class="stage board">
+        <div class="suspects" id="suspects"></div>
+        <div class="notes" id="notes"></div>
+        <div class="dialog" id="caseDialog"></div>
+      </div>
+      <div class="console terminal-side">
+        <div class="lead" id="lead"></div>
+        <div class="powercard" id="casePower"></div>
+        <div class="bench-bar">
+          <button class="btn primary" id="caseRun" title="Ctrl+Enter">Run</button>
+          <button class="btn go" id="caseCheck">Submit as evidence</button>
+          <span class="sp"></span>
+          <button class="btn mini" id="caseHint">Hint</button>
+          <button class="btn mini ghost" id="caseSol">Solution</button>
+          <button class="btn mini ghost" id="caseReset" title="Restore the starter query">Reset</button>
+        </div>
+        <div id="caseEditor"></div>
+        <div class="out" id="caseOut"><p class="hint">Run shows what your query finds in the city records.</p></div>
+        <div class="verdict" id="caseVerdict" hidden></div>
+        <details class="records" id="caseSchemaD"><summary>City records (tables)</summary><div id="caseSchema"></div></details>
+      </div>
+    </div>
+  </section>
+
+  <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true" aria-labelledby="smTitle">
+    <div class="sm-card">
+      <div class="sm-head"><h2 id="smTitle"></h2><span class="sp"></span><button class="btn" id="smClose">Close</button></div>
+      <div class="sm-body" id="smBody"></div>
+    </div>
+  </div>
+

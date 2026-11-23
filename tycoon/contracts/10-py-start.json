@@ -1,0 +1,704 @@
+[
+  {
+    "id": "t-py-welcome-sign",
+    "district": "py",
+    "client": "Lea Martin, Cafe du Port",
+    "title": "A welcome sign for the screen",
+    "covers": ["py-hello"],
+    "brief": "Hi! I run the Cafe du Port. I just put a little screen above the counter. Can your machine show our welcome message on it? Three lines, exactly as I wrote them below.",
+    "skill": {
+      "title": "print() puts text on the screen",
+      "card": "Every program talks through <code>print()</code>. Put text between quotes inside the brackets and it appears on the screen, one line per call.",
+      "example": "print(\"Good morning\")\nprint(\"Coffee is ready\")"
+    },
+    "task": "Print these three lines, in this order, exactly:\n\n~~~text\nWelcome to Cafe du Port\nToday: lemon tart\nOpen until 19:00\n~~~",
+    "starter": "# print the three lines here\n",
+    "solution": "print(\"Welcome to Cafe du Port\")\nprint(\"Today: lemon tart\")\nprint(\"Open until 19:00\")",
+    "hint": "One print() per line. Copy each sentence between double quotes.",
+    "par": 3,
+    "machine": {"name": "Sign Printer", "icon": "text"},
+    "tests": [{"output": "Welcome to Cafe du Port\nToday: lemon tart\nOpen until 19:00"}]
+  },
+  {
+    "id": "t-py-bill-splitter",
+    "district": "py",
+    "client": "Karim Moreau, Restaurant Olive",
+    "title": "Split the bill",
+    "covers": ["py-vars", "py-math"],
+    "brief": "Tables of friends always ask to split the bill. My waiters lose minutes with a calculator. The total and the number of people are already in the code. Print what each person pays, rounded to 2 decimals.",
+    "skill": {
+      "title": "Variables and arithmetic",
+      "card": "A <b>variable</b> is a name that holds a value: <code>total = 87.5</code>. Python does maths with <code>+ - * /</code>, and <code>round(x, 2)</code> keeps 2 decimals.",
+      "example": "price = 12.5\nqty = 3\nprint(round(price * qty / 4, 2))"
+    },
+    "task": "Using the variables <code>total</code> and <code>people</code>, print one line: <code>Each pays: </code> followed by <code>total / people</code> rounded to 2 decimals. Do not type the numbers yourself: the client will change them.",
+    "starter": "total = 87.5\npeople = 3\n# print what each person pays\n",
+    "solution": "total = 87.5\npeople = 3\nprint(\"Each pays:\", round(total / people, 2))",
+    "hint": "print(\"Each pays:\", round(total / people, 2)) prints the label and the number with a space between them.",
+    "par": 3,
+    "machine": {"name": "Bill Splitter", "icon": "calc"},
+    "tests": [{"output": "Each pays: 29.17"}],
+    "test": "assert 'total' in dir() and 'people' in dir(), 'Keep the variables total and people.'"
+  },
+  {
+    "id": "t-py-bill-splitter-tip",
+    "district": "py",
+    "type": "update",
+    "of": "t-py-bill-splitter",
+    "client": "Karim Moreau, Restaurant Olive",
+    "title": "Add the tip",
+    "covers": ["py-math"],
+    "brief": "Your splitter is a hit! One change: we now add a 10 percent tip before splitting. And show the tip on its own line first, please.",
+    "task": "Print two lines:\n\n~~~text\nTip: 8.75\nEach pays: 32.08\n~~~\n\nThe tip is 10 percent of <code>total</code>. Each person pays <code>(total + tip) / people</code>, rounded to 2 decimals.",
+    "starter": "",
+    "solution": "total = 87.5\npeople = 3\ntip = total * 0.10\nprint(\"Tip:\", round(tip, 2))\nprint(\"Each pays:\", round((total + tip) / people, 2))",
+    "hint": "Compute tip = total * 0.10 first, then reuse it in the second print.",
+    "par": 5,
+    "tests": [{"output": "Tip: 8.75\nEach pays: 32.08"}]
+  },
+  {
+    "id": "t-py-job-ticket",
+    "district": "py",
+    "client": "Nadia Petit, Garage Petit",
+    "title": "Tidy the job ticket",
+    "covers": [
+      "py-strings"
+    ],
+    "brief": "Customers fill in the drop off card any way they like: capitals everywhere, spaces before and after. My workshop screen needs it tidy. Can your machine clean the name and the plate before they go on the job ticket?",
+    "skill": {
+      "title": "String methods and f-strings",
+      "card": "<code>strip()</code> removes the outer spaces, <code>title()</code> capitalises each word and <code>upper()</code> capitalises everything. <code>split()</code> cuts on spaces and <code>\"-\".join(parts)</code> glues the pieces back with a separator. An f-string drops values into text: <code>f\"{a} | {b}\"</code>.",
+      "example": "name = \"  paul MARTIN \"\nprint(name.strip().title())\nprint(\"-\".join(\"ab 12 cd\".upper().split()))\nword = \"Garage\"\nprint(word[0], word[-1], word[0:3])"
+    },
+    "task": "Starting from <code>name</code> and <code>plate</code>, build three variables:\n\n- <code>clean</code>: the name without outer spaces, each word capitalised (<code>Sophie Bernard</code>)\n- <code>plate_id</code>: the plate in capitals, pieces joined with <code>-</code> (<code>EF-482-GH</code>)\n- <code>initials</code>: the first letter of each of the two words of <code>clean</code> (<code>SB</code>)\n\nThen print the ticket line with an f-string:\n\n~~~text\nSophie Bernard | EF-482-GH | SB\n~~~",
+    "starter": "name = \"  sophie BERNARD  \"\nplate = \"ef 482 gh\"\n# build clean, plate_id and initials, then print the ticket line\n",
+    "solution": "name = \"  sophie BERNARD  \"\nplate = \"ef 482 gh\"\nclean = name.strip().title()\nplate_id = \"-\".join(plate.upper().split())\nwords = clean.split()\ninitials = words[0][0] + words[1][0]\nprint(f\"{clean} | {plate_id} | {initials}\")",
+    "hint": "clean = name.strip().title(). For the plate: plate.upper().split() gives the pieces, \"-\".join(...) glues them.",
+    "par": 7,
+    "machine": {
+      "name": "Ticket Cleaner",
+      "icon": "text"
+    },
+    "tests": [
+      {
+        "output": "Sophie Bernard | EF-482-GH | SB"
+      }
+    ],
+    "test": "assert clean == 'Sophie Bernard', 'clean should be Sophie Bernard, got %r' % (clean,)\nassert plate_id == 'EF-482-GH', 'plate_id should be EF-482-GH, got %r' % (plate_id,)\nassert initials == 'SB', 'initials should be SB, got %r' % (initials,)"
+  },
+  {
+    "id": "t-py-stay-total",
+    "district": "py",
+    "client": "Thomas Girard, Hotel des Pins",
+    "title": "Price the stay",
+    "covers": [
+      "py-input"
+    ],
+    "brief": "At check out, reception types the number of nights and the nightly rate, then works out the bill on paper. We get it wrong every week. Your machine reads both numbers and prints the stay total.",
+    "skill": {
+      "title": "input() reads text, int() and float() turn it into numbers",
+      "card": "<code>input()</code> reads one typed line and always gives back a string. <code>int()</code> turns it into a whole number, <code>float()</code> into a decimal. Convert before doing maths: <code>\"3\" * \"2\"</code> is an error.",
+      "example": "nights = int(\"3\")\nrate = float(\"89.5\")\nprint(f\"{nights} nights: {nights * rate}\")"
+    },
+    "task": "Read two lines: the number of nights (whole number), then the nightly rate (decimal). Print one line, the total rounded to 2 decimals:\n\n~~~text\n3 nights x 89.5 = 268.5\n~~~",
+    "starter": "nights = input()\nrate = input()\nprint(f\"{nights} nights x {rate} = {nights * rate}\")\n",
+    "solution": "nights = int(input())\nrate = float(input())\nprint(f\"{nights} nights x {rate} = {round(nights * rate, 2)}\")",
+    "hint": "nights = int(input()) and rate = float(input()). Then round(nights * rate, 2) inside the f-string.",
+    "par": 3,
+    "machine": {
+      "name": "Stay Pricer",
+      "icon": "calc"
+    },
+    "tests": [
+      {
+        "name": "Room 12",
+        "stdin": "3\n89.5",
+        "output": "3 nights x 89.5 = 268.5"
+      },
+      {
+        "name": "Suite",
+        "stdin": "2\n120",
+        "output": "2 nights x 120.0 = 240.0"
+      },
+      {
+        "name": "Long stay",
+        "stdin": "7\n64.9",
+        "output": "7 nights x 64.9 = 454.3"
+      }
+    ]
+  },
+  {
+    "id": "t-py-job-ticket-counter",
+    "district": "py",
+    "type": "update",
+    "of": "t-py-job-ticket",
+    "client": "Nadia Petit, Garage Petit",
+    "title": "Type the card at the counter",
+    "covers": [
+      "py-input",
+      "py-strings"
+    ],
+    "brief": "No more paper cards: my apprentice types the name and the plate at the counter now. The machine must read them instead of always showing Sophie Bernard.",
+    "task": "Read two lines: the customer name, then the plate. Clean them exactly as before and print the same ticket line. For input <code>jean-luc roche</code> and <code>ab 12 cd</code>:\n\n~~~text\nJean-Luc Roche | AB-12-CD | JR\n~~~",
+    "starter": "",
+    "solution": "name = input()\nplate = input()\nclean = name.strip().title()\nplate_id = \"-\".join(plate.upper().split())\nwords = clean.split()\ninitials = words[0][0] + words[1][0]\nprint(f\"{clean} | {plate_id} | {initials}\")",
+    "hint": "Replace the two fixed values with input(). The rest of the machine stays the same.",
+    "par": 7,
+    "tests": [
+      {
+        "name": "Messy card",
+        "stdin": "  sophie BERNARD  \nef 482 gh",
+        "output": "Sophie Bernard | EF-482-GH | SB"
+      },
+      {
+        "name": "Hyphenated name",
+        "stdin": "jean-luc roche\nab 12 cd",
+        "output": "Jean-Luc Roche | AB-12-CD | JR"
+      },
+      {
+        "name": "Capitals",
+        "stdin": "  MARIE dupont\nzz 999 aa",
+        "output": "Marie Dupont | ZZ-999-AA | MD"
+      }
+    ]
+  },
+  {
+    "id": "t-py-delivery-fee",
+    "district": "py",
+    "client": "Ines Laurent, Epicerie Laurent",
+    "title": "Delivery fee rules",
+    "covers": [
+      "py-if"
+    ],
+    "brief": "We deliver groceries in town. Orders of 50 euros or more travel free, from 20 up to 50 it costs 4.90, and under 20 we charge 7.90. My staff keep mixing up the rules, so let the machine decide.",
+    "skill": {
+      "title": "if, elif, else",
+      "card": "<code>if</code> runs its indented block only when the condition is true. Python checks <code>if</code> then each <code>elif</code> in order and runs the first that matches; <code>else</code> catches the rest. So test the highest threshold first.",
+      "example": "total = 35\nif total >= 50:\n    print(\"free\")\nelif total >= 20:\n    print(\"small fee\")\nelse:\n    print(\"big fee\")"
+    },
+    "task": "Read the order amount (decimal). Print the delivery line, then the amount to pay rounded to 2 decimals:\n\n- 50 or more: <code>Delivery: free</code>, fee 0\n- 20 or more: <code>Delivery: 4.9</code>\n- below 20: <code>Delivery: 7.9</code>\n\nFor 35:\n\n~~~text\nDelivery: 4.9\nTo pay: 39.9\n~~~",
+    "starter": "amount = float(input())\n# choose the fee, then print the two lines\n",
+    "solution": "amount = float(input())\nif amount >= 50:\n    fee = 0\n    print(\"Delivery: free\")\nelif amount >= 20:\n    fee = 4.9\n    print(\"Delivery: 4.9\")\nelse:\n    fee = 7.9\n    print(\"Delivery: 7.9\")\nprint(f\"To pay: {round(amount + fee, 2)}\")",
+    "hint": "Start with if amount >= 50, then elif amount >= 20, then else. Set fee in each branch and print To pay once at the end.",
+    "par": 11,
+    "machine": {
+      "name": "Fee Router",
+      "icon": "filter"
+    },
+    "tests": [
+      {
+        "name": "Big basket",
+        "stdin": "62.5",
+        "output": "Delivery: free\nTo pay: 62.5"
+      },
+      {
+        "name": "Exactly 50",
+        "stdin": "50",
+        "output": "Delivery: free\nTo pay: 50.0"
+      },
+      {
+        "name": "Middle basket",
+        "stdin": "35",
+        "output": "Delivery: 4.9\nTo pay: 39.9"
+      },
+      {
+        "name": "Exactly 20",
+        "stdin": "20",
+        "output": "Delivery: 4.9\nTo pay: 24.9"
+      },
+      {
+        "name": "Small basket",
+        "stdin": "12.3",
+        "output": "Delivery: 7.9\nTo pay: 20.2"
+      }
+    ]
+  },
+  {
+    "id": "t-py-backup-till",
+    "district": "py",
+    "client": "Lea Martin, Cafe du Port",
+    "title": "A backup till",
+    "covers": [
+      "py-for"
+    ],
+    "brief": "The till broke again and the repair man comes on Monday. Until then my staff type how many items are on the tray, then each price. Number each line on the receipt and give me the total at the bottom.",
+    "skill": {
+      "title": "for and range()",
+      "card": "A <code>for</code> loop repeats its block once per item. <code>range(1, n + 1)</code> counts 1, 2, ..., n because the stop value is never included. To add things up, start a variable at 0 before the loop and add to it inside.",
+      "example": "total = 0\nfor i in range(1, 4):\n    print(f\"Line {i}\")\n    total = total + i\nprint(total)"
+    },
+    "task": "Read <code>n</code>, then <code>n</code> prices (decimals), one per line. Print each price with its line number, then the total rounded to 2 decimals. For 3 items:\n\n~~~text\n1: 2.5\n2: 1.8\n3: 3.0\nTotal: 7.3\n~~~",
+    "starter": "n = int(input())\ntotal = 0\n# read each price, print it, add it to total\nprint(f\"Total: {total}\")\n",
+    "solution": "n = int(input())\ntotal = 0\nfor i in range(1, n + 1):\n    price = float(input())\n    print(f\"{i}: {price}\")\n    total = total + price\nprint(f\"Total: {round(total, 2)}\")",
+    "hint": "for i in range(1, n + 1): read the price with float(input()) inside the loop, print it, then total = total + price.",
+    "par": 7,
+    "machine": {
+      "name": "Backup Till",
+      "icon": "list"
+    },
+    "tests": [
+      {
+        "name": "Breakfast tray",
+        "stdin": "3\n2.5\n1.8\n3",
+        "output": "1: 2.5\n2: 1.8\n3: 3.0\nTotal: 7.3"
+      },
+      {
+        "name": "One coffee",
+        "stdin": "1\n4.2",
+        "output": "1: 4.2\nTotal: 4.2"
+      },
+      {
+        "name": "Family table",
+        "stdin": "5\n1.2\n1.2\n2.4\n3.5\n0.9",
+        "output": "1: 1.2\n2: 1.2\n3: 2.4\n4: 3.5\n5: 0.9\nTotal: 9.2"
+      }
+    ]
+  },
+  {
+    "id": "t-py-delivery-fee-bug",
+    "district": "py",
+    "type": "bug",
+    "of": "t-py-delivery-fee",
+    "client": "Ines Laurent, Epicerie Laurent",
+    "title": "Charged on a 50 euro order",
+    "covers": [
+      "py-if"
+    ],
+    "brief": "A customer phoned, furious: her basket came to exactly 50 euros and we charged her delivery. My nephew says he only tidied your machine last night. The rules have not changed.",
+    "task": "Right now an order of exactly 50 pays 4.9 delivery and an order of exactly 20 pays 7.9. The rules are still: 50 or more is free, 20 or more pays 4.9, below 20 pays 7.9. Make every test pass.",
+    "starter": "amount = float(input())\nif amount > 50:\n    fee = 0\n    print(\"Delivery: free\")\nelif amount > 20:\n    fee = 4.9\n    print(\"Delivery: 4.9\")\nelse:\n    fee = 7.9\n    print(\"Delivery: 7.9\")\nprint(f\"To pay: {round(amount + fee, 2)}\")",
+    "solution": "amount = float(input())\nif amount >= 50:\n    fee = 0\n    print(\"Delivery: free\")\nelif amount >= 20:\n    fee = 4.9\n    print(\"Delivery: 4.9\")\nelse:\n    fee = 7.9\n    print(\"Delivery: 7.9\")\nprint(f\"To pay: {round(amount + fee, 2)}\")",
+    "hint": "Look at the comparison signs. Does \"50 or more\" mean > or >=?",
+    "par": 11,
+    "tests": [
+      {
+        "name": "Big basket",
+        "stdin": "62.5",
+        "output": "Delivery: free\nTo pay: 62.5"
+      },
+      {
+        "name": "Exactly 50",
+        "stdin": "50",
+        "output": "Delivery: free\nTo pay: 50.0"
+      },
+      {
+        "name": "Middle basket",
+        "stdin": "35",
+        "output": "Delivery: 4.9\nTo pay: 39.9"
+      },
+      {
+        "name": "Exactly 20",
+        "stdin": "20",
+        "output": "Delivery: 4.9\nTo pay: 24.9"
+      },
+      {
+        "name": "Small basket",
+        "stdin": "12.3",
+        "output": "Delivery: 7.9\nTo pay: 20.2"
+      }
+    ]
+  },
+  {
+    "id": "t-py-coach-timesheet",
+    "district": "py",
+    "client": "Hugo Blanc, FitZone Gym",
+    "title": "Coach timesheets",
+    "covers": [
+      "py-while"
+    ],
+    "brief": "My coaches send their week one line per day: the hours they worked, or off. They finish with done. Payroll needs the number of days worked and the total hours, and I am tired of counting by hand.",
+    "skill": {
+      "title": "while True, break and continue",
+      "card": "When you do not know how many lines will come, loop with <code>while True:</code> and leave with <code>break</code> when you see the end marker. <code>continue</code> skips the rest of this round and goes straight to the next one. <code>days += 1</code> is short for <code>days = days + 1</code>.",
+      "example": "lines = [\"4\", \"off\", \"6\", \"done\"]\ni = 0\ntotal = 0\nwhile True:\n    line = lines[i]\n    i += 1\n    if line == \"done\":\n        break\n    if line == \"off\":\n        continue\n    total += int(line)\nprint(total)"
+    },
+    "task": "Read lines until the line <code>done</code>. Skip the lines <code>off</code>. Every other line is a whole number of hours for one day worked. Print:\n\n~~~text\nDays worked: 3\nHours: 22\n~~~",
+    "starter": "days = 0\nhours = 0\n# read lines until done\nprint(f\"Days worked: {days}\")\nprint(f\"Hours: {hours}\")\n",
+    "solution": "days = 0\nhours = 0\nwhile True:\n    line = input()\n    if line == \"done\":\n        break\n    if line == \"off\":\n        continue\n    days += 1\n    hours += int(line)\nprint(f\"Days worked: {days}\")\nprint(f\"Hours: {hours}\")",
+    "hint": "Inside while True: read line = input(). If it is done, break. If it is off, continue. Otherwise add 1 to days and int(line) to hours.",
+    "par": 12,
+    "machine": {
+      "name": "Timesheet Tally",
+      "icon": "clock"
+    },
+    "tests": [
+      {
+        "name": "Lucas",
+        "stdin": "8\noff\n7\n7\ndone",
+        "output": "Days worked: 3\nHours: 22"
+      },
+      {
+        "name": "Part timer",
+        "stdin": "off\noff\n4\ndone",
+        "output": "Days worked: 1\nHours: 4"
+      },
+      {
+        "name": "Full week",
+        "stdin": "6\n6\n6\n6\n6\noff\noff\ndone",
+        "output": "Days worked: 5\nHours: 30"
+      }
+    ]
+  },
+  {
+    "id": "t-py-backup-till-loyalty",
+    "district": "py",
+    "type": "update",
+    "of": "t-py-backup-till",
+    "client": "Lea Martin, Cafe du Port",
+    "title": "Loyalty discount on the till",
+    "covers": [
+      "py-for",
+      "py-if"
+    ],
+    "brief": "Regulars love the new receipts. We are starting a loyalty deal: when a tray reaches 20 euros, take 10 percent off. Show the discount on its own line so they see it.",
+    "task": "After the numbered lines, if the total is 20 or more, print <code>Discount: </code> with 10 percent of the total rounded to 2 decimals, and take it off the total. The last line is still <code>Total: </code> rounded to 2 decimals. Below 20, nothing changes. For a 22 euro tray:\n\n~~~text\n1: 8.5\n2: 6.0\n3: 4.5\n4: 3.0\nDiscount: 2.2\nTotal: 19.8\n~~~",
+    "starter": "",
+    "solution": "n = int(input())\ntotal = 0\nfor i in range(1, n + 1):\n    price = float(input())\n    print(f\"{i}: {price}\")\n    total = total + price\nif total >= 20:\n    discount = round(total * 0.1, 2)\n    print(f\"Discount: {discount}\")\n    total = total - discount\nprint(f\"Total: {round(total, 2)}\")",
+    "hint": "After the loop: if total >= 20, compute the discount, print it, then subtract it from total.",
+    "par": 11,
+    "tests": [
+      {
+        "name": "Small tray",
+        "stdin": "3\n2.5\n1.8\n3",
+        "output": "1: 2.5\n2: 1.8\n3: 3.0\nTotal: 7.3"
+      },
+      {
+        "name": "Big tray",
+        "stdin": "4\n8.5\n6\n4.5\n3",
+        "output": "1: 8.5\n2: 6.0\n3: 4.5\n4: 3.0\nDiscount: 2.2\nTotal: 19.8"
+      },
+      {
+        "name": "Exactly 20",
+        "stdin": "2\n12\n8",
+        "output": "1: 12.0\n2: 8.0\nDiscount: 2.0\nTotal: 18.0"
+      }
+    ]
+  },
+  {
+    "id": "t-py-daily-sales",
+    "district": "py",
+    "client": "Marc Fontaine, Velo Fontaine",
+    "title": "End of day sales",
+    "covers": [
+      "py-lists"
+    ],
+    "brief": "Every evening I type the day's sales into the machine. I want to see how many we made, the best one, the average, and the big tickets above 100 euros so I can send those customers a thank you card.",
+    "skill": {
+      "title": "Lists: append, len, sum, max",
+      "card": "A list keeps values in order: start empty with <code>sales = []</code> and add with <code>sales.append(x)</code>. <code>len()</code>, <code>sum()</code>, <code>max()</code> and <code>min()</code> work on the whole list. To keep only some values, loop and append the ones you want to a second list.",
+      "example": "sales = []\nsales.append(45.0)\nsales.append(120.0)\nprint(len(sales), sum(sales), max(sales))\nbig = []\nfor s in sales:\n    if s > 100:\n        big.append(s)\nprint(big)"
+    },
+    "task": "Read <code>n</code>, then <code>n</code> sale amounts (decimals) into a list <code>sales</code>. Build <code>big</code>: the sales strictly above 100, in the same order. Print (average rounded to 1 decimal):\n\n~~~text\nSales: 5\nBest: 420.0\nAverage: 151.2\nBig: [420.0, 180.0]\n~~~",
+    "starter": "n = int(input())\nsales = []\n# fill sales, build big, print the four lines\n",
+    "solution": "n = int(input())\nsales = []\nfor i in range(n):\n    sales.append(float(input()))\nbig = []\nfor s in sales:\n    if s > 100:\n        big.append(s)\nprint(f\"Sales: {len(sales)}\")\nprint(f\"Best: {max(sales)}\")\nprint(f\"Average: {round(sum(sales) / len(sales), 1)}\")\nprint(f\"Big: {big}\")",
+    "hint": "Average: round(sum(sales) / len(sales), 1). Printing a list inside an f-string shows it with its brackets.",
+    "par": 12,
+    "machine": {
+      "name": "Sales Ledger",
+      "icon": "chart"
+    },
+    "tests": [
+      {
+        "name": "Saturday",
+        "stdin": "5\n45\n420\n180\n12.5\n98.5",
+        "output": "Sales: 5\nBest: 420.0\nAverage: 151.2\nBig: [420.0, 180.0]"
+      },
+      {
+        "name": "Rainy Tuesday",
+        "stdin": "3\n20\n35.5\n60",
+        "output": "Sales: 3\nBest: 60.0\nAverage: 38.5\nBig: []"
+      }
+    ],
+    "test": "assert isinstance(sales, list) and isinstance(big, list), 'Keep the lists sales and big.'"
+  },
+  {
+    "id": "t-py-parts-usage",
+    "district": "py",
+    "client": "Nadia Petit, Garage Petit",
+    "title": "Parts used today",
+    "covers": [
+      "py-dicts"
+    ],
+    "brief": "After each job the mechanic types the part and how many he used. At closing I want one count per part so I know what to reorder, and the part we burn through fastest.",
+    "skill": {
+      "title": "Dictionaries count things",
+      "card": "A dict maps keys to values: <code>used[\"filter\"] = 3</code>. <code>used.get(key, 0)</code> gives 0 when the key is not there yet, which is perfect for adding up. <code>for key, value in used.items()</code> walks the pairs in the order they were added, and <code>max(used, key=used.get)</code> gives the key with the biggest value.",
+      "example": "used = {}\nfor part in [\"bulb\", \"filter\", \"bulb\"]:\n    used[part] = used.get(part, 0) + 1\nfor part, qty in used.items():\n    print(part, qty)\nprint(max(used, key=used.get))"
+    },
+    "task": "Read <code>n</code>, then <code>n</code> lines <code>part qty</code> (for example <code>filter 2</code>). Add the quantities per part in a dict <code>used</code>. Print one line per part in the order they first appear, then the part with the biggest total:\n\n~~~text\nfilter: 3\nbrake_pad: 5\nwiper: 2\nTop: brake_pad\n~~~",
+    "starter": "n = int(input())\nused = {}\n# add up each part, then print\n",
+    "solution": "n = int(input())\nused = {}\nfor i in range(n):\n    words = input().split()\n    used[words[0]] = used.get(words[0], 0) + int(words[1])\nfor part, qty in used.items():\n    print(f\"{part}: {qty}\")\nprint(f\"Top: {max(used, key=used.get)}\")",
+    "hint": "words = input().split() gives [\"filter\", \"2\"]. Then used[words[0]] = used.get(words[0], 0) + int(words[1]).",
+    "par": 8,
+    "machine": {
+      "name": "Parts Counter",
+      "icon": "db"
+    },
+    "tests": [
+      {
+        "name": "Busy Monday",
+        "stdin": "5\nfilter 2\nbrake_pad 4\nfilter 1\nwiper 2\nbrake_pad 1",
+        "output": "filter: 3\nbrake_pad: 5\nwiper: 2\nTop: brake_pad"
+      },
+      {
+        "name": "Quiet day",
+        "stdin": "3\nbulb 1\nbulb 2\nfilter 1",
+        "output": "bulb: 3\nfilter: 1\nTop: bulb"
+      }
+    ],
+    "test": "assert isinstance(used, dict), 'Keep the dict used.'"
+  },
+  {
+    "id": "t-py-coach-timesheet-bug",
+    "district": "py",
+    "type": "bug",
+    "of": "t-py-coach-timesheet",
+    "client": "Hugo Blanc, FitZone Gym",
+    "title": "Days off counted as worked",
+    "covers": [
+      "py-while"
+    ],
+    "brief": "Payroll is wrong. Sophie took two days off this week and the machine still says she worked 5 days. Her hours look right though. Someone moved a line around in your timesheet machine.",
+    "task": "Days marked <code>off</code> are counted in <code>Days worked</code>. They must not be. Hours are fine. Make every test pass.",
+    "starter": "days = 0\nhours = 0\nwhile True:\n    line = input()\n    if line == \"done\":\n        break\n    days += 1\n    if line == \"off\":\n        continue\n    hours += int(line)\nprint(f\"Days worked: {days}\")\nprint(f\"Hours: {hours}\")",
+    "solution": "days = 0\nhours = 0\nwhile True:\n    line = input()\n    if line == \"done\":\n        break\n    if line == \"off\":\n        continue\n    days += 1\n    hours += int(line)\nprint(f\"Days worked: {days}\")\nprint(f\"Hours: {hours}\")",
+    "hint": "continue skips everything below it in the loop. Which lines should an off day skip?",
+    "par": 12,
+    "tests": [
+      {
+        "name": "Lucas",
+        "stdin": "8\noff\n7\n7\ndone",
+        "output": "Days worked: 3\nHours: 22"
+      },
+      {
+        "name": "Part timer",
+        "stdin": "off\noff\n4\ndone",
+        "output": "Days worked: 1\nHours: 4"
+      },
+      {
+        "name": "Full week",
+        "stdin": "6\n6\n6\n6\n6\noff\noff\ndone",
+        "output": "Days worked: 5\nHours: 30"
+      }
+    ]
+  },
+  {
+    "id": "t-py-double-bookings",
+    "district": "py",
+    "client": "Thomas Girard, Hotel des Pins",
+    "title": "Catch double bookings",
+    "covers": [
+      "py-sets"
+    ],
+    "brief": "We sell rooms on two booking sites and sometimes both sell the same room for tonight. Each site sends me one line of room numbers. Show me the clashes so I can call the guests, and how many rooms are taken in total.",
+    "skill": {
+      "title": "Sets: unique values, & and |",
+      "card": "<code>set(...)</code> keeps each value once. <code>a & b</code> keeps what is in both sets, <code>a | b</code> everything in either. A set has no order: <code>sorted()</code> turns it into a sorted list.",
+      "example": "a = set(\"101 104 104\".split())\nb = {\"104\", \"202\"}\nprint(sorted(a & b))\nprint(len(a | b))"
+    },
+    "task": "Read two lines of room numbers separated by spaces (a line can repeat a room). Build the sets <code>site_a</code> and <code>site_b</code>. Print the rooms in both, sorted and separated by spaces, or <code>none</code>, then the number of distinct rooms booked:\n\n~~~text\nClashes: 104 210\nRooms taken: 5\n~~~",
+    "starter": "site_a = input()\nsite_b = input()\n# find the clashes and count the rooms\n",
+    "solution": "site_a = set(input().split())\nsite_b = set(input().split())\nclashes = sorted(site_a & site_b)\nif len(clashes) > 0:\n    print(\"Clashes: \" + \" \".join(clashes))\nelse:\n    print(\"Clashes: none\")\nprint(f\"Rooms taken: {len(site_a | site_b)}\")",
+    "hint": "set(input().split()) builds each set. \" \".join(sorted(site_a & site_b)) gives the clash line.",
+    "par": 8,
+    "machine": {
+      "name": "Clash Finder",
+      "icon": "search"
+    },
+    "tests": [
+      {
+        "name": "Friday night",
+        "stdin": "101 104 210 305\n104 202 210 210",
+        "output": "Clashes: 104 210\nRooms taken: 5"
+      },
+      {
+        "name": "Clean night",
+        "stdin": "101 102\n201 202 203",
+        "output": "Clashes: none\nRooms taken: 5"
+      },
+      {
+        "name": "Repeats",
+        "stdin": "305 305 101\n101",
+        "output": "Clashes: 101\nRooms taken: 2"
+      }
+    ],
+    "test": "assert isinstance(site_a, set) and isinstance(site_b, set), 'site_a and site_b should be sets.'"
+  },
+  {
+    "id": "t-py-weekend-promo",
+    "district": "py",
+    "client": "Ines Laurent, Epicerie Laurent",
+    "title": "Weekend promo prices",
+    "covers": [
+      "py-comp"
+    ],
+    "brief": "Weekend promo: everything is 20 percent off. My supplier sends the price list as one line of name:price. I need the new prices for the shelf labels, and the bargain list: what costs under 2 euros after the promo.",
+    "skill": {
+      "title": "Comprehensions",
+      "card": "A comprehension builds a list or a dict in one line: <code>[x * 2 for x in nums if x > 0]</code> or <code>{k: v for ...}</code>. Read it as: this value, for each item, if the condition holds.",
+      "example": "prices = {\"tea\": 3.0, \"jam\": 1.5}\nhalf = {name: prices[name] / 2 for name in prices}\ncheap = [name for name in prices if prices[name] < 2]\nprint(half, cheap)"
+    },
+    "task": "Read one line such as <code>apples:2.40 milk:1.10 coffee:6.50</code>. With comprehensions, build the dict <code>promo</code> (name to price times 0.8, rounded to 2 decimals) and the list <code>bargains</code> (names whose promo price is below 2, in the same order). Print one line per product, then the bargains joined by <code>, </code>:\n\n~~~text\napples: 1.92\nmilk: 0.88\ncoffee: 5.2\nBargains: apples, milk\n~~~",
+    "starter": "items = input().split()\n# build promo and bargains with comprehensions\n",
+    "solution": "items = input().split()\npromo = {i.split(\":\")[0]: round(float(i.split(\":\")[1]) * 0.8, 2) for i in items}\nbargains = [name for name in promo if promo[name] < 2]\nfor name, price in promo.items():\n    print(f\"{name}: {price}\")\nprint(\"Bargains: \" + \", \".join(bargains))",
+    "hint": "For one item like \"milk:1.10\", i.split(\":\")[0] is the name and i.split(\":\")[1] the price text.",
+    "par": 6,
+    "machine": {
+      "name": "Promo Labeller",
+      "icon": "filter"
+    },
+    "tests": [
+      {
+        "name": "Fruit and drinks",
+        "stdin": "apples:2.40 milk:1.10 coffee:6.50",
+        "output": "apples: 1.92\nmilk: 0.88\ncoffee: 5.2\nBargains: apples, milk"
+      },
+      {
+        "name": "Dairy aisle",
+        "stdin": "bread:1.50 cheese:12.00 eggs:3.00",
+        "output": "bread: 1.2\ncheese: 9.6\neggs: 2.4\nBargains: bread"
+      }
+    ],
+    "test": "assert isinstance(promo, dict) and isinstance(bargains, list), 'Build the dict promo and the list bargains.'"
+  },
+  {
+    "id": "t-py-parts-usage-reorder",
+    "district": "py",
+    "type": "update",
+    "of": "t-py-parts-usage",
+    "client": "Nadia Petit, Garage Petit",
+    "title": "Reorder flags",
+    "covers": [
+      "py-dicts",
+      "py-if"
+    ],
+    "brief": "The parts count saves me an hour a week. My supplier wants the list in alphabetical order, and mark anything we used 3 or more of so I remember to reorder it.",
+    "task": "Print the parts sorted by name. Add <code> REORDER</code> at the end of the line when the total is 3 or more. The <code>Top</code> line stays as it is:\n\n~~~text\nbrake_pad: 5 REORDER\nfilter: 3 REORDER\nwiper: 2\nTop: brake_pad\n~~~",
+    "starter": "",
+    "solution": "n = int(input())\nused = {}\nfor i in range(n):\n    words = input().split()\n    used[words[0]] = used.get(words[0], 0) + int(words[1])\nfor part in sorted(used):\n    if used[part] >= 3:\n        print(f\"{part}: {used[part]} REORDER\")\n    else:\n        print(f\"{part}: {used[part]}\")\nprint(f\"Top: {max(used, key=used.get)}\")",
+    "hint": "for part in sorted(used): gives the keys in alphabetical order. used[part] is the total.",
+    "par": 11,
+    "tests": [
+      {
+        "name": "Busy Monday",
+        "stdin": "5\nfilter 2\nbrake_pad 4\nfilter 1\nwiper 2\nbrake_pad 1",
+        "output": "brake_pad: 5 REORDER\nfilter: 3 REORDER\nwiper: 2\nTop: brake_pad"
+      },
+      {
+        "name": "Quiet day",
+        "stdin": "3\nbulb 1\nbulb 2\nfilter 1",
+        "output": "bulb: 3 REORDER\nfilter: 1\nTop: bulb"
+      },
+      {
+        "name": "Small jobs",
+        "stdin": "3\nwiper 1\nbulb 2\nhose 1",
+        "output": "bulb: 2\nhose: 1\nwiper: 1\nTop: bulb"
+      }
+    ]
+  },
+  {
+    "id": "t-py-guesthouse-quote",
+    "district": "py",
+    "client": "Camille Roux, Gite des Vignes",
+    "title": "One price for every quote",
+    "covers": [
+      "py-func"
+    ],
+    "brief": "Three people answer the phone at my guesthouse and they all count differently. I want one function everyone uses: nights, nightly rate, breakfast or not. Breakfast is 12 euros per night.",
+    "skill": {
+      "title": "Functions with return and default values",
+      "card": "<code>def name(a, b=False):</code> packages code you can call again. <code>return</code> hands a value back to the caller; printing is not returning. A parameter with <code>=</code> has a default value, used when the caller leaves it out.",
+      "example": "def price(nights, rate, breakfast=False):\n    total = nights * rate\n    if breakfast:\n        total = total + 12 * nights\n    return total\nprint(price(2, 50))\nprint(price(2, 50, True))"
+    },
+    "task": "Write <code>stay_price(nights, rate, breakfast=False)</code>: nights times rate, plus 12 per night when <code>breakfast</code> is true, rounded to 2 decimals. Write <code>quote_line(name, total)</code> returning <code>Quote for Martin: 306.0</code>. Then read four lines (name, nights, rate, <code>yes</code> or <code>no</code> for breakfast) and print the quote line.",
+    "starter": "def stay_price(nights, rate, breakfast=False):\n    pass\n\ndef quote_line(name, total):\n    pass\n\nname = input()\nnights = int(input())\nrate = float(input())\nbreakfast = input() == \"yes\"\nprint(quote_line(name, stay_price(nights, rate, breakfast)))\n",
+    "solution": "def stay_price(nights, rate, breakfast=False):\n    total = nights * rate\n    if breakfast:\n        total = total + 12 * nights\n    return round(total, 2)\n\ndef quote_line(name, total):\n    return f\"Quote for {name}: {total}\"\n\nname = input()\nnights = int(input())\nrate = float(input())\nbreakfast = input() == \"yes\"\nprint(quote_line(name, stay_price(nights, rate, breakfast)))",
+    "hint": "Inside stay_price, compute total, add 12 * nights if breakfast, then return round(total, 2).",
+    "par": 12,
+    "machine": {
+      "name": "Quote Engine",
+      "icon": "calc"
+    },
+    "tests": [
+      {
+        "name": "Martin, with breakfast",
+        "stdin": "Martin\n3\n90\nyes",
+        "output": "Quote for Martin: 306.0"
+      },
+      {
+        "name": "Okafor, room only",
+        "stdin": "Okafor\n2\n75.5\nno",
+        "output": "Quote for Okafor: 151.0"
+      }
+    ],
+    "test": "assert stay_price(2, 50) == 100, 'stay_price(2, 50) should return 100'\nassert stay_price(2, 50, True) == 124, 'stay_price(2, 50, True) should return 124'\nassert stay_price(1, 80, breakfast=True) == 92, 'stay_price(1, 80, breakfast=True) should return 92'\nassert quote_line('Ana', 10.5) == 'Quote for Ana: 10.5', 'quote_line should return the text, not print it'"
+  },
+  {
+    "id": "t-py-rowing-board",
+    "district": "py",
+    "client": "Hugo Blanc, FitZone Gym",
+    "title": "Rowing challenge board",
+    "covers": [
+      "py-args"
+    ],
+    "brief": "This month we run a 500 metre rowing challenge. Times come in as name and seconds. I want the board on the big screen, fastest first, with the club average under it.",
+    "skill": {
+      "title": "*args and lambda sort keys",
+      "card": "<code>def average(*times):</code> accepts any number of arguments and receives them as a tuple. A star in a call spreads a list into arguments: <code>average(*laps)</code>. <code>sorted(rows, key=lambda r: r[1])</code> sorts rows by their second value.",
+      "example": "def average(*times):\n    return round(sum(times) / len(times), 1)\nprint(average(100, 110, 96))\nlaps = [100, 110]\nprint(average(*laps))\nprint(sorted([(\"Bo\", 120), (\"Ada\", 98)], key=lambda r: r[1]))"
+    },
+    "task": "Write <code>average(*times)</code> returning the average of its arguments rounded to 1 decimal. Read <code>n</code>, then <code>n</code> lines <code>name seconds</code> into a list <code>results</code> of tuples <code>(name, seconds)</code>. Sort them fastest first with a lambda into <code>board</code>, print the ranking, then the average:\n\n~~~text\n1. Ami 95\n2. Zoe 98\n3. Tom 105\n4. Luc 112\nAverage: 102.5\n~~~",
+    "starter": "def average(*times):\n    pass\n\nn = int(input())\nresults = []\n# read the times, sort them, print the board\n",
+    "solution": "def average(*times):\n    return round(sum(times) / len(times), 1)\n\nn = int(input())\nresults = []\nfor i in range(n):\n    words = input().split()\n    results.append((words[0], int(words[1])))\nboard = sorted(results, key=lambda r: r[1])\nfor i in range(len(board)):\n    print(f\"{i + 1}. {board[i][0]} {board[i][1]}\")\nprint(f\"Average: {average(*[r[1] for r in results])}\")",
+    "hint": "board = sorted(results, key=lambda r: r[1]). For the average, build the list of seconds with a comprehension and spread it with *.",
+    "par": 11,
+    "machine": {
+      "name": "Leaderboard",
+      "icon": "chart"
+    },
+    "tests": [
+      {
+        "name": "Week one",
+        "stdin": "4\nZoe 98\nLuc 112\nAmi 95\nTom 105",
+        "output": "1. Ami 95\n2. Zoe 98\n3. Tom 105\n4. Luc 112\nAverage: 102.5"
+      },
+      {
+        "name": "Early birds",
+        "stdin": "2\nNina 120\nSam 101",
+        "output": "1. Sam 101\n2. Nina 120\nAverage: 110.5"
+      }
+    ],
+    "test": "assert average(100, 101) == 100.5 and average(90) == 90, 'average should accept any number of times'\nassert board == sorted(results, key=lambda r: r[1]), 'board should be results sorted by seconds'"
+  },
+  {
+    "id": "t-py-bike-build-quote",
+    "district": "py",
+    "client": "Marc Fontaine, Velo Fontaine",
+    "title": "Quote a custom bike",
+    "covers": [
+      "py-rec"
+    ],
+    "brief": "Custom builds are quoted as nested lists: the frame, then the wheel set, which holds the rims, which hold the spokes, and so on. My spreadsheet chokes on it. I need the number of priced parts and the full quote, however deep the nesting goes.",
+    "skill": {
+      "title": "Recursion on nested lists",
+      "card": "A recursive function calls itself on a smaller piece. For nested lists: loop over the items, and when <code>isinstance(item, list)</code> is true, call the same function on that item and use what it returns. A plain value is the base case.",
+      "example": "def depth_sum(items):\n    s = 0\n    for item in items:\n        if isinstance(item, list):\n            s = s + depth_sum(item)\n        else:\n            s = s + item\n    return s\nprint(depth_sum([1, [2, [3]]]))"
+    },
+    "task": "Write <code>count(parts)</code> returning how many numbers the nested list holds, and <code>total(parts)</code> returning their sum rounded to 2 decimals. Both must work at any depth. Then print, for <code>build</code>:\n\n~~~text\nParts: 8\nQuote: 577.3\n~~~",
+    "starter": "build = [350.0, [45.5, 45.5, [12.0, 12.0]], [89.9, [19.9, 2.5]]]\n\ndef count(parts):\n    return len(parts)\n\ndef total(parts):\n    pass\n\nprint(f\"Parts: {count(build)}\")\nprint(f\"Quote: {total(build)}\")\n",
+    "solution": "build = [350.0, [45.5, 45.5, [12.0, 12.0]], [89.9, [19.9, 2.5]]]\n\ndef count(parts):\n    n = 0\n    for p in parts:\n        if isinstance(p, list):\n            n = n + count(p)\n        else:\n            n = n + 1\n    return n\n\ndef total(parts):\n    s = 0\n    for p in parts:\n        if isinstance(p, list):\n            s = s + total(p)\n        else:\n            s = s + p\n    return round(s, 2)\n\nprint(f\"Parts: {count(build)}\")\nprint(f\"Quote: {total(build)}\")",
+    "hint": "In both functions, if the item is a list, add what the function returns for that item; otherwise add the item (or 1 for count).",
+    "par": 19,
+    "machine": {
+      "name": "Build Quoter",
+      "icon": "folder"
+    },
+    "tests": [
+      {
+        "name": "Gravel build",
+        "output": "Parts: 8\nQuote: 577.3"
+      }
+    ],
+    "test": "assert count([1, [2, [3]]]) == 3 and count([[], [[]]]) == 0, 'count must go into every level'\nassert total([1, [2, [3]]]) == 6 and total([]) == 0, 'total must add every level'\nassert total([[10.5], [[0.25, [0.25]]]]) == 11, 'total([[10.5], [[0.25, [0.25]]]]) should be 11'"
+  }
+]

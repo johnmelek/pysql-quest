@@ -1,0 +1,1132 @@
+[
+ {
+  "id": "m-b-code-list",
+  "chapter": "The Archive",
+  "title": "The code roll",
+  "covers": [
+   "py-lists"
+  ],
+  "xp": 20,
+  "story": "Bit rolls through a heavy door into the Archive: rows of dusty terminals, each one humming with old records. The first terminal holds a roll of door codes. WARDEN locked the next two doors with the first and the last code on that roll, and the roll is a different length every night.",
+  "power": "A <b>list</b> keeps many values together, in order, under one name. You write it with square brackets <code>[ ]</code>, the items separated by commas. When Bit scans a terminal, it often gets a list back.\n\n### Reading items by index\n\nEach item has an <b>index</b>: its position in the list. Counting starts at 0, just like the characters of a string. A <b>negative index</b> counts from the end: <code>-1</code> is the last item, <code>-2</code> the one before it. <code>len(list)</code> gives the number of items.\n\n~~~python\ncodes = [4417, 2093, 8851, 1270]\nprint(codes)\nprint(codes[0])\nprint(codes[1])\nprint(codes[-1])\nprint(len(codes))\n~~~\n\n- Line 1: <code>codes</code> holds a list of 4 numbers.\n- Line 2: prints the whole list: <code>[4417, 2093, 8851, 1270]</code>.\n- Line 3: index 0 is the first item: <code>4417</code>.\n- Line 4: index 1 is the second item: <code>2093</code>.\n- Line 5: index -1 is the last item: <code>1270</code>, however long the list is.\n- Line 6: 4 items, so <code>4</code>.\n\n### Slicing: a piece of a list\n\n<code>lst[a:b]</code> is a <b>slice</b>: a new list with the items from index <code>a</code> up to, but not including, index <code>b</code>. Leave a side empty to start at the beginning or go to the end. Negative indexes work in slices too, so <code>codes[1:-1]</code> is everything except the first and the last item. The original list does not change.\n\n~~~python\ncodes = [4417, 2093, 8851, 1270]\nprint(codes[0:2])\nprint(codes[:3])\nprint(codes[2:])\nprint(codes[1:-1])\nprint(codes)\n~~~\n\n- Line 2: indexes 0 and 1: <code>[4417, 2093]</code>.\n- Line 3: from the start up to index 3 (not included): <code>[4417, 2093, 8851]</code>.\n- Line 4: from index 2 to the end: <code>[8851, 1270]</code>.\n- Line 5: without the first and the last: <code>[2093, 8851]</code>.\n- Line 6: the list itself is unchanged.\n\n### Looping over a list\n\nA <code>for</code> loop over a list gives you each item in turn, from index 0 to the end.\n\n~~~python\ncodes = [4417, 2093, 8851]\nfor c in codes:\n    print(\"trying\", c)\nprint(\"done,\", len(codes), \"codes tried\")\n~~~\n\n### Common mistakes\n\n- Using index 1 for the first item. The first item is index 0.\n- Using <code>codes[len(codes)]</code> for the last item: that index is one past the end and stops the program with an <code>IndexError</code>. Use <code>codes[-1]</code>.\n- Forgetting that the end of a slice is not included.",
+  "goal": "Scan the terminal, unlock door A with the first code and door B with the last code, and reach the exit. Then say <code>Codes:</code> and how many codes the roll has, and <code>Unused:</code> followed by the slice of codes between the first and the last.",
+  "starter": "from robot import *\n\nmove()\ncodes = scan()\n# codes is a list. Door A is right in front of you.\n",
+  "solution": "from robot import *\n\nmove()\ncodes = scan()\nunlock(codes[0])\nmove()\nmove()\nunlock(codes[-1])\nmove()\nmove()\nsay(\"Codes:\", len(codes))\nsay(\"Unused:\", codes[1:-1])\n",
+  "hint": "The first item is codes[0], the last is codes[-1], and codes[1:-1] is everything in between.",
+  "par": 12,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      4417,
+      2093,
+      8851,
+      1270
+     ]
+    },
+    "codes": {
+     "A": "4417",
+     "B": "1270"
+    },
+    "output": "Codes: 4\nUnused: [2093, 8851]\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      5302,
+      7719,
+      6604
+     ]
+    },
+    "codes": {
+     "A": "5302",
+     "B": "6604"
+    },
+    "output": "Codes: 3\nUnused: [7719]\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      9184,
+      3321,
+      4470,
+      1866,
+      2549
+     ]
+    },
+    "codes": {
+     "A": "9184",
+     "B": "2549"
+    },
+    "output": "Codes: 5\nUnused: [3321, 4470, 1866]\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-sensor-log",
+  "chapter": "The Archive",
+  "title": "The furnace log",
+  "covers": [
+   "py-lists"
+  ],
+  "xp": 25,
+  "story": "The next terminal keeps the furnace temperature log, one reading per hour. WARDEN set the doors to clever codes: door A wants the spread of the readings (the biggest minus the smallest), door B wants their average. Get one number wrong and the alarm goes off.",
+  "power": "Some functions take a list and answer a question about it, without changing the list.\n\n### Asking questions about a list\n\n- <code>sum(list)</code> adds all the numbers.\n- <code>max(list)</code> and <code>min(list)</code> give the biggest and the smallest item.\n- <code>sorted(list)</code> gives a <b>new</b> list in increasing order. <code>sorted(list, reverse=True)</code> gives decreasing order. The <code>reverse=True</code> part is a <b>named argument</b>: an option given by its name.\n- <code>x in list</code> gives <code>True</code> if <code>x</code> is one of the items, otherwise <code>False</code>.\n\n~~~python\ntemps = [62, 48, 75, 51]\nprint(sum(temps))\nprint(max(temps), min(temps))\nprint(sorted(temps))\nprint(sorted(temps, reverse=True))\nprint(75 in temps, 99 in temps)\nprint(temps)\n~~~\n\n- Line 2: 62 + 48 + 75 + 51: prints <code>236</code>.\n- Line 3: prints <code>75 48</code>.\n- Line 4: prints <code>[48, 51, 62, 75]</code>.\n- Line 5: prints <code>[75, 62, 51, 48]</code>.\n- Line 6: prints <code>True False</code>.\n- Line 7: the original list is unchanged: <code>[62, 48, 75, 51]</code>.\n\n### The average\n\nAn average is the total divided by how many values there are: <code>sum(list) / len(list)</code>. The division gives a float, often with many decimals, so wrap it in <code>round(..., 1)</code> to keep one decimal. Python computes the innermost parentheses first.\n\n~~~python\ntemps = [62, 48, 75, 51]\naverage = sum(temps) / len(temps)\nprint(average)\nprint(round(average, 1))\nprint(round(sum([3, 4, 4]) / 3, 1))\n~~~\n\n- Line 2: 236 divided by 4: <code>average</code> gets <code>59.0</code>.\n- Line 4: already one decimal: <code>59.0</code>.\n- Line 5: 11 divided by 3 is 3.666..., rounded to <code>3.7</code>.\n\n### Building a new list with a loop\n\nTo keep only some items, start with an empty list <code>[]</code>, loop over the original list, and <code>.append</code> the items that pass an <code>if</code> test. <code>.append(x)</code> adds <code>x</code> at the end of a list. The new list keeps the original order.\n\n~~~python\ntemps = [62, 48, 75, 51]\nhot = []\nfor t in temps:\n    if t > 60:\n        hot.append(t)\n    print(\"checked\", t, \"hot is now\", hot)\nprint(hot)\n~~~\n\n- Line 2: <code>hot</code> starts empty.\n- Round 1: 62 is above 60, so <code>hot</code> becomes <code>[62]</code>. Round 2: 48 is skipped. Round 3: 75 is added. Round 4: 51 is skipped.\n- Line 7 prints <code>[62, 75]</code>.\n\n### Common mistakes\n\n- Writing <code>hot = hot.append(t)</code>. <code>append</code> changes the list and returns nothing, so this replaces your list with <code>None</code>. Just write <code>hot.append(t)</code>.\n- Creating the empty list inside the loop, which empties it on every round.\n- Confusing \"strictly above\" (<code>&gt;</code>) with \"above or equal\" (<code>&gt;=</code>).\n- Forgetting <code>round</code> when a number of decimals is asked.",
+  "goal": "Scan the log. Unlock door A with the biggest reading minus the smallest, and door B with the average rounded to 1 decimal. At the exit, say <code>Hot:</code> and the list of readings strictly above 50 (in log order), then <code>Top three:</code> and the three highest readings, highest first.",
+  "starter": "from robot import *\n\nmove()\ntemps = scan()\nmove()\n",
+  "solution": "from robot import *\n\nmove()\ntemps = scan()\nmove()\nunlock(max(temps) - min(temps))\nmove()\nmove()\nunlock(round(sum(temps) / len(temps), 1))\nhot = []\nfor t in temps:\n    if t > 50:\n        hot.append(t)\nmove()\nmove()\nmove()\nsay(\"Hot:\", hot)\nsay(\"Top three:\", sorted(temps, reverse=True)[:3])\n",
+  "hint": "round(sum(temps) / len(temps), 1) is the average, and a slice [:3] of the list sorted with reverse=True gives the top three.",
+  "par": 18,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>1.A.B.E#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      62,
+      48,
+      75,
+      51
+     ]
+    },
+    "codes": {
+     "A": "27",
+     "B": "59.0"
+    },
+    "output": "Hot: [62, 75, 51]\nTop three: [75, 62, 51]\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>1.A.B.E#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      30,
+      55,
+      41,
+      90,
+      52,
+      47
+     ]
+    },
+    "codes": {
+     "A": "60",
+     "B": "52.5"
+    },
+    "output": "Hot: [55, 90, 52]\nTop three: [90, 55, 52]\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>1.A.B.E#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      71,
+      20,
+      66
+     ]
+    },
+    "codes": {
+     "A": "51",
+     "B": "52.3"
+    },
+    "output": "Hot: [71, 66]\nTop three: [71, 66, 20]\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-scrambled-route",
+  "chapter": "The Archive",
+  "title": "The scrambled route card",
+  "covers": [
+   "py-lists"
+  ],
+  "xp": 25,
+  "story": "Behind the doors, the Archive turns into a maze of shelves. A terminal gives Bit the route through it as a list of steps, but WARDEN has scrambled the card: useless <code>static</code> steps are mixed in, and one extra <code>move</code> was added at the very end. That last step walks straight into a pit.",
+  "power": "Unlike a string, a list can be changed in place. That is how Bit cleans a damaged list before using it.\n\n### Changing a list\n\nThese <b>methods</b> (functions attached to a value, called with a dot) change the list itself:\n\n- <code>.append(x)</code> adds <code>x</code> at the end.\n- <code>.insert(i, x)</code> puts <code>x</code> at index <code>i</code>, moving the others one place to the right.\n- <code>.remove(x)</code> deletes the first item equal to <code>x</code>.\n- <code>.pop()</code> removes the last item and gives it back to you.\n\n~~~python\nsteps = [\"move\", \"left\"]\nsteps.append(\"move\")\nprint(steps)\nsteps.insert(0, \"right\")\nprint(steps)\nsteps.remove(\"left\")\nprint(steps)\nlast = steps.pop()\nprint(last, steps)\n~~~\n\n- Line 2: <code>steps</code> becomes <code>['move', 'left', 'move']</code>. Line 3 prints it.\n- Line 4: <code>\"right\"</code> goes to index 0: <code>['right', 'move', 'left', 'move']</code>.\n- Line 6: the first <code>\"left\"</code> is removed: <code>['right', 'move', 'move']</code>.\n- Line 8: the last item is taken out and stored in <code>last</code>.\n- Line 9: prints <code>move ['right', 'move']</code>.\n\n### Removing every copy of a value\n\n<code>.remove</code> only deletes the first copy, and it stops the program with a <code>ValueError</code> if the value is not there. Combine it with <code>in</code> and a <code>while</code> loop to delete every copy safely.\n\n~~~python\ncard = [\"move\", \"static\", \"left\", \"static\", \"move\"]\nwhile \"static\" in card:\n    card.remove(\"static\")\n    print(card)\nprint(len(card), \"real steps\")\n~~~\n\n### Following a list of instructions\n\nA <code>for</code> loop over the list, with an <code>if</code> / <code>elif</code> chain inside, turns each word into an action.\n\n~~~python\ncard = [\"move\", \"move\", \"left\", \"move\"]\nfor step in card:\n    if step == \"move\":\n        print(\"going forward\")\n    elif step == \"left\":\n        print(\"turning left\")\n    else:\n        print(\"turning right\")\n~~~\n\n### Common mistakes\n\n- Calling <code>.remove(x)</code> when <code>x</code> is not in the list: <code>ValueError</code>. Check with <code>in</code> first.\n- Writing <code>card = card.pop()</code>: now <code>card</code> is the removed item, not the list.\n- Changing a list while a <code>for</code> loop runs over that same list: items get skipped. Clean it first, then loop.",
+  "goal": "Scan the route card, throw away its last step with <code>pop()</code>, remove every <code>static</code> step, and say <code>Clean route:</code> followed by the number of steps left and the word <code>steps</code>. Then follow the clean route (<code>move</code>, <code>left</code> or <code>right</code>) to the exit.",
+  "starter": "from robot import *\n\nmove()\nroute = scan()\n# clean the route, then follow it\n",
+  "solution": "from robot import *\n\nmove()\nroute = scan()\nroute.pop()\nwhile \"static\" in route:\n    route.remove(\"static\")\nsay(\"Clean route:\", len(route), \"steps\")\nfor step in route:\n    if step == \"move\":\n        move()\n    elif step == \"left\":\n        turn_left()\n    else:\n        turn_right()\n",
+  "hint": "Pop first, then use while \"static\" in route: route.remove(\"static\") before the for loop that drives Bit.",
+  "par": 14,
+  "check": {
+   "exit": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#########",
+     "####..Ex#",
+     "####.####",
+     "#>1..####",
+     "#########"
+    ],
+    "data": {
+     "1": [
+      "move",
+      "static",
+      "move",
+      "left",
+      "move",
+      "static",
+      "move",
+      "right",
+      "move",
+      "move",
+      "move"
+     ]
+    },
+    "output": "Clean route: 8 steps\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>1.#####",
+     "###.#####",
+     "###...Ex#",
+     "#########"
+    ],
+    "data": {
+     "1": [
+      "static",
+      "move",
+      "right",
+      "move",
+      "static",
+      "move",
+      "left",
+      "move",
+      "static",
+      "move",
+      "move",
+      "move"
+     ]
+    },
+    "output": "Clean route: 8 steps\n"
+   },
+   {
+    "map": [
+     "########",
+     "###..###",
+     "#>1..###",
+     "####.Ex#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      "move",
+      "left",
+      "static",
+      "move",
+      "right",
+      "move",
+      "right",
+      "move",
+      "move",
+      "left",
+      "move",
+      "move"
+     ]
+    },
+    "output": "Clean route: 10 steps\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-key-cabinet",
+  "chapter": "The Archive",
+  "title": "The key cabinet",
+  "covers": [
+   "py-dicts"
+  ],
+  "xp": 25,
+  "story": "Two terminals stand side by side at the end of the shelves. The first is WARDEN's key cabinet: every door letter with its code. The second is the night patch: codes WARDEN changed since the cabinet was printed. Use an old code and the doors stay shut.",
+  "power": "A <b>dictionary</b>, or <b>dict</b>, stores pairs: a <b>key</b> and its <b>value</b>. Think of a phone book (name to number). You look things up by key instead of by position, and it is instant.\n\n### Creating a dict and looking up a key\n\nA dict is written with curly braces <code>{ }</code>. Inside, each pair is <code>key: value</code>, and pairs are separated by commas. To read a value, put its key in square brackets. <code>len</code> counts the pairs.\n\n~~~python\ncabinet = {\"A\": 4417, \"B\": 2093, \"lamp\": \"off\"}\nprint(cabinet)\nprint(cabinet[\"B\"])\nprint(len(cabinet))\n~~~\n\n- Line 1: <code>\"A\"</code> is a key, <code>4417</code> is its value. Values can be of any kind.\n- Line 3: looks up the key <code>\"B\"</code> and prints <code>2093</code>.\n- Line 4: 3 pairs, so <code>3</code>.\n\n### Adding and updating\n\nAssigning to a key adds the pair if the key is new, or replaces the value if the key already exists. A dict never holds the same key twice.\n\n~~~python\nstock = {\"bolt\": 5}\nstock[\"gear\"] = 3\nstock[\"bolt\"] = 10\nstock[\"bolt\"] = stock[\"bolt\"] + 1\nprint(stock)\n~~~\n\n- Line 2: <code>\"gear\"</code> is new, so it is added.\n- Line 3: <code>\"bolt\"</code> exists, so its value is replaced by 10.\n- Line 4: reads 10, adds 1, stores 11.\n- Line 5: prints <code>{'bolt': 11, 'gear': 3}</code>.\n\n### Missing keys: in and .get\n\nReading a key that does not exist with square brackets stops the program with a <code>KeyError</code>. Two safe tools: <code>key in d</code> tells you if the key exists, and <code>d.get(key, default)</code> gives the value, or the default when the key is missing.\n\n~~~python\ncabinet = {\"A\": 4417}\nprint(\"A\" in cabinet, \"C\" in cabinet)\nprint(cabinet.get(\"A\", \"none\"))\nprint(cabinet.get(\"C\", \"none\"))\n~~~\n\n- Line 2: prints <code>True False</code>.\n- Line 3: the key exists: <code>4417</code>.\n- Line 4: <code>\"C\"</code> is missing, so the default is returned: <code>none</code>.\n\n### Looping over a dict\n\nA <code>for</code> loop over a dict gives you its keys. <code>.items()</code> gives the pairs, and you can receive each pair into two loop variables at once: <code>for key, value in d.items():</code>. <code>.keys()</code> gives only the keys and <code>.values()</code> only the values.\n\n~~~python\npatch = {\"B\": 7719, \"C\": 5150}\nfor door in patch:\n    print(door)\nfor door, code in patch.items():\n    print(f\"door {door} now uses {code}\")\nprint(list(patch.keys()), list(patch.values()))\n~~~\n\n- Lines 2 and 3: <code>door</code> gets <code>\"B\"</code>, then <code>\"C\"</code>.\n- Lines 4 and 5: on round 1, <code>door</code> is <code>\"B\"</code> and <code>code</code> is <code>7719</code>.\n- Line 6: prints <code>['B', 'C'] [7719, 5150]</code>. <code>list(...)</code> turns them into plain lists.\n\n### Common mistakes\n\n- Reading a missing key with <code>d[key]</code>: <code>KeyError</code>. Use <code>d.get(key, default)</code> or check with <code>in</code>.\n- Forgetting the quotes around text keys: <code>cabinet[A]</code> looks for a variable called A.",
+  "goal": "Scan the cabinet (terminal 1) and the patch (terminal 2). Copy every pair of the patch into the cabinet, then unlock doors A and B with the up-to-date codes and reach the exit. Finally say <code>Spare code for C:</code> and the code of door C, or <code>none</code> if the cabinet has no key <code>C</code>.",
+  "starter": "from robot import *\n\nmove()\ncabinet = scan()\nmove()\npatch = scan()\n",
+  "solution": "from robot import *\n\nmove()\ncabinet = scan()\nmove()\npatch = scan()\nfor door, code in patch.items():\n    cabinet[door] = code\nunlock(cabinet[\"A\"])\nmove()\nunlock(cabinet[\"B\"])\nmove()\nmove()\nmove()\nsay(\"Spare code for C:\", cabinet.get(\"C\", \"none\"))\n",
+  "hint": "Loop over patch.items() and assign cabinet[door] = code; cabinet.get(\"C\", \"none\") handles the missing key.",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#########",
+     "#>12AB.E#",
+     "#########"
+    ],
+    "data": {
+     "1": {
+      "A": 4417,
+      "B": 2093
+     },
+     "2": {
+      "B": 7719
+     }
+    },
+    "codes": {
+     "A": "4417",
+     "B": "7719"
+    },
+    "output": "Spare code for C: none\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>12AB.E#",
+     "#########"
+    ],
+    "data": {
+     "1": {
+      "A": 1270,
+      "B": 8851,
+      "lamp": "off"
+     },
+     "2": {
+      "A": 6604,
+      "C": 5150
+     }
+    },
+    "codes": {
+     "A": "6604",
+     "B": "8851"
+    },
+    "output": "Spare code for C: 5150\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>12AB.E#",
+     "#########"
+    ],
+    "data": {
+     "1": {
+      "A": 3321,
+      "B": 9184,
+      "C": 2549
+     },
+     "2": {}
+    },
+    "codes": {
+     "A": "3321",
+     "B": "9184"
+    },
+    "output": "Spare code for C: 2549\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-parts-count",
+  "chapter": "The Archive",
+  "title": "The parts tally",
+  "covers": [
+   "py-dicts"
+  ],
+  "xp": 25,
+  "story": "A terminal prints the parts list of the last shift as one long line of words. WARDEN's riddle on the door reads: the password is the part used most often. Bit has to count every part, then shout the tally so the radio log keeps a copy.",
+  "power": "The classic job of a dict is counting.\n\n### Counting things\n\nStart with an empty dict <code>{}</code>. For each item, take its current count with <code>.get(item, 0)</code> (0 the first time you see it), add 1, and store it back. To count the words of a text, loop over <code>text.split()</code>, which cuts the text at the spaces into a list of words.\n\n~~~python\ncounts = {}\nfor part in \"gear bolt gear nut gear\".split():\n    counts[part] = counts.get(part, 0) + 1\n    print(part, counts)\n~~~\n\n- Round 1: <code>\"gear\"</code> is missing, <code>.get</code> gives 0, so <code>counts[\"gear\"]</code> becomes 1.\n- Round 2: <code>\"bolt\"</code> becomes 1. Round 3: <code>\"gear\"</code> becomes 2.\n- It ends as <code>{'gear': 3, 'bolt': 1, 'nut': 1}</code>. Keys stay in the order they were first added.\n\n### Finding the key with the biggest value\n\n<code>max(d)</code> alone compares the keys themselves (alphabetically for text). The named argument <code>key=</code> tells <code>max</code> what to compare instead. With <code>key=d.get</code>, it compares <code>d.get(k)</code> for each key <code>k</code>, which is the value, and still returns the key. <code>d.get</code> has no parentheses here: you hand over the method itself, and <code>max</code> calls it.\n\n~~~python\ncounts = {\"gear\": 3, \"bolt\": 1, \"nut\": 1}\nprint(max(counts))\nbest = max(counts, key=counts.get)\nprint(best)\nfor part, n in counts.items():\n    print(part, n)\n~~~\n\n- Line 2: compares the keys as text: <code>nut</code> is last alphabetically, so it prints <code>nut</code>. Wrong answer.\n- Line 3: compares the values 3, 1 and 1 and returns the key of the biggest: <code>gear</code>.\n- Lines 5 and 6: print the tally, one pair per line.\n\n### Common mistakes\n\n- Writing <code>counts[part] = counts[part] + 1</code>: the first time, the key is missing and you get a <code>KeyError</code>.\n- Writing <code>key=counts.get()</code> with parentheses inside <code>max</code>.\n- Using <code>max(counts)</code> without <code>key=</code>, which compares the names, not the counts.",
+  "goal": "Scan the parts line, count each part into a dict called <code>counts</code>, and unlock door A with the most frequent part. At the exit, say each part and its count, one per line (like <code>gear 3</code>), in the order the parts first appear.",
+  "starter": "from robot import *\n\nmove()\nline = scan()\ncounts = {}\n",
+  "solution": "from robot import *\n\nmove()\nline = scan()\ncounts = {}\nfor part in line.split():\n    counts[part] = counts.get(part, 0) + 1\nunlock(max(counts, key=counts.get))\nmove()\nmove()\nfor part, n in counts.items():\n    say(part, n)\n",
+  "hint": "counts[part] = counts.get(part, 0) + 1 inside a loop over line.split(), then max(counts, key=counts.get).",
+  "par": 12,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert isinstance(counts, dict) and len(counts) > 0, 'Count the parts into a dict called counts.'",
+  "worlds": [
+   {
+    "map": [
+     "######",
+     "#>1AE#",
+     "######"
+    ],
+    "data": {
+     "1": "gear bolt gear nut gear spring bolt"
+    },
+    "codes": {
+     "A": "gear"
+    },
+    "output": "gear 3\nbolt 2\nnut 1\nspring 1\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>1AE#",
+     "######"
+    ],
+    "data": {
+     "1": "nut nut valve bolt valve nut"
+    },
+    "codes": {
+     "A": "nut"
+    },
+    "output": "nut 3\nvalve 2\nbolt 1\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>1AE#",
+     "######"
+    ],
+    "data": {
+     "1": "spring bolt spring gear spring bolt spring"
+    },
+    "codes": {
+     "A": "spring"
+    },
+    "output": "spring 4\nbolt 2\ngear 1\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-badge-check",
+  "chapter": "The Archive",
+  "title": "The badge camera",
+  "covers": [
+   "py-sets"
+  ],
+  "xp": 30,
+  "story": "The Archive's last door is watched by a camera that logs every badge it sees, again and again. A second terminal lists the badges allowed in this wing. Door A opens for the number of different badges the camera saw, and Bit must report every intruder before slipping out.",
+  "power": "Two more ways to group values. A <b>tuple</b> is a fixed record that cannot change, like a position on a map. A <b>set</b> keeps each value only once, which is perfect for removing duplicates.\n\n### Tuples: fixed groups of values\n\nA tuple is written with round brackets, the items separated by commas. You read items by index like a list, but you cannot add, remove or replace anything. Bit's own <code>position()</code> sensor returns a tuple <code>(x, y)</code>.\n\n~~~python\npoint = (3, 4)\nprint(point)\nprint(point[0], point[1])\nprint(len(point))\n~~~\n\n- Line 2: prints <code>(3, 4)</code>.\n- Line 3: index 0 is <code>3</code>, index 1 is <code>4</code>.\n- Line 4: prints <code>2</code>.\n\n### Unpacking\n\nYou can put each item of a tuple (or a list) into its own variable in one line. The number of names on the left must match the number of items. This is what <code>for k, v in d.items()</code> was already doing. <code>.split(\"@\")</code> cuts a text at the <code>@</code> character instead of at spaces, and the pieces unpack nicely.\n\n~~~python\npoint = (3, 4)\nx, y = point\nprint(\"x is\", x, \"and y is\", y)\nuser, domain = \"ana@ironworks.com\".split(\"@\")\nprint(user, domain)\nprint(\"ana@ironworks.com\".split(\"@\")[1])\n~~~\n\n- Line 2: <code>x</code> gets <code>3</code> and <code>y</code> gets <code>4</code>.\n- Line 4: the split gives <code>['ana', 'ironworks.com']</code>, so <code>user</code> gets <code>\"ana\"</code> and <code>domain</code> gets <code>\"ironworks.com\"</code>.\n- Line 6: without unpacking, index 1 of the split gives the part after the <code>@</code> directly.\n\n### Sets: unique values\n\nA set is written with curly braces, like a dict but with single values instead of pairs. It keeps each value once and has no order, so it has no index. <code>set(a_list)</code> turns a list into a set, removing duplicates. An empty set is written <code>set()</code>, because <code>{}</code> means an empty dict. <code>in</code> works on sets and is very fast.\n\n~~~python\nnumbers = [3, 1, 3, 2, 1, 3]\nunique = set(numbers)\nprint(unique)\nprint(len(numbers), len(unique))\nprint(2 in unique)\n~~~\n\n- Line 2: <code>unique</code> gets <code>{1, 2, 3}</code>.\n- Line 4: prints <code>6 3</code>: six items in the list, three distinct.\n- Line 5: prints <code>True</code>.\n\n### Adding to a set, and sorting it\n\n<code>.add(x)</code> puts a value into a set; adding a value already there does nothing. A set of text can print in a different order from one run to the next, so use <code>sorted(a_set)</code>, which returns a new <b>list</b> in a fixed order.\n\n~~~python\nbadges = set()\nfor b in [\"K22\", \"B17\", \"K22\", \"Z09\"]:\n    badges.add(b)\n    print(len(badges), \"distinct so far\")\nresult = sorted(badges)\nprint(result)\nprint(type(result))\n~~~\n\n- Round 3: <code>\"K22\"</code> is already there, so the count stays 2.\n- Line 6: prints <code>['B17', 'K22', 'Z09']</code>.\n- Line 7: prints <code>&lt;class 'list'&gt;</code>: <code>sorted</code> always gives a list.\n\n### Combining sets\n\n<code>|</code> (union) gives everything in either set, <code>&amp;</code> (intersection) gives what is in both, <code>-</code> (difference) gives what is in the first but not the second.\n\n~~~python\na = {1, 2, 3}\nb = {2, 3, 4}\nprint(a | b)\nprint(a & b)\nprint(a - b)\n~~~\n\n- Prints <code>{1, 2, 3, 4}</code>, then <code>{2, 3}</code>, then <code>{1}</code>.\n\n### Common mistakes\n\n- Writing <code>{}</code> for an empty set: that is an empty dict. Use <code>set()</code>.\n- Trying <code>my_set[0]</code>: sets have no positions.\n- Expecting a set to print in a fixed order. Use <code>sorted()</code>.\n- Using <code>.append</code> on a set. Sets use <code>.add</code>.\n- Trying to change a tuple, like <code>point[0] = 5</code>: tuples cannot change.",
+  "goal": "Scan the camera log (terminal 1) and the allowed list (terminal 2). Unlock door A with the number of distinct badges seen. Say <code>Intruders:</code> with the sorted list of badges seen but not allowed, and <code>Cleared:</code> with the sorted list of badges both seen and allowed. Walk to the exit, then unpack <code>position()</code> and say <code>Out at x</code>, the x value, <code>y</code>, the y value.",
+  "starter": "from robot import *\n\nmove()\nseen = scan()\n",
+  "solution": "from robot import *\n\nmove()\nseen = scan()\nmove()\nmove()\nallowed = scan()\nunlock(len(set(seen)))\nsay(\"Intruders:\", sorted(set(seen) - set(allowed)))\nsay(\"Cleared:\", sorted(set(seen) & set(allowed)))\nwhile not at_exit():\n    move()\nx, y = position()\nsay(\"Out at x\", x, \"y\", y)\n",
+  "hint": "set(seen) - set(allowed) gives the intruders and & gives the cleared badges; wrap each in sorted() before saying it.",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>1.2A..E#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      "K22",
+      "B17",
+      "K22",
+      "Z09",
+      "B17"
+     ],
+     "2": [
+      "B17",
+      "K22",
+      "M04"
+     ]
+    },
+    "codes": {
+     "A": "3"
+    },
+    "output": "Intruders: ['Z09']\nCleared: ['B17', 'K22']\nOut at x 8 y 1\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>1.2A....E#",
+     "############"
+    ],
+    "data": {
+     "1": [
+      "M04",
+      "M04",
+      "R31",
+      "Q08",
+      "R31",
+      "T11"
+     ],
+     "2": [
+      "M04",
+      "T11"
+     ]
+    },
+    "codes": {
+     "A": "4"
+    },
+    "output": "Intruders: ['Q08', 'R31']\nCleared: ['M04', 'T11']\nOut at x 10 y 1\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>1.2A.E#",
+     "#########"
+    ],
+    "data": {
+     "1": [
+      "B17",
+      "Z09",
+      "Z09",
+      "A01"
+     ],
+     "2": [
+      "A01",
+      "B17",
+      "Z09"
+     ]
+    },
+    "codes": {
+     "A": "3"
+    },
+    "output": "Intruders: []\nCleared: ['A01', 'B17', 'Z09']\nOut at x 7 y 1\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-filter-press",
+  "chapter": "The Archive",
+  "title": "The filter press",
+  "covers": [
+   "py-comp"
+  ],
+  "xp": 30,
+  "story": "At the Archive's exit sits the filter press, a machine that only accepts neatly processed data. Terminal 1 spits out raw numbers, terminal 2 a pile of crate labels typed in every possible case. The door code is the sum of the squares of the even numbers, and the press wants a clean index of the labels before it lets Bit through.",
+  "power": "You often build a new collection from an old one. A <b>comprehension</b> does that in one readable line, instead of the empty-list, loop and append pattern.\n\n### From a loop to a list comprehension\n\nA list comprehension is written in square brackets: first the expression that makes each new item, then a <code>for</code> part saying where the items come from.\n\n~~~python\ndoubled = []\nfor n in [1, 2, 3]:\n    doubled.append(n * 2)\nprint(doubled)\n\ndoubled2 = [n * 2 for n in [1, 2, 3]]\nprint(doubled2)\n~~~\n\n- Lines 1 to 3: the classic way gives <code>[2, 4, 6]</code>.\n- Line 6: read it as \"<code>n * 2</code>, for each <code>n</code> in the list\". Python loops for you and collects every result into a new list.\n\n### Using range and list()\n\nComprehensions work with any collection, including <code>range</code>. <code>list(range(1, 6))</code> turns a range into a real list, which is handy to see its content.\n\n~~~python\nnums = list(range(1, 6))\nprint(nums)\nsquares = [n * n for n in nums]\nprint(squares)\n~~~\n\n- Line 1: <code>nums</code> gets <code>[1, 2, 3, 4, 5]</code>.\n- Line 3: <code>squares</code> gets <code>[1, 4, 9, 16, 25]</code>.\n\n### Adding a filter with if\n\nPut an <code>if</code> at the end: only the items for which the condition is true are used. Read it as \"expression, for each item, if condition\". The filter is tested first, then the expression is computed for the items that passed.\n\n~~~python\nnums = list(range(1, 11))\nsmall = [n for n in nums if n < 4]\nodds = [n for n in nums if n % 2 == 1]\ntens = [n * 10 for n in nums if n % 3 == 0]\nprint(small)\nprint(odds)\nprint(tens)\n~~~\n\n- Line 2: <code>[1, 2, 3]</code>.\n- Line 3: <code>n % 2 == 1</code> is true for odd numbers: <code>[1, 3, 5, 7, 9]</code>. Even numbers are <code>n % 2 == 0</code>.\n- Line 4: first keeps 3, 6 and 9, then multiplies each by 10: <code>[30, 60, 90]</code>.\n\n### Set comprehensions\n\nThe same thing in curly braces gives a set, so duplicates disappear.\n\n~~~python\nwords = [\"Gear\", \"gear\", \"BOLT\", \"bolt\"]\nlowered = {w.lower() for w in words}\nprint(sorted(lowered))\n~~~\n\n- Line 2: <code>w.lower()</code> gives <code>\"gear\"</code> twice and <code>\"bolt\"</code> twice; the set keeps each once.\n- Line 3: prints <code>['bolt', 'gear']</code>.\n\n### Dict comprehensions\n\nWith curly braces and a <code>key: value</code> expression, you get a dict. Each item from the loop produces one pair. Any function can be used in the value part, for example <code>len(c)</code> for the number of characters.\n\n~~~python\nprices = [10, 25, 40]\nwith_tax = {p: p * 1.2 for p in prices}\nprint(with_tax)\ncities = [\"Paris\", \"Nice\"]\nprint({c: c[0] for c in cities})\nprint({c: len(c) for c in cities})\n~~~\n\n- Line 3: prints <code>{10: 12.0, 25: 30.0, 40: 48.0}</code>.\n- Line 5: prints <code>{'Paris': 'P', 'Nice': 'N'}</code>.\n- Line 6: prints <code>{'Paris': 5, 'Nice': 4}</code>.\n\n### Common mistakes\n\n- Putting the <code>if</code> before the <code>for</code>: <code>[n if n &gt; 2 for n in nums]</code> is a <code>SyntaxError</code>. The filter goes at the end.\n- Forgetting the colon in a dict comprehension: <code>{c, len(c) for c in cities}</code> is not valid.\n- Using square brackets when a dict is wanted: square brackets always build a list.\n- Writing <code>n % 2</code> when you mean even numbers: that is true for odd ones.",
+  "goal": "Scan the numbers (terminal 1) and the labels (terminal 2). With comprehensions, build <code>even_squares</code> (the squares of the even numbers, in order), <code>tags</code> (a set of the labels in lowercase) and <code>lengths</code> (a dict from each tag, in sorted order, to its length). Unlock door A with the sum of <code>even_squares</code>, reach the exit, then say <code>Tags:</code> with the sorted tags, and say <code>lengths</code>.",
+  "starter": "from robot import *\n\nmove()\nnums = scan()\nmove()\nmove()\nlabels = scan()\n",
+  "solution": "from robot import *\n\nmove()\nnums = scan()\nmove()\nmove()\nlabels = scan()\neven_squares = [n * n for n in nums if n % 2 == 0]\ntags = {w.lower() for w in labels}\nlengths = {t: len(t) for t in sorted(tags)}\nunlock(sum(even_squares))\nmove()\nmove()\nsay(\"Tags:\", sorted(tags))\nsay(lengths)\n",
+  "hint": "[n * n for n in nums if n % 2 == 0], then {w.lower() for w in labels}, then {t: len(t) for t in sorted(tags)}.",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert isinstance(even_squares, list), 'even_squares must be a list (square brackets).'\nassert isinstance(tags, set), 'tags must be a set (curly braces, no colon).'\nassert isinstance(lengths, dict), 'lengths must be a dict (curly braces with key: value).'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1.2AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      3,
+      4,
+      7,
+      10,
+      1
+     ],
+     "2": [
+      "Gear",
+      "gear",
+      "BOLT",
+      "Nut",
+      "bolt"
+     ]
+    },
+    "codes": {
+     "A": "116"
+    },
+    "output": "Tags: ['bolt', 'gear', 'nut']\n{'bolt': 4, 'gear': 4, 'nut': 3}\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1.2AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      2,
+      5,
+      6,
+      8
+     ],
+     "2": [
+      "VALVE",
+      "Spring",
+      "valve",
+      "spring",
+      "SPRING"
+     ]
+    },
+    "codes": {
+     "A": "104"
+    },
+    "output": "Tags: ['spring', 'valve']\n{'spring': 6, 'valve': 5}\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1.2AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      1,
+      12,
+      9,
+      2,
+      4,
+      11
+     ],
+     "2": [
+      "Cog",
+      "pipe",
+      "COG",
+      "Pipe",
+      "Belt"
+     ]
+    },
+    "codes": {
+     "A": "164"
+    },
+    "output": "Tags: ['belt', 'cog', 'pipe']\n{'belt': 4, 'cog': 3, 'pipe': 4}\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-walk-function",
+  "chapter": "The Assembly Line",
+  "title": "Reusable moves",
+  "covers": [
+   "py-func"
+  ],
+  "xp": 25,
+  "story": "Bit rolls onto the Assembly Line: long belts, dead-end bays and the same moves over and over. Typing <code>move()</code> twenty times is how robots get stuck here. A terminal says how far the spare battery coin lies behind Bit and how far the exit lies ahead. Time to teach Bit new moves of its own.",
+  "power": "A <b>function</b> is a named block of code you can run again and again just by writing its name. You have used many already: <code>print</code>, <code>len</code>, <code>move</code>. Now you write your own.\n\n### Defining and calling a function\n\nYou create a function with the keyword <code>def</code> (short for define), then a name, then round brackets, then a colon. The indented lines below form the function's <b>body</b>. Defining a function does not run it. The body runs only when you <b>call</b> the function, by writing its name followed by brackets.\n\n~~~python\ndef beep_twice():\n    print(\"Beep!\")\n    print(\"Beep!\")\nprint(\"Before the call\")\nbeep_twice()\nbeep_twice()\n~~~\n\n- Line 1: <code>def</code> creates a function called <code>beep_twice</code>. The empty brackets mean it needs no information. Nothing is printed yet.\n- Lines 2 and 3: the body, indented by 4 spaces. Python stores these lines for later.\n- Line 4: back at the left edge, so this line is outside the function. It runs now.\n- Line 5: calls the function. Python jumps into the body, prints its two lines, then comes back here.\n- Line 6: calls it again, so two more beeps.\n\n### Parameters and arguments\n\nThe names inside the brackets of the <code>def</code> line are <b>parameters</b>: empty slots. The values you write in the brackets when you call the function are <b>arguments</b>: they fill the slots, in order. A function can call other functions, including ones you wrote.\n\n~~~python\ndef step(n):\n    for i in range(n):\n        print(\"step\", i + 1, \"of\", n)\ndef patrol(out, back):\n    step(out)\n    print(\"turning around\")\n    step(back)\npatrol(2, 3)\n~~~\n\n- Line 1: <code>step</code> has one parameter, <code>n</code>.\n- Line 5: inside <code>patrol</code>, the call <code>step(out)</code> fills <code>n</code> with the value of <code>out</code>.\n- Line 8: <code>out</code> is 2 and <code>back</code> is 3, so it prints 2 steps, the turn, then 3 steps.\n\n### Variables inside a function\n\nA variable created inside a function, like <code>i</code> above, only exists while that call runs. Each call gets its own fresh copies, and the code outside cannot see them. This keeps functions from stepping on each other.\n\n~~~python\ndef make_label(part):\n    label = part.upper() + \"-01\"\n    return label\nprint(make_label(\"gear\"))\nprint(make_label(\"nut\"))\n~~~\n\n- Line 2: <code>label</code> lives only inside the function.\n- Line 3: <code>return</code> sends the value back to the caller (more on that in the next mission).\n- Lines 4 and 5: print <code>GEAR-01</code> and <code>NUT-01</code>. Writing <code>print(label)</code> at the bottom would fail: there is no <code>label</code> outside.\n\n### Common mistakes\n\n- Forgetting the colon after <code>def name(...)</code>, or forgetting to indent the body.\n- Defining a function and never calling it: nothing happens.\n- Forgetting the brackets when calling: <code>beep_twice</code> alone names the function but does not run it.",
+  "goal": "Write a function <code>turn_around()</code> (two left turns) and a function <code>walk(n)</code> that moves <code>n</code> squares. Walk onto the terminal, scan the two distances <code>[behind, ahead]</code> (from the terminal to the coin, and from the terminal to the exit), fetch the coin, then turn around and walk to the exit.",
+  "starter": "from robot import *\n\ndef turn_around():\n    # two turns\n    pass\n",
+  "solution": "from robot import *\n\ndef turn_around():\n    turn_left()\n    turn_left()\ndef walk(n):\n    for i in range(n):\n        move()\nwalk(1)\nbehind, ahead = scan()\nwalk(behind)\npick()\nturn_around()\nwalk(behind + ahead)\n",
+  "hint": "walk(n) is a for loop over range(n) with move() inside; after pick(), Bit must walk back past the terminal: behind + ahead squares.",
+  "par": 13,
+  "check": {
+   "exit": true,
+   "items": true
+  },
+  "test": "assert 'walk' in dir() and callable(walk), 'Write a function called walk(n).'\nassert 'turn_around' in dir() and callable(turn_around), 'Write a function called turn_around().'\nfrom robot import facing as _facing\n_d = _facing()\nturn_around()\nassert _facing() == {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}[_d], 'turn_around() must leave Bit facing the opposite way.'\nturn_around()",
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#$...1<..E#",
+     "###########"
+    ],
+    "data": {
+     "1": [
+      4,
+      4
+     ]
+    }
+   },
+   {
+    "map": [
+     "############",
+     "#$.1<.....E#",
+     "############"
+    ],
+    "data": {
+     "1": [
+      2,
+      7
+     ]
+    }
+   },
+   {
+    "map": [
+     "#############",
+     "#$......1<.E#",
+     "#############"
+    ],
+    "data": {
+     "1": [
+      7,
+      3
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-b-pressure-gauge",
+  "chapter": "The Assembly Line",
+  "title": "The pressure gauges",
+  "covers": [
+   "py-func"
+  ],
+  "xp": 30,
+  "story": "The belts are driven by steam, and the gauge terminal shows the pressure of every press. Bit must call out each one as <code>low</code>, <code>ok</code> or <code>high</code> before the foreman's ghost of a log will accept it. Door A opens with the total pressure, and door B, WARDEN's little joke, with the total plus 7.",
+  "power": "### return: sending a value back\n\nThe keyword <code>return</code> ends the function and sends a value back to the place where it was called. A call can then be used anywhere a value can: stored, printed, added.\n\n~~~python\ndef area(width, height):\n    result = width * height\n    return result\nsmall = area(3, 4)\nprint(small)\nprint(area(10, 2) + 1)\n~~~\n\n- Line 4: the arguments fill the slots: <code>width</code> is 3 and <code>height</code> is 4. The call returns 12, stored in <code>small</code>.\n- Line 6: <code>area(10, 2)</code> becomes 20, then 20 + 1 is printed: <code>21</code>.\n\n### Printing is not returning\n\n<code>print()</code> only shows a value on the screen: the caller gets nothing back. A function that ends without <code>return</code> gives back the special value <code>None</code>, which means \"no value\".\n\n~~~python\ndef show_double(n):\n    print(n * 2)\ndef give_double(n):\n    return n * 2\na = show_double(5)\nb = give_double(5)\nprint(a, b)\n~~~\n\n- Line 5: prints <code>10</code> on the screen, but there is no <code>return</code>, so <code>a</code> gets <code>None</code>.\n- Line 6: nothing is printed; <code>b</code> gets 10.\n- Line 7: prints <code>None 10</code>. Only a returned value can be reused by other code, and the mission checks your functions by what they return.\n\n### Default values and keyword arguments\n\nA parameter can have a <b>default value</b>, written <code>name=value</code> in the <code>def</code> line. If the caller leaves that argument out, the default is used. When calling, you can also name the arguments, like <code>punctuation=\"!\"</code>. These are <b>keyword arguments</b>, and their order no longer matters. Parameters with a default must come after the ones without.\n\n~~~python\ndef welcome(name, punctuation=\".\"):\n    return f\"Welcome, {name}{punctuation}\"\nprint(welcome(\"Ada\"))\nprint(welcome(\"Bo\", \"!\"))\nprint(welcome(punctuation=\"?\", name=\"Cy\"))\n~~~\n\n- Line 3: <code>punctuation</code> uses its default: <code>Welcome, Ada.</code>\n- Line 4: the second argument replaces the default: <code>Welcome, Bo!</code>\n- Line 5: keyword arguments, in any order: <code>Welcome, Cy?</code>\n\n### Returning early from an if chain\n\nA function can contain several <code>return</code> lines. The first one reached ends the function. So an <code>if</code> / <code>elif</code> chain can return a different answer for each range, and a last <code>return</code> catches everything left over. Functions can also use the result of other functions.\n\n~~~python\ndef speed_label(kmh):\n    if kmh < 30:\n        return \"slow\"\n    elif kmh < 90:\n        return \"normal\"\n    return \"fast\"\ndef to_kmh(meters, seconds):\n    return round(meters / seconds * 3.6, 1)\ns = to_kmh(500, 20)\nprint(s, speed_label(s))\nprint(speed_label(29.9), speed_label(30))\n~~~\n\n- Lines 1 to 6: below 30 returns <code>\"slow\"</code> and stops right there. Otherwise, below 90 returns <code>\"normal\"</code>. If neither matched, the last line returns <code>\"fast\"</code>. No <code>else</code> is needed.\n- Line 9: 500 / 20 is 25.0, times 3.6 is 90.0.\n- Line 10: prints <code>90.0 fast</code>, because 90 is not below 90.\n- Line 11: <code>slow normal</code>: watch where the boundary values land.\n\nReminder: <code>**</code> raises to a power, so <code>x ** 2</code> is x squared, and it is computed before <code>/</code> and <code>*</code>.\n\n### Common mistakes\n\n- Using <code>print</code> instead of <code>return</code>: the value shows on screen, but your function returns <code>None</code>.\n- Testing ranges in a jumbled order. Start from the smallest threshold with <code>&lt;</code>, so each branch only sees what is left.\n- Putting a parameter with a default before one without: <code>def f(a=1, b)</code> is a <code>SyntaxError</code>.",
+  "goal": "Write <code>status(p)</code> returning <code>\"low\"</code> below 30, <code>\"ok\"</code> below 70 and <code>\"high\"</code> otherwise, and <code>code_for(readings, shift=0)</code> returning the sum of the readings plus <code>shift</code>. Scan the gauges, say each reading and its status (like <code>45 ok</code>), unlock door A with <code>code_for(readings)</code> and door B with <code>code_for(readings, shift=7)</code>, then reach the exit.",
+  "starter": "from robot import *\n\ndef status(p):\n    # return \"low\", \"ok\" or \"high\"\n    pass\n",
+  "solution": "from robot import *\n\ndef status(p):\n    if p < 30:\n        return \"low\"\n    elif p < 70:\n        return \"ok\"\n    return \"high\"\ndef code_for(readings, shift=0):\n    return sum(readings) + shift\nmove()\nreadings = scan()\nfor p in readings:\n    say(p, status(p))\nunlock(code_for(readings))\nmove()\nmove()\nunlock(code_for(readings, shift=7))\nmove()\nmove()\n",
+  "hint": "status is an if / elif chain that returns early; code_for has the default shift=0 in its def line.",
+  "par": 20,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'status' in dir() and 'code_for' in dir(), 'Write the functions status(p) and code_for(readings, shift=0).'\nassert status(29.9) == 'low' and status(30) == 'ok' and status(69) == 'ok' and status(70) == 'high', 'status must return (not print) low below 30, ok below 70, high otherwise.'\nassert code_for([1, 2, 3]) == 6, 'code_for([1, 2, 3]) should return 6: shift defaults to 0.'\nassert code_for([1, 2], shift=5) == 8, 'code_for([1, 2], shift=5) should return 8.'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      45,
+      12,
+      88
+     ]
+    },
+    "codes": {
+     "A": "145",
+     "B": "152"
+    },
+    "output": "45 ok\n12 low\n88 high\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      70,
+      29,
+      30,
+      64
+     ]
+    },
+    "codes": {
+     "A": "193",
+     "B": "200"
+    },
+    "output": "70 high\n29 low\n30 ok\n64 ok\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      5,
+      99
+     ]
+    },
+    "codes": {
+     "A": "104",
+     "B": "111"
+    },
+    "output": "5 low\n99 high\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-crate-stamp",
+  "chapter": "The Assembly Line",
+  "title": "The crate stamper",
+  "covers": [
+   "py-args"
+  ],
+  "xp": 30,
+  "story": "Crates roll past in threes, and the scale terminal gives their weights. The loading door opens for the total weight. Then the stamping machine wants a label for the batch, written as tidy <code>name=value</code> pairs in alphabetical order, or it jams the whole line.",
+  "power": "Sometimes you cannot know in advance how many values a function will receive. Python has special parameters for that.\n\n### *args: any number of positional arguments\n\nA parameter written with one star, like <code>*args</code>, collects all the <b>positional arguments</b> (the ones without a name) into a <b>tuple</b>. The name after the star is up to you; <code>args</code> is just the usual choice.\n\n~~~python\ndef show(*items):\n    print(items)\n    print(len(items), \"item(s)\")\nshow(\"a\", \"b\", \"c\")\nshow(42)\nshow()\n~~~\n\n- Line 4: <code>items</code> is <code>('a', 'b', 'c')</code> and the count is 3.\n- Line 5: one argument gives a one-item tuple, shown as <code>(42,)</code>. The comma marks it as a tuple.\n- Line 6: no arguments gives an empty tuple <code>()</code> and a count of 0.\n\n### Using the collected values\n\nA tuple works with everything you used on lists: <code>for</code> loops, <code>len()</code>, <code>max()</code>, <code>min()</code>, and <code>sum()</code>, which gives 0 for an empty collection.\n\n~~~python\ndef average(*scores):\n    if len(scores) == 0:\n        return 0\n    return sum(scores) / len(scores)\nprint(average(12, 15, 18))\nprint(average())\nprint(sum((1, 2, 3)), sum(()))\nprint(max((4, 9, 2)), min((4, 9, 2)))\n~~~\n\n- Lines 2 and 3: with no scores, return 0 early, because dividing by 0 would crash.\n- Line 5: 45 divided by 3: <code>15.0</code>.\n- Line 6: <code>0</code>.\n- Line 7: <code>6 0</code>. Line 8: <code>9 2</code>.\n\n### **kwargs: any number of keyword arguments\n\nTwo stars, like <code>**kwargs</code>, collect every <b>keyword argument</b> (<code>name=value</code>) into a <b>dict</b>. The names become the keys, as strings.\n\n~~~python\ndef profile(**info):\n    print(info)\n    for key, value in info.items():\n        print(key, \"is\", value)\nprofile(name=\"Ada\", city=\"London\", age=36)\n~~~\n\n- Line 2: prints <code>{'name': 'Ada', 'city': 'London', 'age': 36}</code>. The keys keep the order you wrote them in.\n- Lines 3 and 4: one line per pair.\n\n### Sorting keys and joining text\n\n<code>sorted()</code> on a dict gives a list of its keys in alphabetical order. <code>\"sep\".join(list_of_strings)</code> glues strings together with <code>sep</code> between them. With a list comprehension, they turn a dict into a tidy line of text.\n\n~~~python\ndef tags(**options):\n    keys = sorted(options)\n    print(keys)\n    parts = [f\"{k}:{options[k]}\" for k in keys]\n    print(parts)\n    return \" | \".join(parts)\nprint(tags(size=\"L\", color=\"red\", qty=2))\n~~~\n\n- Line 2: <code>['color', 'qty', 'size']</code>.\n- Line 4: one string per key; the f-string turns the number 2 into text.\n- Line 6: returns <code>color:red | qty:2 | size:L</code>.\n\nInside <code>join()</code> you may drop the square brackets: <code>\" | \".join(f\"{k}:{options[k]}\" for k in keys)</code> gives the same result. Without brackets it is a <b>generator expression</b>: it hands the strings to <code>join</code> one by one instead of building a list first. Joining zero strings gives the empty text <code>\"\"</code>.\n\n### Common mistakes\n\n- Forgetting that <code>*args</code> is a tuple and <code>**kwargs</code> is a dict.\n- Forgetting the star in the <code>def</code> line: <code>def total(nums)</code> accepts exactly one argument.\n- Passing numbers to <code>join</code>: it only glues strings, so convert with an f-string or <code>str()</code>.",
+  "goal": "Write <code>total(*weights)</code> returning the sum of all its arguments, and <code>stamp(**fields)</code> returning the <code>key=value</code> pairs in sorted key order, joined by <code>\", \"</code>. Scan the three weights (terminal 1) and the destination (terminal 2), unlock door A with the total weight, reach the exit, then say <code>stamp(weight=..., dest=..., crates=3)</code> with the total and the destination.",
+  "starter": "from robot import *\n\ndef total(*weights):\n    pass\n",
+  "solution": "from robot import *\n\ndef total(*weights):\n    return sum(weights)\ndef stamp(**fields):\n    return \", \".join(f\"{k}={fields[k]}\" for k in sorted(fields))\nmove()\na, b, c = scan()\nmove()\nmove()\ndest = scan()\nunlock(total(a, b, c))\nmove()\nmove()\nsay(stamp(weight=total(a, b, c), dest=dest, crates=3))\n",
+  "hint": "\", \".join(f\"{k}={fields[k]}\" for k in sorted(fields)) builds the stamp.",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'total' in dir() and 'stamp' in dir(), 'Write the functions total(*weights) and stamp(**fields).'\nassert total() == 0 and total(5) == 5 and total(1, 2, 3, 4) == 10, 'total must return the sum of any number of arguments (0 for none).'\nassert stamp(b=2, a=1) == 'a=1, b=2', 'stamp(b=2, a=1) should return \"a=1, b=2\".'\nassert stamp() == '', 'stamp() with no fields should return an empty text.'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1.2AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      12,
+      30,
+      7
+     ],
+     "2": "Dock 4"
+    },
+    "codes": {
+     "A": "49"
+    },
+    "output": "crates=3, dest=Dock 4, weight=49\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1.2AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      25,
+      25,
+      40
+     ],
+     "2": "Bay 9"
+    },
+    "codes": {
+     "A": "90"
+    },
+    "output": "crates=3, dest=Bay 9, weight=90\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1.2AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      3,
+      61,
+      18
+     ],
+     "2": "Ramp 2"
+    },
+    "codes": {
+     "A": "82"
+    },
+    "output": "crates=3, dest=Ramp 2, weight=82\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-sorting-belt",
+  "chapter": "The Assembly Line",
+  "title": "The sorting belt",
+  "covers": [
+   "py-args"
+  ],
+  "xp": 30,
+  "story": "The sorting belt has stopped with a pile of crates on it, each one a pair of a name and a weight. It restarts only when Bit reads them out from lightest to heaviest. Door A answers to the name of the heaviest crate, door B to the name of the lightest.",
+  "power": "### lambda: a tiny function in one line\n\n<code>lambda</code> creates a small function without a name: <code>lambda parameters: expression</code>. It returns the value of the expression automatically, with no <code>return</code> keyword. It is handy when you need a function only once.\n\n~~~python\nsquare = lambda n: n * n\ndef square_def(n):\n    return n * n\nprint(square(4), square_def(4))\n~~~\n\n- Line 1: a function that takes <code>n</code> and gives back <code>n * n</code>, stored in <code>square</code>.\n- Lines 2 and 3: the very same function written with <code>def</code>.\n- Line 4: prints <code>16 16</code>.\n\n### key=: telling sorted, max and min what to compare\n\n<code>sorted()</code>, <code>max()</code> and <code>min()</code> accept a <code>key=</code> argument: a function applied to each item to get the value to compare. The items themselves come back unchanged. A <code>lambda</code> is the usual way to write that function. Add <code>reverse=True</code> to <code>sorted()</code> to get the largest first.\n\n~~~python\nproducts = [(\"pen\", 1.5), (\"bag\", 25.0), (\"mug\", 8.0)]\nby_price = sorted(products, key=lambda p: p[1])\nprint(by_price)\nprint(sorted([\"kiwi\", \"fig\", \"banana\"], key=len))\nprint(max(products, key=lambda p: p[1]))\nprint(min(products, key=lambda p: p[1])[0])\nprint(sorted(products, key=lambda p: p[1], reverse=True)[0])\n~~~\n\n- Line 2: for each tuple <code>p</code>, the key is <code>p[1]</code>, its price.\n- Line 3: prints <code>[('pen', 1.5), ('mug', 8.0), ('bag', 25.0)]</code>.\n- Line 4: <code>key=len</code> passes the built-in <code>len</code> function itself (no brackets): <code>['fig', 'kiwi', 'banana']</code>.\n- Line 5: the tuple with the highest price: <code>('bag', 25.0)</code>.\n- Line 6: the cheapest tuple, then <code>[0]</code> takes its name: <code>pen</code>.\n- Line 7: largest first, so <code>('bag', 25.0)</code>.\n\n### Unpacking pairs in a loop\n\nWhen every item is a pair, a <code>for</code> loop can unpack it into two names, just like <code>.items()</code> on a dict.\n\n~~~python\ncrates = [[\"cog\", 12], [\"anvil\", 80]]\nfor name, weight in crates:\n    print(name, \"weighs\", weight)\n~~~\n\n### Common mistakes\n\n- Writing <code>key=len()</code> with brackets: that calls <code>len</code> right away. Pass the function itself.\n- Calling <code>sorted()</code> on pairs without <code>key=</code>: pairs are compared by their first item, here the name, so you get alphabetical order.\n- Forgetting that <code>max</code> with a <code>key=</code> returns the whole item, not the compared value.",
+  "goal": "Scan the crates. Build <code>by_weight</code>, the crates sorted from lightest to heaviest with <code>key=</code> and a <code>lambda</code>, and say each name and weight (like <code>cog 12</code>) in that order. Unlock door A with the name of the heaviest crate and door B with the name of the lightest, then reach the exit.",
+  "starter": "from robot import *\n\nmove()\ncrates = scan()\n",
+  "solution": "from robot import *\n\nmove()\ncrates = scan()\nby_weight = sorted(crates, key=lambda c: c[1])\nfor name, weight in by_weight:\n    say(name, weight)\nunlock(max(crates, key=lambda c: c[1])[0])\nmove()\nmove()\nunlock(min(crates, key=lambda c: c[1])[0])\nmove()\nmove()\n",
+  "hint": "key=lambda c: c[1] compares the weights; max(...)[0] is the name of the heaviest crate.",
+  "par": 13,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'by_weight' in dir() and isinstance(by_weight, list), 'Build the list by_weight with sorted().'\nassert [c[1] for c in by_weight] == sorted(c[1] for c in by_weight), 'by_weight must go from the lightest crate to the heaviest.'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      [
+       "cog",
+       12
+      ],
+      [
+       "anvil",
+       80
+      ],
+      [
+       "spring",
+       3
+      ],
+      [
+       "pipe",
+       25
+      ]
+     ]
+    },
+    "codes": {
+     "A": "anvil",
+     "B": "spring"
+    },
+    "output": "spring 3\ncog 12\npipe 25\nanvil 80\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      [
+       "valve",
+       40
+      ],
+      [
+       "bolt",
+       1
+      ],
+      [
+       "gear",
+       15
+      ]
+     ]
+    },
+    "codes": {
+     "A": "valve",
+     "B": "bolt"
+    },
+    "output": "bolt 1\ngear 15\nvalve 40\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A.BE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      [
+       "belt",
+       9
+      ],
+      [
+       "press",
+       120
+      ],
+      [
+       "nut",
+       2
+      ],
+      [
+       "drum",
+       55
+      ],
+      [
+       "fan",
+       30
+      ]
+     ]
+    },
+    "codes": {
+     "A": "press",
+     "B": "nut"
+    },
+    "output": "nut 2\nbelt 9\nfan 30\ndrum 55\npress 120\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-stairwell",
+  "chapter": "The Assembly Line",
+  "title": "The recursive stairwell",
+  "covers": [
+   "py-rec"
+  ],
+  "xp": 35,
+  "story": "At the end of the line, a stairwell climbs toward the upper floors. Every step looks exactly like the one before it, and the terminal at the bottom says how many there are. At the top, door A wants the factorial of that number: WARDEN likes big numbers.",
+  "power": "<b>Recursion</b> is when a function calls itself. It is the natural way to handle problems that contain smaller copies of themselves: a stairwell of n steps is one step, then a stairwell of n - 1 steps.\n\n### A function that calls itself\n\nEvery recursive function needs two parts. A <b>base case</b>: a situation simple enough to answer directly, which stops the calls. And a <b>recursive case</b>: the function calls itself on a smaller problem, getting one step closer to the base case each time.\n\n~~~python\ndef countdown(n):\n    if n == 0:\n        print(\"Go!\")\n        return\n    print(n)\n    countdown(n - 1)\ncountdown(3)\n~~~\n\n- Lines 2 to 4: the base case. When <code>n</code> is 0, print <code>Go!</code> and stop. A bare <code>return</code> just ends the function.\n- Line 5: otherwise, print the current number.\n- Line 6: the recursive case: call <code>countdown</code> again with a number one smaller.\n- Line 7: <code>countdown(3)</code> prints 3 and calls <code>countdown(2)</code>, which prints 2 and calls <code>countdown(1)</code>, which prints 1 and calls <code>countdown(0)</code>, which prints <code>Go!</code>.\n\nEach call has its own private <code>n</code>. Use Step through to watch four separate calls, each with its own value.\n\n### Returning values from recursive calls\n\nRecursion gets powerful when each call returns a value that the call before it uses. The sum 1 + 2 + ... + n is n plus the sum up to n - 1, and the sum up to 0 is 0.\n\n~~~python\ndef sum_to(n):\n    if n == 0:\n        return 0\n    return n + sum_to(n - 1)\nprint(sum_to(3))\nprint(sum_to(10))\n~~~\n\n- Line 4: Python must finish <code>sum_to(n - 1)</code> before it can do the addition.\n- Line 5: <code>sum_to(3)</code> waits for <code>sum_to(2)</code>, which waits for <code>sum_to(1)</code>, which waits for <code>sum_to(0)</code>. That one returns 0. Then the waiting calls finish in reverse order: 1 + 0 = 1, then 2 + 1 = 3, then 3 + 3 = 6. Prints <code>6</code>.\n- Line 6: prints <code>55</code>.\n\nThe same shape with multiplication gives the <b>factorial</b>: the factorial of 5 is 5 x 4 x 3 x 2 x 1 = 120. Think about what the base case must return for a product: a number that changes nothing when you multiply by it. The factorial of 0 is 1.\n\n### What happens without a base case\n\nIf the function never reaches a base case, it keeps calling itself until Python gives up:\n\n~~~text\nRecursionError: maximum recursion depth exceeded\n~~~\n\nMake sure every call moves toward the base case, for example with <code>n - 1</code>, never <code>n</code> itself.\n\n### Common mistakes\n\n- No base case, or a call that does not get smaller: <code>RecursionError</code>.\n- Forgetting to <code>return</code> the result of the recursive call, so the answer is lost on the way back.\n- A wrong base value: 0 is right for a sum, but would turn every product into 0.",
+  "goal": "Write a recursive <code>climb(n)</code>: with 0 steps left, say <code>Top</code>; otherwise say <code>n</code>, climb one step (forward, turn left, forward, turn right) and call <code>climb(n - 1)</code>. Write a recursive <code>factorial(n)</code>. Scan the number of steps, climb, then unlock door A with the factorial of that number and step onto the exit.",
+  "starter": "from robot import *\n\ndef climb(n):\n    if n == 0:\n        say(\"Top\")\n        return\n",
+  "solution": "from robot import *\n\ndef climb(n):\n    if n == 0:\n        say(\"Top\")\n        return\n    say(n)\n    move()\n    turn_left()\n    move()\n    turn_right()\n    climb(n - 1)\ndef factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n - 1)\nmove()\nn = scan()\nclimb(n)\nunlock(factorial(n))\nmove()\nmove()\n",
+  "hint": "factorial has the same shape as sum_to, with * instead of + and a base case that returns 1.",
+  "par": 23,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'climb' in dir() and 'factorial' in dir(), 'Write the functions climb(n) and factorial(n).'\nassert factorial(0) == 1 and factorial(5) == 120, 'factorial(0) must be 1 and factorial(5) must be 120.'\n_f = factorial\nglobals()['factorial'] = lambda n: -1000\n_r = _f(3)\nglobals()['factorial'] = _f\nassert _r != 6, 'factorial must call itself (recursion), not use a loop.'\n_keep = {k: globals()[k] for k in ('move', 'turn_left', 'turn_right', 'say', 'climb')}\n_calls = []\nglobals()['move'] = lambda: None\nglobals()['turn_left'] = lambda: None\nglobals()['turn_right'] = lambda: None\nglobals()['say'] = lambda *a: None\nglobals()['climb'] = lambda n: _calls.append(n)\n_keep['climb'](2)\nglobals().update(_keep)\nassert _calls == [1], 'climb(n) must call climb(n - 1) itself: no loops, recursion.'\n",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#####.AE##",
+     "####..####",
+     "###..#####",
+     "#>1.######",
+     "##########"
+    ],
+    "data": {
+     "1": 3
+    },
+    "codes": {
+     "A": "6"
+    },
+    "output": "3\n2\n1\nTop\n"
+   },
+   {
+    "map": [
+     "#########",
+     "####.AE##",
+     "###..####",
+     "#>1.#####",
+     "#########"
+    ],
+    "data": {
+     "1": 2
+    },
+    "codes": {
+     "A": "2"
+    },
+    "output": "2\n1\nTop\n"
+   },
+   {
+    "map": [
+     "###########",
+     "######.AE##",
+     "#####..####",
+     "####..#####",
+     "###..######",
+     "#>1.#######",
+     "###########"
+    ],
+    "data": {
+     "1": 4
+    },
+    "codes": {
+     "A": "24"
+    },
+    "output": "4\n3\n2\n1\nTop\n"
+   }
+  ]
+ },
+ {
+  "id": "m-b-nested-crates",
+  "chapter": "The Assembly Line",
+  "title": "Crates inside crates",
+  "covers": [
+   "py-rec"
+  ],
+  "xp": 40,
+  "story": "The last gate of the Assembly Line is a row of doors, and WARDEN hid their codes in a shipping manifest of crates packed inside crates inside crates. Nobody knows how deep the packing goes. Bit needs one flat list of codes, in order, to open the doors one after another.",
+  "power": "To walk through lists inside lists, a function must decide for each item: is it a list (go deeper, with a recursive call) or a plain value?\n\n### isinstance: what kind of value is this?\n\n<code>isinstance(value, type)</code> returns <code>True</code> if the value is of that type, otherwise <code>False</code>. <code>list</code> is the type of lists, <code>str</code> the type of text, <code>int</code> the type of whole numbers.\n\n~~~python\nprint(isinstance([1, 2], list))\nprint(isinstance(7, list))\nprint(isinstance(\"hi\", str))\nprint(isinstance(7, int))\n~~~\n\n- Prints <code>True</code>, <code>False</code>, <code>True</code>, <code>True</code>.\n\n### append versus extend\n\n<code>append(x)</code> adds <code>x</code> as one single item, even if <code>x</code> is itself a list. <code>extend(other_list)</code> adds each item of <code>other_list</code> separately.\n\n~~~python\na = [1, 2]\na.append([3, 4])\nprint(a)\nb = [1, 2]\nb.extend([3, 4])\nprint(b)\n~~~\n\n- Line 3: prints <code>[1, 2, [3, 4]]</code>: the whole list became one item.\n- Line 6: prints <code>[1, 2, 3, 4]</code>.\n\n### Recursion on nested lists\n\nThis function counts every plain value in a list, however deeply nested. For each item: if it is a list, ask the same function to count inside it; otherwise count 1.\n\n~~~python\ndef count_values(items):\n    total = 0\n    for item in items:\n        if isinstance(item, list):\n            total += count_values(item)\n        else:\n            total += 1\n    return total\nprint(count_values([1, 2, 3]))\nprint(count_values([1, [2, [3, 4]], 5]))\nprint(count_values([[], [[]]]))\n~~~\n\n- Line 2: each call starts its own counter at 0.\n- Lines 4 and 5: a sub-list is handled by a recursive call, and the count it returns is added to <code>total</code>.\n- Line 10: the outer call counts 1, then calls itself on <code>[2, [3, 4]]</code>. That call counts 2 and calls itself on <code>[3, 4]</code>, which returns 2, so the middle call returns 3. Back at the top: 1 + 3 + 1 = <code>5</code>.\n- Line 11: empty lists contain no values: <code>0</code>. The base case is hidden here: a list with no sub-lists makes no further calls.\n\nTo build a flat list instead of a count, start from an empty list instead of 0, and pick the right list method in each branch.\n\n### Common mistakes\n\n- Using <code>append</code> where you meant <code>extend</code>, which puts a whole list inside your list.\n- Forgetting to <code>return</code> the result at the end, so every caller gets <code>None</code>.\n- Starting the result list outside the function: all the calls would share it.",
+  "goal": "Write a recursive <code>flatten(items)</code> that turns any nested list into one flat list, keeping the order. Scan the manifest, flatten it, say <code>Codes found:</code> and how many codes there are, unlock each door in turn with the next code, and reach the exit.",
+  "starter": "from robot import *\n\ndef flatten(items):\n    flat = []\n    return flat\n",
+  "solution": "from robot import *\n\ndef flatten(items):\n    flat = []\n    for item in items:\n        if isinstance(item, list):\n            flat.extend(flatten(item))\n        else:\n            flat.append(item)\n    return flat\nmove()\ncodes = flatten(scan())\nsay(\"Codes found:\", len(codes))\nfor code in codes:\n    unlock(code)\n    move()\nwhile not at_exit():\n    move()\n",
+  "hint": "For each item: if isinstance(item, list), extend the result with flatten(item), otherwise append the item.",
+  "par": 17,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'flatten' in dir(), 'Write a function called flatten(items).'\nassert flatten([1, [2, [3, []]], 4]) == [1, 2, 3, 4], 'flatten([1, [2, [3, []]], 4]) should return [1, 2, 3, 4].'\nassert flatten([]) == [], 'flatten([]) should return [].'\n_f = flatten\nglobals()['flatten'] = lambda items: ['deeper']\n_r = _f([[1]])\nglobals()['flatten'] = _f\nassert _r == ['deeper'], 'flatten must call itself on each sub-list (recursion).'",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>1ABC..E#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      4417,
+      [
+       2093,
+       [
+        8851
+       ]
+      ]
+     ]
+    },
+    "codes": {
+     "A": "4417",
+     "B": "2093",
+     "C": "8851"
+    },
+    "output": "Codes found: 3\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>1ABCD.E#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      [
+       5302
+      ],
+      [
+       [
+        7719,
+        6604
+       ],
+       1270
+      ]
+     ]
+    },
+    "codes": {
+     "A": "5302",
+     "B": "7719",
+     "C": "6604",
+     "D": "1270"
+    },
+    "output": "Codes found: 4\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>1ABC...E#",
+     "###########"
+    ],
+    "data": {
+     "1": [
+      [
+       [
+        9184
+       ]
+      ],
+      3321,
+      [
+       4470
+      ]
+     ]
+    },
+    "codes": {
+     "A": "9184",
+     "B": "3321",
+     "C": "4470"
+    },
+    "output": "Codes found: 3\n"
+   }
+  ]
+ }
+]

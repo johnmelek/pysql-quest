@@ -1,0 +1,786 @@
+[
+ {
+  "id": "m-a-wake-up",
+  "chapter": "Wake-up Bay",
+  "title": "Wake up, Bit",
+  "covers": [
+   "py-hello"
+  ],
+  "xp": 10,
+  "story": "The lights flicker. Deep in the Ironworks factory, a small maintenance robot called Bit, unit B-17, switches on after a long power cut. The security system WARDEN has locked every door. You are on Bit's radio link, and Bit can only do what your code tells it.",
+  "power": "### What is a program?\n\nA <b>program</b> is a list of instructions that the computer follows, one after the other, from the top line to the bottom line. Here, your program is the list of things Bit will do.\n\n### print shows something on the screen\n\n<code>print</code> is a <b>function</b>: a ready-made command that does a job for you. To use it, you <b>call</b> it: you write its name followed by round brackets, called <b>parentheses</b> <code>( )</code>. What you put inside the parentheses is what gets shown in the output area. Each <code>print</code> starts a new line.\n\n~~~python\nprint(\"Good morning\")\nprint(\"Python is ready\")\n~~~\n\n- Line 1: <code>print</code> receives the text <code>Good morning</code> and writes it as one line of output.\n- Line 2: Python moves on to the next line and prints <code>Python is ready</code> on a new line.\n\n### Text needs quotes: strings\n\nA piece of text is called a <b>string</b>. You wrap it in quotes so Python knows where it starts and stops. Double quotes <code>\"...\"</code> and single quotes <code>'...'</code> both work, as long as the opening and closing quotes match. The quotes are not printed. Everything between them is printed exactly as written, spaces and punctuation included.\n\n~~~python\nprint(\"Hello, friend!\")\nprint('Single quotes work too.')\nprint(\"   spaces are kept   \")\n~~~\n\n### Comments are notes for humans\n\nA line that starts with <code>#</code> (the hash sign) is a <b>comment</b>. Python skips it completely. Everything after a <code>#</code> at the end of a line is ignored too.\n\n~~~python\n# This line is ignored by Python\nprint(\"Only this is shown\")  # a note after the code\n~~~\n\n### Bit's controls\n\nThe first line of every mission is <code>from robot import *</code>. It means: \"bring in all of Bit's controls so I can use them\". After it you can call Bit's functions, the same way you call <code>print</code>:\n\n- <code>move()</code>: Bit rolls one square forward.\n- <code>say(\"text\")</code>: Bit says the text in a speech bubble, and it is printed exactly like <code>print</code> would.\n\nEach call is one instruction, so three <code>move()</code> lines make Bit roll three squares, from top to bottom in the order you wrote them.\n\n### Common mistakes\n\n- Forgetting a quote: <code>print(\"Hello)</code> stops with a <code>SyntaxError</code>, because Python cannot find where the text ends.\n- Writing <code>Print</code> or <code>Move</code> with a capital letter. Python is case sensitive: only <code>print</code> and <code>move</code> exist.\n- Forgetting the parentheses: <code>move</code> alone does nothing. You must write <code>move()</code>.\n- Typing the text slightly differently from what is asked. A missing letter or a capital counts as a different string.",
+  "goal": "Make Bit say exactly <code>Bit online</code>, then move it three squares forward onto the exit <code>E</code>.",
+  "starter": "from robot import *\n\n# Write your instructions below, one per line\n",
+  "solution": "from robot import *\n\nsay(\"Bit online\")\nmove()\nmove()\nmove()\n",
+  "hint": "Use say with the text in quotes, then write move() three times, each on its own line.",
+  "par": 6,
+  "check": {
+   "exit": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "######",
+     "#>..E#",
+     "######"
+    ],
+    "output": "Bit online\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-status-report",
+  "chapter": "Wake-up Bay",
+  "title": "Status report",
+  "covers": [
+   "py-hello"
+  ],
+  "xp": 10,
+  "story": "A speaker crackles: WARDEN wants a status report before it lets any unit move. Bit's battery started at 100 and the boot used 37. WARDEN hates guesses, so let Python do the maths.",
+  "power": "### Numbers do not need quotes\n\nNumbers are written as they are, with no quotes. Python can then calculate with them: <code>+</code> adds and <code>-</code> subtracts. The same characters inside quotes are just text, and Python prints them without calculating anything.\n\n~~~python\nprint(2 + 3)\nprint(\"2 + 3\")\nprint(10 - 4)\n~~~\n\n- Line 1: Python first calculates <code>2 + 3</code>, gets <code>5</code>, then prints <code>5</code>.\n- Line 2: the characters are inside quotes, so this is text: it prints <code>2 + 3</code>.\n- Line 3: prints <code>6</code>.\n\n### Several things in one print\n\nYou can give <code>print</code> several values separated by commas. Values handed to a function are called <b>arguments</b>. <code>print</code> shows them on one line, with a single space between each one. <code>say</code> works the same way.\n\n~~~python\nprint(\"Total:\", 5 + 5)\nprint(\"Apples\", \"and\", \"pears\")\nprint(\"Sum:\", \"2 + 2\", \"=\", 2 + 2)\n~~~\n\n- Line 1: the text <code>Total:</code>, then the result of <code>5 + 5</code>: <code>Total: 10</code>.\n- Line 2: three strings joined with spaces: <code>Apples and pears</code>.\n- Line 3: the second value is text and the last one is a calculation: <code>Sum: 2 + 2 = 4</code>.",
+  "goal": "Print exactly three lines: <code>Status report</code>, then <code>Battery: 63</code> where 63 is calculated by Python from <code>100 - 37</code>, then <code>Doors: 2 + 2 = 4</code> where the last number is calculated. Then move Bit to the exit.",
+  "starter": "from robot import *\n\n# WARDEN wants a status report\n",
+  "solution": "from robot import *\n\nprint(\"Status report\")\nprint(\"Battery:\", 100 - 37)\nprint(\"Doors:\", \"2 + 2\", \"=\", 2 + 2)\nmove()\nmove()\n",
+  "hint": "Give print several values separated by commas: text in quotes, calculations without quotes.",
+  "par": 7,
+  "check": {
+   "exit": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#####",
+     "#>.E#",
+     "#####"
+    ],
+    "output": "Status report\nBattery: 63\nDoors: 2 + 2 = 4\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-memory",
+  "chapter": "Wake-up Bay",
+  "title": "Memory banks",
+  "covers": [
+   "py-vars"
+  ],
+  "xp": 15,
+  "story": "Bit's memory was wiped by the power cut. It does not even know its own name. Before WARDEN's scanner lets it out of the charging bay, Bit must store who it is and keep track of its battery.",
+  "power": "### Creating a variable with =\n\nA <b>variable</b> is a name that points at a value, so you can use the value later. You create one with <code>=</code>. In Python <code>=</code> does not mean \"is equal to\". It means \"store the value on the right under the name on the left\". This is called an <b>assignment</b>.\n\n~~~python\nname = \"Ada\"\nprint(name)\nprint(\"name\")\n~~~\n\n- Line 1: creates a variable called <code>name</code> holding the string <code>\"Ada\"</code>.\n- Line 2: no quotes, so Python looks up the variable and prints <code>Ada</code>.\n- Line 3: with quotes it is just the text <code>name</code>.\n\n### Changing a variable\n\nA variable can get a new value at any time; the old one is forgotten. You can also compute a new value from a variable.\n\n~~~python\nscore = 10\nprint(score)\nscore = 25\nprint(score)\nbonus = score + 5\nprint(bonus)\n~~~\n\n- Line 3: <code>score</code> now holds <code>25</code>. The <code>10</code> is gone.\n- Line 5: Python reads <code>score</code> (25), adds 5 and stores <code>30</code> in <code>bonus</code>.\n\n### The four basic types\n\nEvery value has a <b>type</b>, which says what kind of value it is:\n\n- <code>str</code> (string): text, always in quotes, like <code>\"Lyon\"</code>.\n- <code>int</code> (integer): a whole number, like <code>42</code> or <code>-7</code>. No spaces or commas inside: one million is <code>1000000</code>.\n- <code>float</code>: a number with a decimal point, like <code>3.5</code>. Python uses a dot, not a comma.\n- <code>bool</code> (boolean): <code>True</code> or <code>False</code>, with a capital letter and no quotes. For yes or no facts.\n\n~~~python\ncity = \"Paris\"\nrooms = 4\nprice = 129.99\nhas_pool = False\nprint(city, rooms, price, has_pool)\n~~~\n\n### Asking Python for the type\n\nYou never announce the type: Python works it out from the value. <code>type()</code> tells you the type. You can put one function inside another: <code>print(type(x))</code> first gets the type of <code>x</code>, then prints it.\n\n~~~python\nrooms = 4\nprint(type(rooms))\nprint(type(129.99))\nprint(type(\"4\"))\nprint(type(True))\n~~~\n\n- Prints <code>&lt;class 'int'&gt;</code>, <code>&lt;class 'float'&gt;</code>, then <code>&lt;class 'str'&gt;</code> because <code>\"4\"</code> is in quotes, then <code>&lt;class 'bool'&gt;</code>.\n\n### Naming rules\n\nNames use lowercase words joined by underscores, like <code>total_price</code>. A name can contain letters, digits and underscores, cannot start with a digit and cannot contain spaces. Names are case sensitive: <code>City</code> and <code>city</code> are two different variables.\n\n### Common mistakes\n\n- Writing <code>false</code> or <code>\"False\"</code>. The bool is <code>False</code>, capital F, no quotes.\n- Putting a number in quotes: <code>\"17\"</code> is a string, not an int.\n- Writing <code>1,000</code> or <code>1 000</code> for a number.\n- Using a variable before creating it stops the program with a <code>NameError</code>.",
+  "goal": "Create <code>name</code> holding the text Bit, <code>unit</code> holding the whole number 17, <code>temperature</code> holding 21.5 and <code>awake</code> holding True. Make Bit say all four in that order with one say, then print the type of <code>temperature</code>. Then set <code>battery</code> to 100, move three squares to the exit, take 3 away with <code>battery = battery - 3</code> and say <code>Battery</code> followed by its value.",
+  "starter": "from robot import *\n\nname = \n",
+  "solution": "from robot import *\n\nname = \"Bit\"\nunit = 17\ntemperature = 21.5\nawake = True\nsay(name, unit, temperature, awake)\nprint(type(temperature))\nbattery = 100\nmove()\nmove()\nmove()\nbattery = battery - 3\nsay(\"Battery\", battery)\n",
+  "hint": "Text goes in quotes, numbers and True do not; print(type(temperature)) shows the type.",
+  "par": 14,
+  "check": {
+   "exit": true
+  },
+  "test": "assert 'name' in dir() and name == 'Bit', \"Store the text Bit in a variable called name.\"\nassert 'unit' in dir() and type(unit) == int and unit == 17, \"unit should be the whole number 17, without quotes.\"\nassert 'temperature' in dir() and type(temperature) == float, \"temperature should be the decimal number 21.5.\"\nassert 'awake' in dir() and awake is True, \"awake should be the bool True: capital T, no quotes.\"\nassert 'battery' in dir() and battery == 97, \"battery should go from 100 down to 97 with battery = battery - 3.\"\n",
+  "worlds": [
+   {
+    "map": [
+     "######",
+     "#>..E#",
+     "######"
+    ],
+    "output": "Bit 17 21.5 True\n<class 'float'>\nBattery 97\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-time-lock",
+  "chapter": "Wake-up Bay",
+  "title": "The time lock",
+  "covers": [
+   "py-math"
+  ],
+  "xp": 15,
+  "story": "The bay door has a time lock. Its terminal shows how many minutes are left, but the keypad wants hours and minutes: the hours times 100, plus the minutes. The number is different every time WARDEN resets the lock.",
+  "power": "### The basic operators\n\nAn <b>operator</b> is a symbol that calculates with the values on each side of it.\n\n- <code>+</code> adds, <code>-</code> subtracts.\n- <code>*</code> (the star) multiplies. Python never uses x for multiplication.\n- <code>/</code> divides, and always gives a float, even when the result is whole.\n\n~~~python\nprint(7 + 2)\nprint(7 - 2)\nprint(7 * 2)\nprint(7 / 2)\nprint(8 / 2)\n~~~\n\n- The last line prints <code>4.0</code>, not <code>4</code>: <code>/</code> always gives a float.\n\n### Whole division // and remainder %\n\nTwo operators work as a pair when you split something into whole groups:\n\n- <code>//</code> (floor division) divides and keeps only the whole part. <code>17 // 5</code> is <code>3</code>: 5 fits into 17 three whole times.\n- <code>%</code> (modulo) gives what is left over. <code>17 % 5</code> is <code>2</code>: 3 times 5 is 15, and 17 minus 15 leaves 2.\n\n~~~python\neggs = 17\nboxes = eggs // 6\nleft = eggs % 6\nprint(boxes, \"full boxes and\", left, \"eggs left\")\n~~~\n\n### Converting minutes into hours\n\nThere are 60 minutes in an hour, so <code>// 60</code> gives the whole hours and <code>% 60</code> gives the minutes that do not make a full hour.\n\n~~~python\ntotal_minutes = 200\nhours = total_minutes // 60\nminutes = total_minutes % 60\nprint(hours, minutes)\n~~~\n\n- 60 fits into 200 three times, so <code>hours</code> is <code>3</code>. 3 hours are 180 minutes, so <code>minutes</code> is <code>20</code>. Prints <code>3 20</code>.\n\n### Terminals and doors\n\nTwo new controls for Bit:\n\n- <code>scan()</code>: when Bit stands on a terminal (a digit on the map), it reads the terminal and gives back its value. Store it: <code>total = scan()</code>. Scanning is free, it uses no battery.\n- <code>unlock(code)</code>: types the code into the door in front of Bit. A wrong code sounds the alarm and the run fails.\n\n### Common mistakes\n\n- Using <code>/</code> when you want a whole number. Use <code>//</code> for whole groups.\n- Mixing up <code>//</code> (\"how many whole times\") and <code>%</code> (\"what is left over\").\n- Writing x for multiplication. Use <code>*</code>.",
+  "goal": "Walk onto the terminal, scan the minutes left, and compute the hours and the leftover minutes. Unlock door A with <code>hours * 100 + minutes</code> (200 minutes give 320), then reach the exit. The minutes are different on every map.",
+  "starter": "from robot import *\n\nmove()\n",
+  "solution": "from robot import *\n\nmove()\ntotal = scan()\nhours = total // 60\nminutes = total % 60\nmove()\nunlock(hours * 100 + minutes)\nmove()\nmove()\n",
+  "hint": "hours is the total with // 60, minutes is the total with % 60; Python multiplies before it adds.",
+  "par": 10,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>1.AE#",
+     "#######"
+    ],
+    "data": {
+     "1": 200
+    },
+    "codes": {
+     "A": "320"
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "#>1.AE#",
+     "#######"
+    ],
+    "data": {
+     "1": 135
+    },
+    "codes": {
+     "A": "215"
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "#>1.AE#",
+     "#######"
+    ],
+    "data": {
+     "1": 59
+    },
+    "codes": {
+     "A": "59"
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-a-power-grid",
+  "chapter": "Wake-up Bay",
+  "title": "Power grid",
+  "covers": [
+   "py-math"
+  ],
+  "xp": 15,
+  "story": "The next door runs on salvaged battery cells. Its keypad wants the power per circuit: 2 to the power of the number of cells, shared between the circuits, rounded to 2 decimals. Two terminals give the cell count and the circuit count.",
+  "power": "### Powers with **\n\n<code>**</code> (two stars) raises to a power: <code>3 ** 2</code> is 3 times 3, and <code>2 ** 5</code> is 2 multiplied by itself 5 times.\n\n~~~python\nprint(3 ** 2)\nprint(2 ** 5)\n~~~\n\n### Order of operations and parentheses\n\nPython follows the same priority rules as maths: <code>**</code> first, then <code>*</code>, <code>/</code>, <code>//</code> and <code>%</code>, then <code>+</code> and <code>-</code>. Operators of the same priority run from left to right. Parentheses force a part to be calculated first.\n\n~~~python\nprint(2 + 3 * 4)\nprint((2 + 3) * 4)\nprint(2 ** 3 / 4)\ndays_left = 100 % 30 // 7\nprint(days_left)\n~~~\n\n- Line 1: <code>3 * 4</code> first (12), then plus 2: <code>14</code>.\n- Line 2: the parentheses go first (5), then times 4: <code>20</code>.\n- Line 3: <code>2 ** 3</code> first (8), then divided by 4: <code>2.0</code>.\n- Line 4: same priority, so left to right: <code>100 % 30</code> is <code>10</code>, then <code>10 // 7</code> is <code>1</code>.\n\n### Rounding with round\n\n<code>round(number, digits)</code> rounds a number to the given number of decimal places. It takes two arguments, separated by a comma.\n\n~~~python\nprice = 10 / 3\nprint(price)\nprint(round(price, 2))\n~~~\n\n- <code>price</code> is <code>3.3333333333333335</code> (computers store decimals with tiny imprecision). Rounded to 2 decimals it prints <code>3.33</code>.",
+  "goal": "Scan terminal 1 (the cells) and terminal 2 (the circuits). Compute <code>2 ** cells / circuits</code> rounded to 2 decimals, make Bit say <code>Power:</code> followed by that value, unlock door A with it and reach the exit.",
+  "starter": "from robot import *\n\nmove()\ncells = scan()\n",
+  "solution": "from robot import *\n\nmove()\ncells = scan()\nmove()\ncircuits = scan()\npower = round(2 ** cells / circuits, 2)\nsay(\"Power:\", power)\nunlock(power)\nmove()\nmove()\n",
+  "hint": "** runs before /, so 2 ** cells / circuits needs no parentheses; wrap it all in round(..., 2).",
+  "par": 11,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>12AE#",
+     "#######"
+    ],
+    "data": {
+     "1": 5,
+     "2": 3
+    },
+    "codes": {
+     "A": "10.67"
+    },
+    "output": "Power: 10.67\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>12AE#",
+     "#######"
+    ],
+    "data": {
+     "1": 6,
+     "2": 7
+    },
+    "codes": {
+     "A": "9.14"
+    },
+    "output": "Power: 9.14\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>12AE#",
+     "#######"
+    ],
+    "data": {
+     "1": 4,
+     "2": 8
+    },
+    "codes": {
+     "A": "2.0"
+    },
+    "output": "Power: 2.0\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-nameplate",
+  "chapter": "Wake-up Bay",
+  "title": "The garbled nameplate",
+  "covers": [
+   "py-strings"
+  ],
+  "xp": 15,
+  "story": "Two doors guard the bay's exit. Their codes are the name on a rusty nameplate, but the terminal reads it back garbled: random capitals and stray spaces. Door A wants the name in title case, door B in lower case.",
+  "power": "### Methods: tools attached to a string\n\nA <b>method</b> is a function that belongs to a value. You call it with a dot after the value: <code>text.upper()</code>. The empty parentheses are still required. A string method never changes the original string: it gives back a new string, which you usually store in a variable.\n\n- <code>.strip()</code> removes spaces at the start and the end (not in the middle).\n- <code>.upper()</code> makes every letter capital, <code>.lower()</code> makes every letter small.\n- <code>.title()</code> makes the first letter of each word capital and the rest small.\n\n~~~python\nraw = \"  alan TURING  \"\nprint(\"[\" + raw.strip() + \"]\")\nprint(raw.upper())\nprint(raw.lower())\nprint(raw.title())\nprint(\"[\" + raw + \"]\")\n~~~\n\n- Line 2: <code>+</code> between strings glues them together. The brackets show the edges: <code>[alan TURING]</code>.\n- Lines 3 to 5: <code>  ALAN TURING  </code>, <code>  alan turing  </code>, <code>  Alan Turing  </code>.\n- Line 6: <code>[  alan TURING  ]</code>: <code>raw</code> itself never changed.\n\n### Chaining methods\n\nEach method returns a new string, so you can call another method on the result straight away. Python works from left to right.\n\n~~~python\nraw = \"  alan TURING  \"\nclean = raw.strip().title()\nprint(clean)\n~~~\n\n- <code>raw.strip()</code> gives <code>\"alan TURING\"</code>, then <code>.title()</code> on that gives <code>\"Alan Turing\"</code>.\n\n### Common mistakes\n\n- Forgetting the parentheses: <code>raw.strip</code> without <code>()</code> does not run the method.\n- Expecting <code>raw.strip()</code> alone to change <code>raw</code>. Store the result: <code>clean = raw.strip()</code>.",
+  "goal": "Scan the nameplate and strip its spaces. Unlock door A with the title case version and door B with the lower case version. On the exit, say <code>Cleared: </code> glued with <code>+</code> to the name in capitals, like <code>Cleared: NORTH VENT</code>.",
+  "starter": "from robot import *\n\nmove()\nraw = scan()\n",
+  "solution": "from robot import *\n\nmove()\nraw = scan()\nclean = raw.strip()\nunlock(clean.title())\nmove()\nunlock(clean.lower())\nmove()\nmove()\nsay(\"Cleared: \" + clean.upper())\n",
+  "hint": "Store raw.strip() in a variable first, then call .title(), .lower() and .upper() on it.",
+  "par": 11,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>1ABE#",
+     "#######"
+    ],
+    "data": {
+     "1": "   bAY dOOR sEVEN  "
+    },
+    "codes": {
+     "A": "Bay Door Seven",
+     "B": "bay door seven"
+    },
+    "output": "Cleared: BAY DOOR SEVEN\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>1ABE#",
+     "#######"
+    ],
+    "data": {
+     "1": "  north VENT "
+    },
+    "codes": {
+     "A": "North Vent",
+     "B": "north vent"
+    },
+    "output": "Cleared: NORTH VENT\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>1ABE#",
+     "#######"
+    ],
+    "data": {
+     "1": " cOOLING tower   "
+    },
+    "codes": {
+     "A": "Cooling Tower",
+     "B": "cooling tower"
+    },
+    "output": "Cleared: COOLING TOWER\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-serial-cutter",
+  "chapter": "Wake-up Bay",
+  "title": "Serial cutter",
+  "covers": [
+   "py-strings"
+  ],
+  "xp": 20,
+  "story": "WARDEN's last checkpoint in the bay builds its codes from a three word phrase on a terminal. Door A wants the first three letters of the phrase followed by its last letter. Door B wants the first letter of each word followed by the phrase's length.",
+  "power": "### Indexing: one character at a time\n\nEach character in a string has a position number called an <b>index</b>. Counting starts at <code>0</code>, not 1. You read one character with <b>square brackets</b>: <code>word[0]</code>. Negative numbers count from the end: <code>-1</code> is the last character. A <b>slice</b> <code>word[start:stop]</code> takes several characters, from <code>start</code> up to but not including <code>stop</code>. <code>len(word)</code> gives the number of characters.\n\n~~~python\nword = \"Python\"\nprint(word[0])\nprint(word[1])\nprint(word[-1])\nprint(word[0:3])\nprint(len(word))\n~~~\n\n- Positions are P=0, y=1, t=2, h=3, o=4, n=5. Prints <code>P</code>, <code>y</code>, <code>n</code>, then <code>Pyt</code> (positions 0, 1 and 2), then <code>6</code>.\n\n### Splitting text into words\n\n<code>.split()</code> cuts a string at every run of spaces and gives back the pieces as a <b>list</b>: several values in order, inside square brackets. You read a list item with an index too. Each item is a string, so you can index it again: <code>parts[1][0]</code> means \"item 1, then its character 0\".\n\n~~~python\ncity = \"new york city\"\nparts = city.split()\nprint(parts)\nprint(parts[1])\nprint(parts[1][0])\nprint(parts[0][0] + parts[2][0])\n~~~\n\n- <code>parts</code> is <code>['new', 'york', 'city']</code>. Item 1 is <code>york</code>, its first character is <code>y</code>, and <code>n</code> glued to <code>c</code> gives <code>nc</code>.\n\n### f-strings: putting values inside text\n\nAn <b>f-string</b> has the letter <code>f</code> just before the opening quote. Inside it, anything in curly braces <code>{ }</code> is replaced by its value. You can calculate and call methods inside the braces.\n\n~~~python\nname = \"Ada\"\nage = 36\nprint(f\"{name} is {age} years old\")\nprint(f\"In 4 years: {age + 4}\")\nprint(f\"[{name.upper()}]\")\n~~~\n\n- Prints <code>Ada is 36 years old</code>, <code>In 4 years: 40</code>, then <code>[ADA]</code>.\n\n### Common mistakes\n\n- Forgetting the <code>f</code> before the quote: the braces are then printed as they are.\n- Counting from 1. The first character or item is at index <code>0</code>.",
+  "goal": "Scan the phrase. Unlock door A with its first three characters (a slice) glued to its last character (index -1). Split it into words and unlock door B with an f-string made of the first letter of each of the three words, then the length of the whole phrase (for <code>steel gate north</code> that is <code>sgn16</code>). Reach the exit.",
+  "starter": "from robot import *\n\nmove()\ntext = scan()\n",
+  "solution": "from robot import *\n\nmove()\ntext = scan()\nunlock(text[0:3] + text[-1])\nmove()\nwords = text.split()\nunlock(f\"{words[0][0]}{words[1][0]}{words[2][0]}{len(text)}\")\nmove()\nmove()\n",
+  "hint": "text[0:3] is the slice, words[1][0] is the first letter of the second word, len(text) counts every character, spaces included.",
+  "par": 10,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>1ABE#",
+     "#######"
+    ],
+    "data": {
+     "1": "steel gate north"
+    },
+    "codes": {
+     "A": "steh",
+     "B": "sgn16"
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "#>1ABE#",
+     "#######"
+    ],
+    "data": {
+     "1": "old furnace hatch"
+    },
+    "codes": {
+     "A": "oldh",
+     "B": "ofh17"
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "#>1ABE#",
+     "#######"
+    ],
+    "data": {
+     "1": "red pump room"
+    },
+    "codes": {
+     "A": "redm",
+     "B": "rpr13"
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-a-warden-quiz",
+  "chapter": "Wake-up Bay",
+  "title": "WARDEN's quiz",
+  "covers": [
+   "py-input"
+  ],
+  "xp": 20,
+  "story": "At the bay's exit WARDEN asks its questions out loud: Bit's radio receives each answer as one line of input. A password, two numbers and a rate. Three doors stand in a row, and WARDEN expects real maths, not glued text.",
+  "power": "### input reads one line\n\n<code>input()</code> waits for one line of text and gives it back as a string. You usually store it in a variable. In a mission, the lines are listed under the map: the first <code>input()</code> receives the first line, the second <code>input()</code> the second line, and so on. Each call reads exactly one line, so to read two values you call it twice.\n\n~~~text\nname = input()        # reads the first line, say Ada\nage = input()         # reads the second line, say 36\n~~~\n\n### A prompt tells the user what to type\n\nYou can put a string inside the parentheses: <code>input(\"Which city? \")</code>. It is shown before the user types, as a question. It is called a <b>prompt</b> and it does not change the value that is read.\n\n### The trap: input always gives text\n\nEven when the line contains digits, <code>input()</code> returns a string. And <code>+</code> between two strings glues them. Here are the values two <code>input()</code> calls would give for the lines 12 and 30:\n\n~~~python\na = \"12\"\nb = \"30\"\nprint(a + b)\nprint(type(a))\n~~~\n\n- Prints <code>1230</code>, not 42, then <code>&lt;class 'str'&gt;</code>: the proof that it is text.\n\n### Converting text into numbers\n\n<code>int(text)</code> turns a string of digits into a whole number, negative numbers included. <code>float(text)</code> turns text like <code>\"2.5\"</code> into a decimal number. <code>str(value)</code> goes the other way and turns a number into text.\n\n~~~python\nquantity = int(\"4\")\nprice = float(\"2.5\")\nprint(quantity * price)\nprint(int(\"-5\") + 1)\nprint(str(7) + \"7\")\n~~~\n\n- Prints <code>10.0</code>, <code>-4</code>, then <code>77</code>.\n\nYou can wrap the conversion directly around <code>input()</code>. Python runs the inner function first (read the line), then the outer one (convert it):\n\n~~~text\nage = int(input(\"Your age: \"))\nprint(f\"You will be {age + 1} next year\")\n~~~\n\n### Common mistakes\n\n- Forgetting <code>int()</code>, so <code>+</code> glues text instead of adding.\n- Converting text that is not a whole number: <code>int(\"abc\")</code> or <code>int(\"2.5\")</code> stops with <code>ValueError: invalid literal for int() with base 10</code>. Use <code>float()</code> for decimals.\n- Calling <code>input()</code> once and expecting several lines.\n- Mismatched parentheses in <code>int(input())</code>: every opening one needs a closing one.",
+  "goal": "Read four lines: a password, two whole numbers and a decimal rate. Unlock door A with the password in capitals, door B with the sum of the two numbers, and door C with the rate times 2. Then reach the exit. The answers change on every map.",
+  "starter": "from robot import *\n\npassword = input()\n",
+  "solution": "from robot import *\n\npassword = input()\na = int(input())\nb = int(input())\nrate = float(input())\nunlock(password.upper())\nmove()\nunlock(a + b)\nmove()\nunlock(rate * 2)\nmove()\nmove()\n",
+  "hint": "Wrap each number in int(input()) or float(input()), one call per line.",
+  "par": 13,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>ABCE#",
+     "#######"
+    ],
+    "stdin": "ember\n12\n30\n2.5",
+    "codes": {
+     "A": "EMBER",
+     "B": "42",
+     "C": "5.0"
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "#>ABCE#",
+     "#######"
+    ],
+    "stdin": "cobalt\n45\n-9\n1.25",
+    "codes": {
+     "A": "COBALT",
+     "B": "36",
+     "C": "2.5"
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-a-hot-fork",
+  "chapter": "The Corridors",
+  "title": "The hot fork",
+  "covers": [
+   "py-if"
+  ],
+  "xp": 20,
+  "story": "Bit rolls into the Corridors. At the first fork, one way leads on and the other ends in a hole where the floor melted. A terminal shows the furnace temperature: at 100 degrees or more the north corridor is the burnt one and Bit must go south, otherwise north is safe.",
+  "power": "### Comparisons give True or False\n\nA <b>comparison</b> checks two values and gives back a bool: <code>True</code> or <code>False</code>. Python has six comparison operators:\n\n- <code>==</code> equal to (two equals signs; one <code>=</code> is for assignment)\n- <code>!=</code> not equal to\n- <code>&lt;</code> less than, <code>&lt;=</code> less than or equal to\n- <code>&gt;</code> greater than, <code>&gt;=</code> greater than or equal to\n\n~~~python\nage = 17\nprint(age >= 18)\nprint(age < 18)\nprint(age == 17)\nprint(age != 17)\n~~~\n\n- Prints <code>False</code>, <code>True</code>, <code>True</code>, <code>False</code>.\n\n### if: run a block only when a condition is true\n\nWrite <code>if</code>, a condition, then a <b>colon</b> <code>:</code>. The lines that belong to the <code>if</code> come underneath, <b>indented</b> by 4 spaces. This indented group is a <b>block</b>. Python runs it only when the condition is <code>True</code>. The first line that is no longer indented is outside the block and always runs.\n\n~~~python\ntotal = 65\nif total >= 50:\n    print(\"Free shipping!\")\n    print(\"Thanks for your order\")\nprint(\"Done\")\n~~~\n\n- Both indented lines run because <code>65 &gt;= 50</code>. Change 65 to 30: only <code>Done</code> is printed.\n\n### else: the other case\n\n<code>else:</code> (with a colon and no condition) gives a block to run when the condition is <code>False</code>. Exactly one of the two blocks runs.\n\n~~~python\nstock = 3\nif stock > 0:\n    print(\"In stock\")\nelse:\n    print(\"Sold out\")\n~~~\n\n### Turning Bit\n\n<code>turn_left()</code> and <code>turn_right()</code> turn Bit a quarter turn on the spot. Facing east (right on the map), <code>turn_left()</code> makes Bit face north (up) and <code>turn_right()</code> makes it face south (down).\n\n### Common mistakes\n\n- Writing <code>=</code> instead of <code>==</code> in a condition: a <code>SyntaxError</code>.\n- Forgetting the colon at the end of <code>if</code> or <code>else</code>.\n- Wrong indentation: all lines of a block must be indented by the same amount.",
+  "goal": "Scan the temperature, then move to the fork. If it is 100 or more, turn right (south), else turn left (north). Then move twice to the exit. The temperature changes on every map, so a fixed path falls in a hole.",
+  "starter": "from robot import *\n\nmove()\ntemp = scan()\nmove()\n",
+  "solution": "from robot import *\n\nmove()\ntemp = scan()\nmove()\nif temp >= 100:\n    turn_right()\nelse:\n    turn_left()\nmove()\nmove()\n",
+  "hint": "Use if temp >= 100: with an indented turn_right(), and else: with an indented turn_left().",
+  "par": 11,
+  "check": {
+   "exit": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "###.###",
+     "###x###",
+     "#>1.###",
+     "###.###",
+     "###E###",
+     "#######"
+    ],
+    "data": {
+     "1": 120
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "###E###",
+     "###.###",
+     "#>1.###",
+     "###x###",
+     "###.###",
+     "#######"
+    ],
+    "data": {
+     "1": 80
+    }
+   },
+   {
+    "map": [
+     "#######",
+     "###.###",
+     "###x###",
+     "#>1.###",
+     "###.###",
+     "###E###",
+     "#######"
+    ],
+    "data": {
+     "1": 100
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-a-alarm-junction",
+  "chapter": "The Corridors",
+  "title": "The alarm junction",
+  "covers": [
+   "py-if"
+  ],
+  "xp": 25,
+  "story": "A three way junction. Two terminals tell Bit whether WARDEN's alarm is on and the threat level. Two of the three corridors are trapped on every map, and which ones depends on both readings.",
+  "power": "### elif: a chain of choices\n\n<code>elif</code> means \"else if\". It adds another condition, checked only when the ones above were false. Python checks from top to bottom and runs <b>only the first branch that is true</b>, then skips the rest. A final <code>else</code> catches everything left over. So the order matters: put the strictest test first.\n\n~~~python\nage = 12\nif age >= 65:\n    print(\"Senior ticket\")\nelif age >= 18:\n    print(\"Adult ticket\")\nelif age >= 4:\n    print(\"Child ticket\")\nelse:\n    print(\"Free\")\n~~~\n\n- <code>12 &gt;= 65</code> and <code>12 &gt;= 18</code> are false, <code>12 &gt;= 4</code> is true: prints <code>Child ticket</code> and skips the rest. If <code>age &gt;= 4</code> came first, a 70 year old would get a child ticket.\n\n### and, or, not\n\n<code>and</code> is true only when both sides are true. <code>or</code> is true when at least one side is true. <code>not</code> flips <code>True</code> into <code>False</code> and back.\n\n~~~python\ntemp = 22\nraining = False\nif temp > 18 and not raining:\n    print(\"Picnic time\")\nif temp < 0 or raining:\n    print(\"Stay inside\")\n~~~\n\n- <code>temp &gt; 18</code> is true and <code>not raining</code> is true, so it prints <code>Picnic time</code>. The <code>or</code> has two false sides, so the second block does not run.\n\n### Blocks inside blocks\n\nA block can contain another <code>if</code>. Indent it one more level (8 spaces).\n\n~~~python\ndoor = \"open\"\nlevel = 3\nif door == \"open\":\n    if level > 2:\n        print(\"Open, but dangerous\")\n    else:\n        print(\"Open and safe\")\n~~~\n\n### Common mistakes\n\n- Checking in the wrong order, so a lower test catches values meant for a higher one.\n- Forgetting the colon at the end of <code>elif</code> or <code>else</code>.",
+  "goal": "Scan <code>alarm</code> (True or False) on terminal 1 and <code>level</code> on terminal 2, then move to the junction. First say <code>All quiet</code> if the alarm is off or the level is below 3, else say <code>Danger</code>. Then: if the alarm is on and the level is 5 or more, go north (left); elif the level is below 5, go south (right); otherwise go straight on. Move twice to reach the exit.",
+  "starter": "from robot import *\n\nmove()\nalarm = scan()\n",
+  "solution": "from robot import *\n\nmove()\nalarm = scan()\nmove()\nlevel = scan()\nmove()\nif not alarm or level < 3:\n    say(\"All quiet\")\nelse:\n    say(\"Danger\")\nif alarm and level >= 5:\n    turn_left()\nelif level < 5:\n    turn_right()\nmove()\nmove()\n",
+  "hint": "Write the say part and the turning part as two separate if statements; going straight needs no turn at all.",
+  "par": 17,
+  "check": {
+   "exit": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "####E###",
+     "####.###",
+     "#>12.x.#",
+     "####x###",
+     "####.###",
+     "########"
+    ],
+    "data": {
+     "1": true,
+     "2": 7
+    },
+    "output": "Danger\n"
+   },
+   {
+    "map": [
+     "########",
+     "####.###",
+     "####x###",
+     "#>12..E#",
+     "####x###",
+     "####.###",
+     "########"
+    ],
+    "data": {
+     "1": false,
+     "2": 9
+    },
+    "output": "All quiet\n"
+   },
+   {
+    "map": [
+     "########",
+     "####.###",
+     "####x###",
+     "#>12.x.#",
+     "####.###",
+     "####E###",
+     "########"
+    ],
+    "data": {
+     "1": true,
+     "2": 2
+    },
+    "output": "All quiet\n"
+   },
+   {
+    "map": [
+     "########",
+     "####.###",
+     "####x###",
+     "#>12.x.#",
+     "####.###",
+     "####E###",
+     "########"
+    ],
+    "data": {
+     "1": false,
+     "2": 1
+    },
+    "output": "All quiet\n"
+   },
+   {
+    "map": [
+     "########",
+     "####E###",
+     "####.###",
+     "#>12.x.#",
+     "####x###",
+     "####.###",
+     "########"
+    ],
+    "data": {
+     "1": true,
+     "2": 5
+    },
+    "output": "Danger\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-long-corridor",
+  "chapter": "The Corridors",
+  "title": "The long corridor",
+  "covers": [
+   "py-for"
+  ],
+  "xp": 25,
+  "story": "The corridor ahead stretches into the dark, and WARDEN changes its length every time the walls shift. A terminal at its start knows how many squares it is. The radio team also wants the warning lights reported: there is one every 3 squares, starting at square 0.",
+  "power": "### Looping over a list of items\n\nA <b>list</b> is several values in square brackets, separated by commas. A <code>for</code> loop is written <code>for name in collection:</code>, then an indented block. On each round, called an <b>iteration</b>, Python puts the next item into the <b>loop variable</b> and runs the block.\n\n~~~python\nfor fruit in [\"apple\", \"kiwi\", \"pear\"]:\n    print(\"I like\", fruit)\nprint(\"End of the list\")\n~~~\n\n- <code>fruit</code> is <code>\"apple\"</code>, then <code>\"kiwi\"</code>, then <code>\"pear\"</code>. The last line is not indented, so it runs once, after the loop. Use Step through to watch <code>fruit</code> change.\n\n### range: counting numbers\n\n<code>range(stop)</code> produces the whole numbers from 0 up to, but <b>not including</b>, <code>stop</code>. <code>range(3)</code> gives 0, 1, 2: three numbers, so the block runs 3 times.\n\n~~~python\nfor i in range(3):\n    print(\"Round\", i)\n~~~\n\n### range with a start and a step\n\n<code>range(start, stop)</code> starts at <code>start</code> and still stops just before <code>stop</code>. A third value, the <b>step</b>, sets how much to add each time: <code>range(start, stop, step)</code>. To count from 1 to 5 included, write <code>range(1, 6)</code>.\n\n~~~python\nfor day in range(1, 6):\n    print(f\"Day {day} of 5\")\nfor n in range(0, 20, 5):\n    print(n)\n~~~\n\n- <code>day</code> takes 1, 2, 3, 4 and 5. <code>n</code> takes 0, 5, 10 and 15: 20 is excluded.\n\n### Using the loop variable in a calculation\n\nThe loop variable is an ordinary variable: you can calculate with it and combine it with other variables, such as a number you scanned or read.\n\n~~~python\nsize = 4\nfor i in range(1, 4):\n    print(f\"{i} box(es) of {size} = {i * size} items\")\n~~~\n\n### Common mistakes\n\n- Forgetting the colon at the end of the <code>for</code> line.\n- Forgetting to indent the lines that should repeat, or indenting a line that should run only once.\n- Off by one: <code>range(1, 10)</code> stops at 9. To include 10, write <code>range(1, 11)</code>.",
+  "goal": "Scan the corridor length. With a for loop over <code>range(0, length, 3)</code>, say <code>Light at</code> and each number, like <code>Light at 3</code>. Then, with a second for loop counting from 1 to the length included, move one square and say <code>Step</code> and the number each round. Bit ends on the exit.",
+  "starter": "from robot import *\n\nmove()\nlength = scan()\n",
+  "solution": "from robot import *\n\nmove()\nlength = scan()\nfor i in range(0, length, 3):\n    say(f\"Light at {i}\")\nfor i in range(1, length + 1):\n    move()\n    say(f\"Step {i}\")\n",
+  "hint": "range(1, length + 1) includes length itself; put both move() and say() inside the second loop.",
+  "par": 9,
+  "check": {
+   "exit": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1...E#",
+     "########"
+    ],
+    "data": {
+     "1": 4
+    },
+    "output": "Light at 0\nLight at 3\nStep 1\nStep 2\nStep 3\nStep 4\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>1......E#",
+     "###########"
+    ],
+    "data": {
+     "1": 7
+    },
+    "output": "Light at 0\nLight at 3\nLight at 6\nStep 1\nStep 2\nStep 3\nStep 4\nStep 5\nStep 6\nStep 7\n"
+   },
+   {
+    "map": [
+     "##############",
+     "#>1.........E#",
+     "##############"
+    ],
+    "data": {
+     "1": 10
+    },
+    "output": "Light at 0\nLight at 3\nLight at 6\nLight at 9\nStep 1\nStep 2\nStep 3\nStep 4\nStep 5\nStep 6\nStep 7\nStep 8\nStep 9\nStep 10\n"
+   }
+  ]
+ },
+ {
+  "id": "m-a-route-card",
+  "chapter": "The Corridors",
+  "title": "The route card",
+  "covers": [
+   "py-for"
+  ],
+  "xp": 25,
+  "story": "A terminal hands Bit a route card: a string of letters. F means one square forward, L a left turn, R a right turn. The corridors twist differently on every map, and the door at the end wants the number of squares Bit actually moved.",
+  "power": "### Looping over a string\n\nA string is also a collection: of characters. A <code>for</code> loop over a string gives one character per round.\n\n~~~python\nfor letter in \"Hey\":\n    print(letter)\n~~~\n\n- <code>letter</code> is <code>\"H\"</code>, then <code>\"e\"</code>, then <code>\"y\"</code>.\n\n### Keeping a running total\n\nA common pattern: create a variable before the loop, then update it inside the loop. <code>total = total + n</code> means \"take the current total, add n, store the result back in total\".\n\n~~~python\ntotal = 0\nfor n in range(1, 5):\n    total = total + n\n    print(\"after adding\", n, \"total is\", total)\nprint(\"Final:\", total)\n~~~\n\n- <code>total</code> goes 1, 3, 6, 10. After the loop it prints <code>Final: 10</code>.\n\n### A decision inside a loop\n\nThe block of a loop can contain an <code>if</code>. Indent it inside the loop, and its own block one level more.\n\n~~~python\ncount = 0\nfor c in \"banana\":\n    if c == \"a\":\n        count = count + 1\nprint(count, \"letters a\")\n~~~\n\n### Common mistakes\n\n- Putting the starting value of the total inside the loop, which resets it on every round.\n- Comparing with <code>=</code> instead of <code>==</code>.",
+  "goal": "Scan the route card, then follow it letter by letter with a for loop: F moves, L turns left, R turns right. Count the squares moved in a running total that starts at 0, unlock door A with that count, and move twice to the exit.",
+  "starter": "from robot import *\n\nmove()\nroute = scan()\n",
+  "solution": "from robot import *\n\nmove()\nroute = scan()\nsteps = 0\nfor c in route:\n    if c == \"F\":\n        move()\n        steps = steps + 1\n    elif c == \"L\":\n        turn_left()\n    else:\n        turn_right()\nunlock(steps)\nmove()\nmove()\n",
+  "hint": "Inside for c in route:, use if, elif and else on c; set steps = 0 before the loop, not inside it.",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>1..###",
+     "####.###",
+     "####.AE#",
+     "########"
+    ],
+    "data": {
+     "1": "FFRFFL"
+    },
+    "codes": {
+     "A": "4"
+    }
+   },
+   {
+    "map": [
+     "########",
+     "####.AE#",
+     "####.###",
+     "#>1..###",
+     "########"
+    ],
+    "data": {
+     "1": "FFLFFR"
+    },
+    "codes": {
+     "A": "4"
+    }
+   },
+   {
+    "map": [
+     "##########",
+     "#>1....###",
+     "######.###",
+     "######.AE#",
+     "##########"
+    ],
+    "data": {
+     "1": "FFFFRFFL"
+    },
+    "codes": {
+     "A": "6"
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-a-dark-hall",
+  "chapter": "The Corridors",
+  "title": "The dark hall",
+  "covers": [
+   "py-while"
+  ],
+  "xp": 25,
+  "story": "The power fails again and the hall goes dark. Bit cannot see how long it is, only whether it is standing on the exit yet. Every action drains its battery, so a loop that never stops will leave Bit stranded. Coins lie on the floor, and the radio team wants a beacon report.",
+  "power": "### while: repeat as long as a condition is true\n\n<code>for</code> is perfect when you know what to go through. <code>while</code> repeats until something happens. You write <code>while</code>, a condition and a colon, then an indented block. Before each round Python checks the condition. If it is <code>True</code>, the block runs and Python checks again. As soon as it is <code>False</code>, the loop ends.\n\n~~~python\ncount = 3\nwhile count > 0:\n    print(count)\n    count = count - 1\nprint(\"Lift off\")\n~~~\n\n- Prints 3, 2, 1, then <code>count</code> is 0, <code>0 &gt; 0</code> is false, and it prints <code>Lift off</code>.\n\n### The infinite loop\n\nSomething inside the loop must change the condition. If <code>count</code> never went down, the loop would never end. This is an <b>infinite loop</b>; the page stops it after 3 seconds. For Bit it is worse: every <code>move()</code>, turn or <code>say()</code> uses one unit of battery, so a robot stuck in a loop drains its battery and the run fails. Bit's sensors are free: <code>at_exit()</code> is <code>True</code> when Bit stands on the exit, and <code>here()</code> names the square under Bit, like <code>\"coin\"</code> or <code>\"floor\"</code>. <code>pick()</code> picks up the coin Bit stands on.\n\n### Shortcuts: += and -=\n\n<code>i += 1</code> means exactly <code>i = i + 1</code>, and <code>count -= 1</code> means <code>count = count - 1</code>.\n\n~~~python\ni = 1\nwhile i <= 5:\n    print(\"Item\", i)\n    i += 1\nprint(\"i ended at\", i)\n~~~\n\n### Testing \"is a multiple of\" with %\n\nA number is a multiple of 3 exactly when dividing it by 3 leaves nothing: <code>n % 3 == 0</code>.\n\n~~~python\nn = 1\nwhile n <= 6:\n    if n % 2 == 0:\n        print(n, \"is even\")\n    else:\n        print(n, \"is odd\")\n    n += 1\n~~~\n\n### Checking the combined case first\n\nWhen a number can match two rules, check the combined rule first, because an <code>if</code> / <code>elif</code> chain runs only the first true branch. A multiple of both 2 and 3 is a multiple of 6.\n\n~~~python\nn = 1\nwhile n <= 7:\n    if n % 6 == 0:\n        print(n, \"both\")\n    elif n % 2 == 0:\n        print(n, \"two\")\n    elif n % 3 == 0:\n        print(n, \"three\")\n    else:\n        print(n)\n    n += 1\n~~~\n\n- If the <code>n % 2</code> test came first, 6 would print <code>6 two</code> and never reach the combined test.\n\n### Common mistakes\n\n- Forgetting to update the counter, which makes an infinite loop.\n- Putting the update inside an <code>if</code> or <code>else</code> block, so it only happens in some rounds.\n- Testing a single rule before the combined rule in an <code>elif</code> chain.",
+  "goal": "Start <code>steps</code> at 0. While Bit is not on the exit: move, add 1 to <code>steps</code> with <code>+=</code>, pick up a coin if Bit stands on one, then say the step number and <code>beacon</code> on multiples of 6, or the number and <code>light</code> on other multiples of 3 (like <code>6 beacon</code>, <code>3 light</code>). At the end say <code>Exit after</code>, the steps, and <code>squares</code>.",
+  "starter": "from robot import *\n\nsteps = 0\n",
+  "solution": "from robot import *\n\nsteps = 0\nwhile not at_exit():\n    move()\n    steps += 1\n    if here() == \"coin\":\n        pick()\n    if steps % 6 == 0:\n        say(steps, \"beacon\")\n    elif steps % 3 == 0:\n        say(steps, \"light\")\nsay(\"Exit after\", steps, \"squares\")\n",
+  "hint": "while not at_exit(): keeps going until the exit; test steps % 6 before steps % 3.",
+  "par": 13,
+  "check": {
+   "exit": true,
+   "items": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#########",
+     "#>....$E#",
+     "#########"
+    ],
+    "output": "3 light\n6 beacon\nExit after 6 squares\n",
+    "battery": 40
+   },
+   {
+    "map": [
+     "############",
+     "#>.$...$.$E#",
+     "############"
+    ],
+    "output": "3 light\n6 beacon\n9 light\nExit after 9 squares\n",
+    "battery": 40
+   },
+   {
+    "map": [
+     "##############",
+     "#>..$.$...$.E#",
+     "##############"
+    ],
+    "output": "3 light\n6 beacon\n9 light\nExit after 11 squares\n",
+    "battery": 40
+   }
+  ]
+ },
+ {
+  "id": "m-a-sinkhole-run",
+  "chapter": "The Corridors",
+  "title": "The sinkhole run",
+  "covers": [
+   "py-while"
+  ],
+  "xp": 30,
+  "story": "The last corridor of the section has a sinkhole, and it is in a different place each time WARDEN shakes the floor. The way out is the side passage to the north, just before the hole. Coins are scattered along the way and Bit must collect every one.",
+  "power": "### break and continue\n\nTwo keywords control a loop from inside. <code>break</code> leaves the loop immediately. <code>continue</code> skips the rest of the current round and goes back to the condition check. In a <code>while</code> loop, make sure the counter moves forward before a <code>continue</code>, otherwise the same value is tested forever.\n\n~~~python\nn = 0\nwhile n < 10:\n    n += 1\n    if n % 2 == 0:\n        continue\n    if n > 7:\n        break\n    print(n)\nprint(\"stopped at\", n)\n~~~\n\n- <code>n</code> goes up at the start of each round, before any <code>continue</code>.\n- Even numbers hit <code>continue</code> and are never printed.\n- When <code>n</code> reaches 9, <code>break</code> ends the loop. It prints 1, 3, 5, 7, then <code>stopped at 9</code>.\n\n### while True and break\n\n<code>while True:</code> never stops by itself: the condition is always true. That is fine as long as a <code>break</code> inside it is sure to happen. For Bit, the robot equivalent of moving the counter forward is <code>move()</code>: if Bit never moves, it never reaches the hole and the loop never ends.\n\n~~~python\nfuel = 5\nwhile True:\n    fuel -= 2\n    print(\"fuel\", fuel)\n    if fuel < 0:\n        break\nprint(\"empty\")\n~~~\n\nThe sensor <code>front()</code> names the square in front of Bit, like <code>\"hole\"</code>, <code>\"wall\"</code> or <code>\"floor\"</code>. It is free.\n\n### Common mistakes\n\n- Using <code>continue</code> before the counter update (or before <code>move()</code>): nothing changes and the loop spins forever.\n- A <code>while True</code> loop with no reachable <code>break</code>.",
+  "goal": "Start <code>coins</code> at 0. In a <code>while True</code> loop: break if the square in front is a hole, otherwise move; if there is no coin under Bit, continue; else pick it up and add 1 to <code>coins</code>. After the loop turn left, move twice to the exit and say <code>Coins:</code> and the count.",
+  "starter": "from robot import *\n\ncoins = 0\nwhile True:\n",
+  "solution": "from robot import *\n\ncoins = 0\nwhile True:\n    if front() == \"hole\":\n        break\n    move()\n    if here() != \"coin\":\n        continue\n    pick()\n    coins += 1\nturn_left()\nmove()\nmove()\nsay(\"Coins:\", coins)\n",
+  "hint": "Test front() == \"hole\" before moving, and put move() before the continue so Bit always makes progress.",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "items": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#####E####",
+     "#####.####",
+     "#>.$.$x..#",
+     "##########"
+    ],
+    "output": "Coins: 2\n",
+    "battery": 50
+   },
+   {
+    "map": [
+     "##########",
+     "###E######",
+     "###.######",
+     "#>$.x....#",
+     "##########"
+    ],
+    "output": "Coins: 1\n",
+    "battery": 50
+   },
+   {
+    "map": [
+     "##########",
+     "#######E##",
+     "#######.##",
+     "#>$$.$.$x#",
+     "##########"
+    ],
+    "output": "Coins: 4\n",
+    "battery": 50
+   }
+  ]
+ }
+]

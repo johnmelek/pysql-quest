@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PySQL Quest</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap">
+<style>
+:root{--bg:#F4F6FB;--surface:#fff;--ink:#141A2B;--muted:#5B6478;--line:#DDE2EC;--py:#B7791F;--sql:#1F7A8C;--auto:#B5442E}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1322;--surface:#161D30;--ink:#E8ECF5;--muted:#9AA4B8;--line:#273149;--py:#F2C14E;--sql:#4FD1C5;--auto:#F07264}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:48px 16px}
+header{display:flex;align-items:center;gap:18px;margin-bottom:36px}
+header svg{width:84px;height:84px;flex:none}
+h1{font:800 clamp(2rem,6vw,3rem)/1.05 "Bricolage Grotesque",sans-serif;margin:0;letter-spacing:-.02em}
+header p{margin:6px 0 0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+a.card{display:grid;gap:8px;align-content:start;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:14px;padding:20px;color:inherit;text-decoration:none;transition:transform .15s,box-shadow .15s}
+a.card:hover,a.card:focus-visible{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.card small{font:700 .72rem ui-monospace,Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.card b{font:800 1.35rem "Bricolage Grotesque",sans-serif}
+.card span{color:var(--muted)}
+footer{margin-top:36px;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+  <header><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="PySQL Quest">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B2338"/><stop offset="1" stop-color="#0D1220"/></linearGradient>
+    <linearGradient id="py" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD866"/><stop offset="1" stop-color="#F2A93B"/></linearGradient>
+    <linearGradient id="sq" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FD1C5"/><stop offset="1" stop-color="#2B8FD6"/></linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <!-- the Q: Python half on top, SQL half below -->
+  <path d="M60 124 A64 64 0 0 1 188 124" fill="none" stroke="url(#py)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M188 124 A64 64 0 0 1 60 124" fill="none" stroke="url(#sq)" stroke-width="22" stroke-linecap="round"/>
+  <!-- the tail of the Q, and a star where the climb ends: zero to hero -->
+  <path d="M160 160 L198 198" stroke="url(#sq)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M206 30 Q210 50 226 54 Q210 58 206 78 Q202 58 186 54 Q202 50 206 30 Z" fill="url(#py)"/>
+  <!-- inside: a prompt and a table row, code meets data -->
+  <path d="M96 108 L114 124 L96 140" fill="none" stroke="#E8ECF5" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="122" y="134" width="34" height="10" rx="5" fill="#E8ECF5"/>
+</svg><div><h1>PySQL Quest</h1><p>Python and SQL, from zero to hero. Three ways to play, one progress.</p></div></header>
+  <div class="grid">
+    <a class="card" href="city.html" style="--c:var(--py)"><small>Play</small><b>Script City</b><span>Build an automation empire: every script you write for a client becomes a machine that earns.</span></a>
+    <a class="card" href="story.html" style="--c:var(--auto)"><small>Adventure</small><b>Story mode</b><span>Code a robot out of a locked factory and solve SQL cases in Harbor City.</span></a>
+    <a class="card" href="course.html" style="--c:var(--sql)"><small>Learn</small><b>The course</b><span>Every lesson in order, with runnable examples, step through and checked exercises.</span></a>
+  </div>
+  <footer>Sign in with GitHub on any page. Progress saves to a secret gist in your account.</footer>
+</main>
+</body>
+</html>

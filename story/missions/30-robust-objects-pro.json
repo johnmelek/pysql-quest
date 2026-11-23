@@ -1,0 +1,1418 @@
+[
+ {
+  "id": "m-c-garbled-readings",
+  "chapter": "The Flooded Basement",
+  "title": "Garbled readings",
+  "covers": [
+   "py-errors"
+  ],
+  "xp": 20,
+  "story": "Bit rolls down the ramp into the basement and the water is ankle deep. The flood got into the terminals: they still answer, but some readings come out as nonsense. Door A wants the sum of the real numbers, and one crash on a bad reading means starting over.",
+  "power": "Real data is messy. Someone types \"x7\" where a number was expected, a value is zero, a key is missing. <b>Exceptions</b> let your program notice the problem and choose what to do, instead of crashing.\n\n### What an exception looks like\n\nWhen Python cannot do something, it <b>raises</b> an exception: it stops the program and prints an error report called a <b>traceback</b>. The last line names the exception type and explains the problem.\n\n~~~text\nTraceback (most recent call last):\n  File \"main.py\", line 1, in <module>\n    n = int(\"x7\")\nValueError: invalid literal for int() with base 10: 'x7'\n~~~\n\nCommon types:\n\n- <code>ValueError</code>: the right type but a bad value, like <code>int(\"x7\")</code>.\n- <code>ZeroDivisionError</code>: dividing by zero.\n- <code>KeyError</code>: a dict key that does not exist.\n- <code>TypeError</code>: the wrong type, like <code>\"a\" + 1</code>.\n\n### try and except\n\nPut risky code in a <code>try:</code> block. If an exception happens there, Python skips the rest of the block and jumps to the matching <code>except</code> block instead of crashing. If nothing goes wrong, the <code>except</code> block is skipped.\n\n~~~python\nfor text in [\"12\", \"x7\", \"9\"]:\n    try:\n        n = int(text)\n        print(\"Got the number\", n)\n    except ValueError:\n        print(\"Not a number:\", text)\nprint(\"Program still running\")\n~~~\n\n- Line 3: <code>int(\"12\")</code> works. For <code>\"x7\"</code>, <code>int()</code> raises a <code>ValueError</code> right here.\n- Line 4: runs only if line 3 worked, so it is skipped for <code>\"x7\"</code>.\n- Lines 5 to 6: run only when a <code>ValueError</code> happened in the try block.\n- Line 7: the loop finished normally. Without <code>try</code>, the program would have stopped at <code>\"x7\"</code>.\n\n### Several except blocks, and the message\n\n<code>except SomeError as e:</code> stores the exception in the variable <code>e</code>; printing <code>e</code> shows its message. You can stack several <code>except</code> blocks for different types, and Python uses the first one that matches.\n\n~~~python\npumps = {\"P1\": 30, \"P2\": 12}\nfor name, hours in [(\"P1\", 5), (\"P2\", 0), (\"P9\", 2)]:\n    try:\n        rate = pumps[name] / hours\n        print(name, \"pumps\", rate, \"litres per hour\")\n    except ZeroDivisionError as e:\n        print(name, \"ran for 0 hours:\", e)\n    except KeyError as e:\n        print(\"Unknown pump:\", e)\n~~~\n\n- Line 4: looks up the pump, then divides. For P1 the rate is 6.0.\n- Lines 6 to 7: for P2, dividing by 0 raises <code>ZeroDivisionError</code>; its message is <code>division by zero</code>.\n- Lines 8 to 9: for P9, <code>pumps[\"P9\"]</code> raises <code>KeyError</code>; printing <code>e</code> shows the missing key, <code>'P9'</code>.\n\n### Let int() decide\n\n<code>int()</code> ignores spaces around the number and accepts a minus sign, but refuses decimals and empty text. So do not try to guess with string tests: call <code>int()</code> and catch the failure.\n\n~~~python\nfor text in [\" 4\", \"-2\", \"3.5\", \"\"]:\n    try:\n        print(f\"[{text}] gives\", int(text))\n    except ValueError:\n        print(f\"[{text}] is not a whole number\")\n~~~\n\n- Prints <code>[ 4] gives 4</code> and <code>[-2] gives -2</code>, then rejects <code>3.5</code> and the empty text.\n\n### A word about RobotError\n\n<code>from robot import *</code> also brings in <code>RobotError</code>, the exception Bit raises when it hits a wall, falls in a hole or uses a wrong code. Catching it cannot undo the crash: WARDEN's alarm has already gone off and the run fails. For moves, look first with <code>front()</code> and <code>here()</code>. Keep <code>try</code> for bad data.",
+  "goal": "Walk to the terminal and scan it: you get a list of texts. Add up every text that <code>int()</code> accepts, and for every text it refuses say <code>Garbled: </code> followed by the text. Then unlock door A with the sum and reach the exit.",
+  "starter": "from robot import *\n\nwhile here() != \"terminal\":\n    move()\nreadings = scan()\n# add up the readings that int() accepts\n",
+  "solution": "from robot import *\n\nwhile here() != \"terminal\":\n    move()\ntotal = 0\nfor text in scan():\n    try:\n        total += int(text)\n    except ValueError:\n        say(\"Garbled:\", text)\nwhile front() != \"door\":\n    move()\nunlock(total)\nwhile not at_exit():\n    move()\n",
+  "hint": "Put only the int() call (and the adding) inside try; the except ValueError block does the saying.",
+  "par": 16,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>.1...A.E#",
+     "###########"
+    ],
+    "data": {
+     "1": [
+      "12",
+      "x7",
+      " 4",
+      "-2",
+      "??",
+      "9"
+     ]
+    },
+    "codes": {
+     "A": "23"
+    },
+    "output": "Garbled: x7\nGarbled: ??\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1..AE#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      "5",
+      "five",
+      "30",
+      "3.5",
+      "-10",
+      " 8 "
+     ]
+    },
+    "codes": {
+     "A": "33"
+    },
+    "output": "Garbled: five\nGarbled: 3.5\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>...1.AE#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      "",
+      "7",
+      "0",
+      "7b",
+      "100",
+      "-1"
+     ]
+    },
+    "codes": {
+     "A": "106"
+    },
+    "output": "Garbled: \nGarbled: 7b\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-pump-sensors",
+  "chapter": "The Flooded Basement",
+  "title": "Lying pump sensors",
+  "covers": [
+   "py-errors"
+  ],
+  "xp": 25,
+  "story": "A row of pump terminals lines the drain tunnel. Some are silent, and WARDEN has hacked others to report impossible water levels. A real level is a whole number from 0 to 9. Door A opens with the sum of the honest ones.",
+  "power": "### else and finally\n\nTwo optional blocks complete <code>try</code>. <code>else:</code> runs only if the try block raised nothing. <code>finally:</code> runs every time, error or not, which is perfect for clean-up.\n\n~~~python\nfor text in [\"3\", \"x\"]:\n    try:\n        n = int(text)\n    except ValueError:\n        print(text, \"is invalid\")\n    else:\n        print(text, \"doubled is\", n * 2)\n    finally:\n        print(\"checked\", text)\n~~~\n\n- Lines 4 to 5: run for <code>\"x\"</code> only.\n- Lines 6 to 7: run for <code>\"3\"</code> only, printing <code>3 doubled is 6</code>.\n- Lines 8 to 9: run in both rounds.\n\nThe order is always: try, except, else, finally. Using <code>else</code> keeps the try block short: only the line that can fail goes inside.\n\n### try inside a function\n\nA <code>return</code> inside <code>try</code> or <code>except</code> works like anywhere else, so a function can hand back a fallback value when something goes wrong.\n\n~~~python\ndef to_number(text):\n    try:\n        return float(text)\n    except ValueError:\n        return None\nprint(to_number(\"2.5\"))\nprint(to_number(\"two\"))\nprint(to_number(\"two\") is None)\n~~~\n\n- Line 3: if <code>float()</code> works, its result is returned at once.\n- Lines 4 to 5: if it raises, the function returns <code>None</code> instead.\n- Line 8: <code>is None</code> is the proper way to test for <code>None</code>: prints <code>True</code>.\n\n### raise: your own errors\n\nSometimes a value is fine for Python but wrong for your program, like a water level of 12 on a 0 to 9 gauge. <code>raise ValueError(\"message\")</code> creates an exception and throws it, which stops the function immediately. When a function does not catch an exception, it travels up to whoever called the function, and the caller can catch it there.\n\n~~~python\ndef parse_quantity(text):\n    qty = int(text)\n    if qty < 1:\n        raise ValueError(\"quantity must be at least 1\")\n    return qty\nfor text in [\"4\", \"0\", \"lots\"]:\n    try:\n        print(\"OK:\", parse_quantity(text))\n    except ValueError as e:\n        print(\"Rejected\", text, \"because:\", e)\n~~~\n\n- Line 2: for <code>\"lots\"</code>, <code>int()</code> already raises. The function has no <code>try</code>, so the exception travels out to the caller by itself.\n- Lines 3 to 4: for <code>\"0\"</code>, the conversion works but the value is too small, so we raise our own <code>ValueError</code>. Line 5 does not run.\n- Lines 6 to 10: the caller catches both kinds of failure the same way.\n\n### Common mistakes\n\n- A bare <code>except:</code> with no type: it also hides typos and bugs in your own code. Name the exception you expect.\n- Catching an error and doing nothing, so problems vanish silently.\n- Putting too much code inside <code>try</code>. Keep only the lines that can fail, and use <code>else</code> for the rest.\n- Forgetting that <code>raise</code> stops the function: code after it in the same block never runs.",
+  "goal": "Write <code>read_level(text)</code>: it returns <code>int(text)</code>, and raises <code>ValueError</code> when the level is below 0 or above 9. Walk to door A. On each terminal, scan a dict like <code>{\"pump\": \"P1\", \"level\": \"4\"}</code> and say <code>P1 reads 4</code>, or <code>P1 is silent</code> when the \"level\" key is missing, or <code>P1 is lying</code> when <code>read_level</code> refuses it. Unlock the door with the sum of the honest levels and exit.",
+  "starter": "from robot import *\n\ndef read_level(text):\n    # return the level, or raise ValueError\n    pass\n",
+  "solution": "from robot import *\n\ndef read_level(text):\n    level = int(text)\n    if level < 0 or level > 9:\n        raise ValueError(\"level out of range\")\n    return level\n\ntotal = 0\nwhile front() != \"door\":\n    move()\n    if here() == \"terminal\":\n        info = scan()\n        try:\n            level = read_level(info[\"level\"])\n        except KeyError:\n            say(info[\"pump\"], \"is silent\")\n        except ValueError:\n            say(info[\"pump\"], \"is lying\")\n        else:\n            say(info[\"pump\"], \"reads\", level)\n            total += level\nunlock(total)\nwhile not at_exit():\n    move()\n",
+  "hint": "Two except blocks: KeyError for the missing key, ValueError for anything read_level refuses; the else block adds the level.",
+  "par": 25,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'read_level' in dir(), 'Write a function called read_level.'\nassert read_level('7') == 7 and read_level('0') == 0, 'read_level(\"7\") should return the number 7.'\nfor bad in ['12', '-1', 'seven']:\n    try:\n        read_level(bad)\n        ok = False\n    except ValueError:\n        ok = True\n    assert ok, 'read_level(' + repr(bad) + ') should raise ValueError.'\n",
+  "worlds": [
+   {
+    "map": [
+     "#############",
+     "#>.1.2..3.AE#",
+     "#############"
+    ],
+    "data": {
+     "1": {
+      "pump": "P1",
+      "level": "4"
+     },
+     "2": {
+      "pump": "P2"
+     },
+     "3": {
+      "pump": "P3",
+      "level": "12"
+     }
+    },
+    "codes": {
+     "A": "4"
+    },
+    "output": "P1 reads 4\nP2 is silent\nP3 is lying\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>1.2.3.4AE#",
+     "############"
+    ],
+    "data": {
+     "1": {
+      "pump": "P1",
+      "level": "7"
+     },
+     "2": {
+      "pump": "P2",
+      "level": "-3"
+     },
+     "3": {
+      "pump": "P3",
+      "level": "x"
+     },
+     "4": {
+      "pump": "P4",
+      "level": "9"
+     }
+    },
+    "codes": {
+     "A": "16"
+    },
+    "output": "P1 reads 7\nP2 is lying\nP3 is lying\nP4 reads 9\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>..1...2AE#",
+     "############"
+    ],
+    "data": {
+     "1": {
+      "pump": "P1"
+     },
+     "2": {
+      "pump": "P2",
+      "level": "5"
+     }
+    },
+    "codes": {
+     "A": "5"
+    },
+    "output": "P1 is silent\nP2 reads 5\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-flood-log",
+  "chapter": "The Flooded Basement",
+  "title": "The flood log",
+  "covers": [
+   "py-files"
+  ],
+  "xp": 20,
+  "story": "Bit finds WARDEN's log disk still spinning in a dry corner. Every event of the night is written there, one line each, and somewhere among them is the line where WARDEN set the code of door A.",
+  "power": "Programs often need data that lives longer than the program itself: a log, a list, a report. Text files are the simplest way to read data in and save results out. Here files live on a sandbox disk (see the Files tab), and each run starts from a fresh copy.\n\n### Opening and reading a whole file\n\n<code>open(name)</code> opens a file and gives you a <b>file object</b>, a handle you read from. The <code>with</code> statement opens it, gives it the name written after <code>as</code>, and closes it automatically when the indented block ends, even if an error happens. <code>f.read()</code> returns the whole content as one string.\n\n~~~python\nwith open(\"pumps.txt\", \"w\") as f:\n    f.write(\"pump 1 ok\\npump 2 flooded\\n\")\nwith open(\"pumps.txt\") as f:\n    text = f.read()\nprint(text)\nprint(len(text), \"characters\")\n~~~\n\n- Lines 1 to 2: create a small file to play with (writing is explained in the next mission).\n- Line 3: opens <code>pumps.txt</code> for reading and names the file object <code>f</code>.\n- Line 4: reads everything into the string <code>text</code>.\n- Line 5: we are outside the <code>with</code> block, so the file is closed, but <code>text</code> keeps its value.\n- Line 6: counts the characters, including the invisible line breaks.\n\nEach line of a text file ends with a <b>newline</b> character, written <code>\"\\n\"</code> in Python. It is what makes the text jump to the next line.\n\n### Reading line by line\n\nA file object can go in a <code>for</code> loop: each round gives the next line as a string, still ending with <code>\"\\n\"</code>. <code>strip()</code> removes it, together with any spaces at both ends.\n\n~~~python\nwith open(\"pumps.txt\", \"w\") as f:\n    f.write(\"pump 1 ok\\n   pump 2 flooded\\n\")\nwith open(\"pumps.txt\") as f:\n    for line in f:\n        print(len(line), line.strip())\n~~~\n\n- Line 4: <code>line</code> is <code>\"pump 1 ok\\n\"</code> in the first round, then the next line.\n- Line 5: <code>len(line)</code> counts the newline (10 for the first line), while <code>line.strip()</code> is the clean text, without the leading spaces of the second line.\n\nWhy strip? <code>print()</code> adds its own line break, so printing the raw line would leave an empty line after each one.\n\n### Finding a line\n\nInside the loop you can test each line like any string. <code>\"CODE\" in line</code> is true when the text contains CODE, and <code>split()</code> cuts a line into words.\n\n~~~python\nwith open(\"events.log\", \"w\") as f:\n    f.write(\"08:00 INFO start\\n08:05 CODE vault 3141\\n\")\nwith open(\"events.log\") as f:\n    for line in f:\n        if \"CODE\" in line:\n            words = line.strip().split()\n            print(words, words[-1])\n~~~\n\n- Line 7: prints the list of words, then the last one: <code>3141</code>.",
+  "goal": "Read <code>logs/warden.log</code> line by line. When a line contains <code>CODE</code>, say that line without its spaces and newline, and keep its last word as the code (as text: some codes start with 0). Then unlock door A and reach the exit.",
+  "starter": "from robot import *\n\n# WARDEN's log is in logs/warden.log\n",
+  "solution": "from robot import *\n\nwith open(\"logs/warden.log\") as f:\n    for line in f:\n        if \"CODE\" in line:\n            code = line.strip().split()[-1]\n            say(line.strip())\nwhile front() != \"door\":\n    move()\nunlock(code)\nwhile not at_exit():\n    move()\n",
+  "hint": "Inside the with block, loop over the file; line.strip().split()[-1] is the last word.",
+  "par": 13,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#########",
+     "#>...A.E#",
+     "#########"
+    ],
+    "fs": {
+     "logs/warden.log": "06:00 INFO pumps started\n\n06:14 WARN water rising in bay 2\n06:15 CODE door A 5521\n06:20 INFO pumps stopped\n"
+    },
+    "codes": {
+     "A": "5521"
+    },
+    "output": "06:15 CODE door A 5521\n"
+   },
+   {
+    "map": [
+     "#####",
+     "#>AE#",
+     "#####"
+    ],
+    "fs": {
+     "logs/warden.log": "   07:02 CODE door A 0042\n07:03 INFO all quiet\n\n07:30 WARN pump 3 flooded\n"
+    },
+    "codes": {
+     "A": "0042"
+    },
+    "output": "07:02 CODE door A 0042\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>.....AE#",
+     "##########"
+    ],
+    "fs": {
+     "logs/warden.log": "05:10 INFO night shift\n05:11 INFO night shift\n\n\n05:59 WARN alarm test\n06:00 CODE door A 870\n"
+    },
+    "codes": {
+     "A": "870"
+    },
+    "output": "06:00 CODE door A 870\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-repair-report",
+  "chapter": "The Flooded Basement",
+  "title": "The repair report",
+  "covers": [
+   "py-files"
+  ],
+  "xp": 25,
+  "story": "The damage log is full of holes, like everything else down here. The maintenance door only opens for a unit that files a proper repair report: numbered, clean, and signed. WARDEN counts the lines before it lets anyone through.",
+  "power": "### Writing and appending\n\n<code>open(name, \"w\")</code> opens a file for writing. The second argument is the <b>mode</b>:\n\n- <code>\"r\"</code>: read (the default, used when you give no mode).\n- <code>\"w\"</code>: write. It creates the file, or empties it if it already exists.\n- <code>\"a\"</code>: append, which adds to the end and keeps what is there.\n\n<code>f.write(text)</code> writes a string. It does not add a line break, so you add <code>\"\\n\"</code> yourself.\n\n~~~python\nwith open(\"shopping.txt\", \"w\") as f:\n    f.write(\"milk\\n\")\n    f.write(\"eggs\\n\")\nwith open(\"shopping.txt\", \"a\") as f:\n    f.write(\"bread\\n\")\nwith open(\"shopping.txt\") as f:\n    print(f.read())\n~~~\n\n- Line 1: creates <code>shopping.txt</code> and opens it for writing.\n- Lines 2 to 3: write two lines, each with its own <code>\\n</code>.\n- Lines 4 to 5: open the file again in append mode and add a third line at the end.\n- Lines 6 to 7: read it back: milk, eggs, bread. With <code>\"w\"</code> on line 4 instead, milk and eggs would be gone.\n\n### enumerate: numbering items as you loop\n\n<code>enumerate(collection)</code> gives you pairs of (position, item) in a <code>for</code> loop. Positions start at 0, or at any number you choose with <code>start=</code>.\n\n~~~python\ncolors = [\"red\", \"green\", \"blue\"]\nfor i, color in enumerate(colors):\n    print(i, color)\nfor i, color in enumerate(colors, start=1):\n    print(f\"{i}. {color}\")\n~~~\n\n- Line 3: prints <code>0 red</code>, <code>1 green</code>, <code>2 blue</code>.\n- Line 5: with <code>start=1</code>: <code>1. red</code>, <code>2. green</code>, <code>3. blue</code>.\n\n### Filter, then save\n\nA common job: read lines, keep only the useful ones, write the result to a new file. A blank line strips down to the empty string <code>\"\"</code>, and an empty string counts as false in an <code>if</code>, so <code>if line.strip()</code> keeps only lines with real content.\n\n~~~python\nwith open(\"draft.txt\", \"w\") as f:\n    f.write(\"alpha\\n\\nbeta\\n   \\ngamma\\n\")\nwith open(\"draft.txt\") as f:\n    words = [line.strip() for line in f if line.strip()]\nprint(words, len(words))\nwith open(\"clean.txt\", \"w\") as out:\n    for word in words:\n        out.write(word.upper() + \"\\n\")\nwith open(\"clean.txt\") as f:\n    print(f.read())\n~~~\n\n- Line 4: <code>words</code> becomes <code>['alpha', 'beta', 'gamma']</code>: the empty line and the line of spaces are gone.\n- Lines 6 to 8: write each word in capitals, one per line.\n- Lines 9 to 10: read the result back.\n\n### Common mistakes\n\n- Forgetting <code>\"\\n\"</code> in <code>write()</code>, so everything ends up on one line.\n- Opening with <code>\"w\"</code> when you meant <code>\"a\"</code>: the old content is wiped.\n- Forgetting <code>strip()</code>, so blank lines that hold spaces look non-empty.\n- Writing outside the <code>with</code> block: the file is already closed there.",
+  "goal": "Read <code>logs/damage.log</code>, keep the non-empty lines (stripped), and store how many there are in <code>line_count</code>. Write them to <code>repair.txt</code> numbered from 1, like <code>1. pump 2 cracked</code>, then open the file again in append mode and add a last line <code>signed B-17</code>. Door A opens with <code>line_count</code>.",
+  "starter": "from robot import *\n\nwith open(\"logs/damage.log\") as f:\n    print(f.read())\n",
+  "solution": "from robot import *\n\nwith open(\"logs/damage.log\") as f:\n    lines = [line.strip() for line in f if line.strip()]\nline_count = len(lines)\nwith open(\"repair.txt\", \"w\") as out:\n    for i, text in enumerate(lines, start=1):\n        out.write(f\"{i}. {text}\\n\")\nwith open(\"repair.txt\", \"a\") as out:\n    out.write(\"signed B-17\\n\")\nwhile front() != \"door\":\n    move()\nunlock(line_count)\nwhile not at_exit():\n    move()\n",
+  "hint": "enumerate(lines, start=1) gives the number and the line together; remember the \\n at the end of each write.",
+  "par": 16,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "src = [l.strip() for l in _fs['logs/damage.log'].split('\\n') if l.strip()]\nwant = ''.join(f'{i}. {t}\\n' for i, t in enumerate(src, 1)) + 'signed B-17\\n'\nassert 'line_count' in dir() and line_count == len(src), 'Store the number of non-empty lines in line_count.'\nassert 'repair.txt' in _fs, 'Write the report to a file called repair.txt.'\nassert _fs['repair.txt'].strip() == want.strip(), 'repair.txt should hold the numbered lines, one per line, then \"signed B-17\".'\n",
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>..AE#",
+     "#######"
+    ],
+    "fs": {
+     "logs/damage.log": "pump 2 cracked\n\nvalve 7 stuck\n   \ncable 4 chewed\n"
+    },
+    "codes": {
+     "A": "3"
+    },
+    "output": ""
+   },
+   {
+    "map": [
+     "#####",
+     "#>AE#",
+     "#####"
+    ],
+    "fs": {
+     "logs/damage.log": "\nfuse box wet\n"
+    },
+    "codes": {
+     "A": "1"
+    },
+    "output": ""
+   },
+   {
+    "map": [
+     "##########",
+     "#>....A.E#",
+     "##########"
+    ],
+    "fs": {
+     "logs/damage.log": "pipe 1 burst\npipe 2 burst\n\npipe 3 burst\n  sensor 9 silent  \n\n"
+    },
+    "codes": {
+     "A": "4"
+    },
+    "output": ""
+   }
+  ]
+ },
+ {
+  "id": "m-c-inspection-dates",
+  "chapter": "The Flooded Basement",
+  "title": "Overdue inspection",
+  "covers": [
+   "py-modules"
+  ],
+  "xp": 25,
+  "story": "Two pressure doors guard the pump room. Door A opens with the number of days since the last inspection, door B with the day of the month of the next one, due 30 days after the date on the second terminal. Counting days by hand across months is how robots end up in the water.",
+  "power": "Python comes with a huge <b>standard library</b>: ready-made tools for maths, dates, counting, randomness and much more. Before writing a helper yourself, check whether it already exists. It usually does.\n\n### import: loading a module\n\nA <b>module</b> is a file of Python code you can reuse. <code>import name</code> loads it; then you reach what it contains with a dot: <code>module.thing</code>.\n\n~~~python\nimport math\nprint(math.sqrt(16))\nprint(math.pi)\nprint(math.floor(7.9), math.ceil(7.1))\n~~~\n\n- Line 2: <code>math.sqrt</code> is the square root function: prints <code>4.0</code>.\n- Line 3: <code>math.pi</code> is a value, not a function, so no brackets: <code>3.141592653589793</code>.\n- Line 4: <code>floor</code> rounds down and <code>ceil</code> rounds up: <code>7 8</code>.\n\n### from ... import: taking just what you need\n\n<code>from module import a, b</code> brings in specific names, so you use them without the module prefix. That is exactly what <code>from robot import *</code> does: the star means \"every public name\". And <code>abs()</code> needs no import at all: it is a built-in function that gives the distance from zero, so it drops the minus sign.\n\n~~~python\nfrom math import sqrt, pi\nprint(sqrt(25), round(pi, 2))\nprint(abs(-59), abs(59))\n~~~\n\n- Line 2: prints <code>5.0 3.14</code>.\n- Line 3: prints <code>59 59</code>.\n\n### Turning text into dates\n\nDates often arrive as text, like <code>\"2026-03-01\"</code>. The <code>datetime</code> module contains a type also called <code>datetime</code>. Its function <code>strptime(text, format)</code> (\"string parse time\") reads text according to a format. In the format, <code>%Y</code> means a 4-digit year, <code>%m</code> a 2-digit month and <code>%d</code> a 2-digit day; other characters, like <code>-</code>, must match exactly.\n\n~~~python\nfrom datetime import datetime\nd = datetime.strptime(\"2026-03-01\", \"%Y-%m-%d\")\nprint(d)\nprint(d.year, d.month, d.day)\n~~~\n\n- Line 1: imports the <code>datetime</code> type from the <code>datetime</code> module (same name, two different things).\n- Line 3: prints <code>2026-03-01 00:00:00</code>: a date at midnight.\n- Line 4: its parts are attributes, read with a dot: <code>2026 3 1</code>.\n\n### Date arithmetic: timedelta and .days\n\nSubtracting one datetime from another gives a <code>timedelta</code>: a duration. Its <code>.days</code> attribute is the number of whole days. If the first date is the earlier one, the result is negative, and <code>abs()</code> makes it positive. Adding a <code>timedelta</code> to a date moves forward in time.\n\n~~~python\nfrom datetime import datetime, timedelta\nfmt = \"%Y-%m-%d\"\nstart = datetime.strptime(\"2026-02-20\", fmt)\nend = datetime.strptime(\"2026-03-05\", fmt)\ngap = end - start\nprint(gap, gap.days)\nprint((start - end).days, abs((start - end).days))\nlater = start + timedelta(days=30)\nprint(later, later.day)\n~~~\n\n- Line 6: prints <code>13 days, 0:00:00 13</code>. Python knows February 2026 has 28 days, leap years included.\n- Line 7: the other way round gives <code>-13</code>; <code>abs()</code> turns it into <code>13</code>.\n- Line 9: 30 days after 20 February is 22 March: prints <code>2026-03-22 00:00:00 22</code>.\n\n### Common mistakes\n\n- Using a module without importing it first: <code>NameError</code>.\n- Writing <code>math.pi()</code>: <code>pi</code> is a value, not a function.\n- A wrong format: <code>%M</code> means minutes, not months. Months are <code>%m</code>.\n- Forgetting <code>.days</code>: subtracting dates gives a timedelta, not a number.",
+  "goal": "Terminal 1 gives two dates (in any order): say <code>Days since inspection:</code> and the number of days between them, and unlock door A with it. Terminal 2 gives one date: the next inspection is 30 days later. Say <code>Next inspection day:</code> and its day of the month, unlock door B with it, and exit.",
+  "starter": "from robot import *\nfrom datetime import datetime, timedelta\n\n",
+  "solution": "from robot import *\nfrom datetime import datetime, timedelta\n\nfmt = \"%Y-%m-%d\"\nwhile here() != \"terminal\":\n    move()\na, b = scan()\ngap = abs((datetime.strptime(a, fmt) - datetime.strptime(b, fmt)).days)\nsay(\"Days since inspection:\", gap)\nwhile front() != \"door\":\n    move()\nunlock(gap)\nmove()\nwhile here() != \"terminal\":\n    move()\ndue = datetime.strptime(scan(), fmt) + timedelta(days=30)\nsay(\"Next inspection day:\", due.day)\nwhile front() != \"door\":\n    move()\nunlock(due.day)\nwhile not at_exit():\n    move()\n",
+  "hint": "a, b = scan() unpacks the two dates; wrap the .days of their difference in abs().",
+  "par": 23,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "###############",
+     "#>.1..A..2.B.E#",
+     "###############"
+    ],
+    "data": {
+     "1": [
+      "2026-02-20",
+      "2026-03-05"
+     ],
+     "2": "2026-01-15"
+    },
+    "codes": {
+     "A": "13",
+     "B": "14"
+    },
+    "output": "Days since inspection: 13\nNext inspection day: 14\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>1.A.2BE#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      "2026-03-01",
+      "2025-12-25"
+     ],
+     "2": "2026-02-10"
+    },
+    "codes": {
+     "A": "66",
+     "B": "12"
+    },
+    "output": "Days since inspection: 66\nNext inspection day: 12\n"
+   },
+   {
+    "map": [
+     "###############",
+     "#>..1.A.2..B.E#",
+     "###############"
+    ],
+    "data": {
+     "1": [
+      "2024-02-28",
+      "2024-03-01"
+     ],
+     "2": "2026-12-15"
+    },
+    "codes": {
+     "A": "2",
+     "B": "14"
+    },
+    "output": "Days since inspection: 2\nNext inspection day: 14\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-debris-count",
+  "chapter": "The Flooded Basement",
+  "title": "Counting the debris",
+  "covers": [
+   "py-modules"
+  ],
+  "xp": 25,
+  "story": "A jammed keypad keeps typing the same letters over and over into the flood terminal. WARDEN set door A to the letter it presses most. Past the door, a sorting terminal lists the parts the water washed in, and the repair crew will need the two most common ones.",
+  "power": "### Counting with Counter\n\n<code>Counter</code>, from the <code>collections</code> module, counts how many times each item appears in a string (each character) or a list. It behaves like a dict of counts. <code>most_common(n)</code> returns the <code>n</code> most frequent items as a list of (item, count) tuples, biggest first.\n\n~~~python\nfrom collections import Counter\ncounts = Counter(\"banana\")\nprint(counts)\nprint(counts[\"a\"], counts[\"z\"])\ntop = counts.most_common(1)\nprint(top)\nprint(top[0], top[0][0])\n~~~\n\n- Line 2: counts each letter: b once, a three times, n twice.\n- Line 3: prints <code>Counter({'a': 3, 'n': 2, 'b': 1})</code>.\n- Line 4: read a count like a dict: <code>3</code>. A missing item gives 0 instead of an error.\n- Line 6: <code>most_common(1)</code> returns a list holding one tuple: <code>[('a', 3)]</code>.\n- Line 7: <code>top[0]</code> is the tuple <code>('a', 3)</code>, and <code>top[0][0]</code> is the item itself: <code>a</code>.\n\nIt works on lists too, and the tuples unpack nicely in a <code>for</code> loop:\n\n~~~python\nfrom collections import Counter\nparts = [\"bolt\", \"nut\", \"bolt\", \"gear\", \"bolt\", \"nut\"]\nfor part, count in Counter(parts).most_common(2):\n    print(part, count)\n~~~\n\n- Prints <code>bolt 3</code> then <code>nut 2</code>.\n\n### replace: cleaning text before counting\n\n<code>text.replace(old, new)</code> returns a copy of a string with every <code>old</code> replaced by <code>new</code>. Replacing spaces with nothing removes them, so spaces do not win the count.\n\n~~~python\nfrom collections import Counter\ntext = \"to be or not\"\nprint(text.replace(\" \", \"\"))\nprint(Counter(text).most_common(1))\nprint(Counter(text.replace(\" \", \"\")).most_common(1))\n~~~\n\n- Line 3: prints <code>tobeornot</code>.\n- Line 4: with spaces, the space is the most common character: <code>[(' ', 3)]</code>.\n- Line 5: without them: <code>[('o', 3)]</code>.\n\n### random: picking by chance\n\nThe <code>random</code> module makes random choices. <code>random.choice(list)</code> picks one item; <code>random.randint(1, 6)</code> gives a whole number from 1 to 6, both included. Run this a few times: the result changes, which is why games use it and why checked answers never do.\n\n~~~python\nimport random\nprint(random.choice([\"heads\", \"tails\"]))\nprint(random.randint(1, 6))\n~~~\n\n### Common mistake\n\n<code>most_common()</code> returns a list of tuples, so you need two indexes to reach the item: <code>most_common(1)[0][0]</code>.",
+  "goal": "Terminal 1 gives text with spaces: unlock door A with its most common letter, spaces ignored. Terminal 2 gives a list of parts: say the two most common, each as <code>part count</code>, then reach the exit.",
+  "starter": "from robot import *\nfrom collections import Counter\n\n",
+  "solution": "from robot import *\nfrom collections import Counter\n\nwhile here() != \"terminal\":\n    move()\nletter = Counter(scan().replace(\" \", \"\")).most_common(1)[0][0]\nwhile front() != \"door\":\n    move()\nunlock(letter)\nmove()\nwhile here() != \"terminal\":\n    move()\nfor part, count in Counter(scan()).most_common(2):\n    say(part, count)\nwhile not at_exit():\n    move()\n",
+  "hint": "Counter(text.replace(\" \", \"\")).most_common(1)[0][0] is the most common letter.",
+  "par": 17,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "#############",
+     "#>.1..A.2..E#",
+     "#############"
+    ],
+    "data": {
+     "1": "q a z a q a k a",
+     "2": [
+      "bolt",
+      "fuse",
+      "bolt",
+      "gear",
+      "fuse",
+      "bolt"
+     ]
+    },
+    "codes": {
+     "A": "a"
+    },
+    "output": "bolt 3\nfuse 2\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>1A2E#",
+     "#######"
+    ],
+    "data": {
+     "1": "m x m y m x z",
+     "2": [
+      "pipe",
+      "pipe",
+      "valve",
+      "pipe",
+      "seal",
+      "valve"
+     ]
+    },
+    "codes": {
+     "A": "m"
+    },
+    "output": "pipe 3\nvalve 2\n"
+   },
+   {
+    "map": [
+     "##############",
+     "#>..1.A...2.E#",
+     "##############"
+    ],
+    "data": {
+     "1": "r t r t r s",
+     "2": [
+      "gear",
+      "nut",
+      "nut",
+      "gear",
+      "nut",
+      "spring"
+     ]
+    },
+    "codes": {
+     "A": "r"
+    },
+    "output": "nut 3\ngear 2\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-first-drone",
+  "chapter": "The Workshop",
+  "title": "Bit's first drone",
+  "covers": [
+   "py-classes"
+  ],
+  "xp": 25,
+  "story": "Above the basement, the Workshop is still lit. Benches, spare rotors, a fabricator waiting for a blueprint. Bit cannot squeeze into the ventilation shafts, but a drone could. The flight terminal lists which drones to build and how far each one flies.",
+  "power": "A <b>class</b> lets you create your own type of value, bundling data with the actions that work on it. A drone has a name and a distance flown (data) and it can fly (an action).\n\n### A class and its objects\n\n<code>class Name:</code> defines a blueprint. Calling the class like a function, <code>Name(...)</code>, builds an <b>object</b> (also called an <b>instance</b>) from it. A function defined inside a class is called a <b>method</b>. The special method <code>__init__</code> (two underscores on each side, said \"dunder init\") runs automatically when an object is created. Its first parameter, <code>self</code>, is the new object; writing <code>self.something = value</code> stores an <b>attribute</b>: a variable that belongs to that object.\n\n~~~python\nclass Dog:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\nrex = Dog(\"Rex\", 3)\nfido = Dog(\"Fido\", 7)\nprint(rex.name, rex.age)\nprint(fido.name, fido.age)\nrex.age = 4\nprint(rex.age, fido.age)\n~~~\n\n- Line 1: starts the class <code>Dog</code>. Class names start with a capital letter by convention.\n- Line 2: <code>__init__</code>, with <code>self</code> first, then the values we want.\n- Lines 3 to 4: store the arguments as attributes of the new object.\n- Line 5: <code>Dog(\"Rex\", 3)</code> creates an object. Python calls <code>__init__</code> with <code>self</code> set to that new object. You never pass <code>self</code> yourself.\n- Line 6: a second, separate object.\n- Lines 7 to 8: read attributes with a dot: <code>Rex 3</code> and <code>Fido 7</code>.\n- Lines 9 to 10: attributes can be changed, and changing <code>rex</code> does not touch <code>fido</code>: <code>4 7</code>.\n\n### Methods: behaviour that uses the object's data\n\nOther methods also take <code>self</code> first, so they can read and change the object's attributes. You call them with a dot, <code>obj.method(arguments)</code>, and Python fills in <code>self</code> for you. Not every attribute has to come from a parameter: some start with a fixed value.\n\n~~~python\nclass Counter:\n    def __init__(self):\n        self.value = 0\n    def increment(self, step=1):\n        self.value += step\n        return self.value\n    def show(self):\n        return f\"counter at {self.value}\"\nclicks = Counter()\nprint(clicks.increment())\nprint(clicks.increment(5))\nprint(clicks.value, clicks.show())\n~~~\n\n- Lines 2 to 3: every new counter starts at 0; no parameter needed.\n- Line 4: <code>increment</code> has a parameter <code>step</code> that defaults to 1.\n- Line 5: <code>+=</code> adds to the attribute stored on this particular object.\n- Line 6: returns the new value to the caller.\n- Line 10: <code>clicks.increment()</code> runs the method with <code>self</code> = <code>clicks</code>: prints <code>1</code>.\n- Line 11: step is 5: prints <code>6</code>.\n- Line 12: reads the attribute directly, then calls <code>show</code>: <code>6 counter at 6</code>.\n\n### Common mistakes\n\n- Forgetting <code>self</code> as the first parameter of a method: Python complains about the number of arguments.\n- Writing <code>distance = 0</code> instead of <code>self.distance = 0</code>. Without <code>self.</code>, it is a local variable that vanishes when the method ends.\n- Misspelling <code>__init__</code> (two underscores on each side), so it never runs.",
+  "goal": "Write a class <code>Drone</code>: <code>Drone(name)</code> stores <code>name</code> and starts <code>distance</code> at 0; <code>fly(squares)</code> adds to the distance and returns the new total; <code>report()</code> returns text like <code>Gnat flew 7</code>. The terminal gives pairs <code>[name, list of flights]</code>: build each drone, fly its flights, say its report. Door A opens with the total distance of all drones.",
+  "starter": "from robot import *\n\nclass Drone:\n    def __init__(self, name):\n        self.name = name\n",
+  "solution": "from robot import *\n\nclass Drone:\n    def __init__(self, name):\n        self.name = name\n        self.distance = 0\n    def fly(self, squares):\n        self.distance += squares\n        return self.distance\n    def report(self):\n        return f\"{self.name} flew {self.distance}\"\n\nwhile here() != \"terminal\":\n    move()\ntotal = 0\nfor name, flights in scan():\n    drone = Drone(name)\n    for squares in flights:\n        drone.fly(squares)\n    say(drone.report())\n    total += drone.distance\nwhile front() != \"door\":\n    move()\nunlock(total)\nwhile not at_exit():\n    move()\n",
+  "hint": "Inside the loop, drone = Drone(name) builds a fresh drone each round; fly() changes self.distance.",
+  "par": 26,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'Drone' in dir(), 'Write a class called Drone.'\nt = Drone('Test')\nassert t.name == 'Test' and t.distance == 0, 'Drone(\"Test\") should store the name and start with distance 0.'\nassert t.fly(3) == 3 and t.fly(2) == 5, 'fly(squares) should add to distance and return the new total.'\nassert t.report() == 'Test flew 5', 'report() should return text like \"Test flew 5\".'\nassert Drone('Other').distance == 0, 'Each drone needs its own distance.'\n",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>.1...AE#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      [
+       "Gnat",
+       [
+        3,
+        4
+       ]
+      ],
+      [
+       "Moth",
+       [
+        5,
+        1,
+        2
+       ]
+      ]
+     ]
+    },
+    "codes": {
+     "A": "15"
+    },
+    "output": "Gnat flew 7\nMoth flew 8\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1.A.E#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      [
+       "Wasp",
+       [
+        10
+       ]
+      ],
+      [
+       "Bee",
+       [
+        2,
+        2,
+        2
+       ]
+      ],
+      [
+       "Fly",
+       []
+      ]
+     ]
+    },
+    "codes": {
+     "A": "16"
+    },
+    "output": "Wasp flew 10\nBee flew 6\nFly flew 0\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>...1.AE#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      [
+       "Lark",
+       [
+        1,
+        1
+       ]
+      ]
+     ]
+    },
+    "codes": {
+     "A": "2"
+    },
+    "output": "Lark flew 2\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-drone-battery",
+  "chapter": "The Workshop",
+  "title": "A drone that says no",
+  "covers": [
+   "py-classes"
+  ],
+  "xp": 30,
+  "story": "The first drone flew until its battery died in a shaft, and Bit had to fish it out with a magnet. The new model must refuse any trip it cannot finish. WARDEN's flight plan is full of traps: zero-length trips, negative ones, and trips far too long.",
+  "power": "### Default values in __init__\n\n<code>__init__</code> is a normal function, so its parameters can have defaults. And some attributes do not come from parameters at all: they start with a fixed value.\n\n~~~python\nclass Player:\n    def __init__(self, name, score=0):\n        self.name = name\n        self.score = score\n        self.level = 1\nann = Player(\"Ann\")\nbob = Player(\"Bob\", 50)\nprint(ann.name, ann.score, ann.level)\nprint(bob.name, bob.score, bob.level)\n~~~\n\n- Line 2: <code>score</code> is optional and defaults to 0.\n- Line 5: <code>level</code> is not a parameter: every player starts at level 1.\n- Lines 8 to 9: print <code>Ann 0 1</code> and <code>Bob 50 1</code>.\n\n### Protecting an object: check first, then change\n\nMethods are the right place to refuse bad requests. Check first, <code>raise</code> a <code>ValueError</code> if something is wrong, and only then change the attribute. Because <code>raise</code> stops the method immediately, a refused request leaves the object untouched. A method may need several checks one after the other, each with its own <code>raise</code>.\n\n~~~python\nclass Thermostat:\n    def __init__(self, target=20):\n        self.target = target\n    def set_target(self, degrees):\n        if degrees < 5:\n            raise ValueError(\"too cold\")\n        if degrees > 30:\n            raise ValueError(\"too hot\")\n        self.target = degrees\n        return self.target\nt = Thermostat()\nprint(t.set_target(22))\nfor wish in [80, 2]:\n    try:\n        t.set_target(wish)\n    except ValueError as e:\n        print(\"Refused:\", e)\nprint(t.target)\n~~~\n\n- Lines 5 to 8: the checks come first. Any failed check raises and the method stops.\n- Lines 9 to 10: only reached for valid values: update, then return the new target.\n- Line 12: 22 is valid: prints <code>22</code>.\n- Lines 13 to 17: 80 and 2 are refused; each message is printed.\n- Line 18: prints <code>22</code>: the failed calls changed nothing.\n\n### Common mistake\n\nChanging the attribute before checking, so a refused request still changes the object. Validate, raise if needed, then change and return.",
+  "goal": "Write <code>Drone(name, battery=100)</code> with <code>trips</code> starting at 0. <code>fly(distance)</code> raises <code>ValueError(\"distance must be positive\")</code> for 0 or less, <code>ValueError(\"battery too low\")</code> when the distance is more than the battery, and otherwise uses up that much battery, counts the trip and returns the battery left. Scan the plan (<code>battery</code> and <code>trips</code>), build a drone called <code>Scout</code>, try every trip: say <code>Trip 10 done, battery 30</code> or <code>Refused: </code> and the message. Then say <code>Trips:</code> and the count, and unlock door A with the battery left.",
+  "starter": "from robot import *\n\nclass Drone:\n    def __init__(self, name, battery=100):\n        self.name = name\n",
+  "solution": "from robot import *\n\nclass Drone:\n    def __init__(self, name, battery=100):\n        self.name = name\n        self.battery = battery\n        self.trips = 0\n    def fly(self, distance):\n        if distance <= 0:\n            raise ValueError(\"distance must be positive\")\n        if distance > self.battery:\n            raise ValueError(\"battery too low\")\n        self.battery -= distance\n        self.trips += 1\n        return self.battery\n\nwhile here() != \"terminal\":\n    move()\nplan = scan()\nscout = Drone(\"Scout\", plan[\"battery\"])\nfor trip in plan[\"trips\"]:\n    try:\n        left = scout.fly(trip)\n        say(\"Trip\", trip, \"done, battery\", left)\n    except ValueError as e:\n        say(\"Refused:\", e)\nsay(\"Trips:\", scout.trips)\nwhile front() != \"door\":\n    move()\nunlock(scout.battery)\nwhile not at_exit():\n    move()\n",
+  "hint": "Both checks come before self.battery -= distance; the caller wraps each fly() in try/except ValueError as e.",
+  "par": 32,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'Drone' in dir(), 'Write a class called Drone.'\nt = Drone('T')\nassert t.battery == 100 and t.trips == 0, 'Drone(\"T\") should start with battery 100 and trips 0.'\nt = Drone('T', 10)\nassert t.fly(4) == 6, 'fly(4) with battery 10 should return 6.'\nfor bad in [0, -2, 50]:\n    try:\n        t.fly(bad)\n        ok = False\n    except ValueError:\n        ok = True\n    assert ok, 'fly(' + str(bad) + ') should raise ValueError.'\nassert t.battery == 6 and t.trips == 1, 'A refused trip must leave battery and trips unchanged.'\n",
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>..1..A.E#",
+     "###########"
+    ],
+    "data": {
+     "1": {
+      "battery": 40,
+      "trips": [
+       10,
+       25,
+       30,
+       0,
+       4
+      ]
+     }
+    },
+    "codes": {
+     "A": "1"
+    },
+    "output": "Trip 10 done, battery 30\nTrip 25 done, battery 5\nRefused: battery too low\nRefused: distance must be positive\nTrip 4 done, battery 1\nTrips: 3\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>1AE#",
+     "######"
+    ],
+    "data": {
+     "1": {
+      "battery": 100,
+      "trips": [
+       60,
+       50,
+       30,
+       -5
+      ]
+     }
+    },
+    "codes": {
+     "A": "10"
+    },
+    "output": "Trip 60 done, battery 40\nRefused: battery too low\nTrip 30 done, battery 10\nRefused: distance must be positive\nTrips: 2\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>....1AE#",
+     "##########"
+    ],
+    "data": {
+     "1": {
+      "battery": 75,
+      "trips": [
+       20,
+       20,
+       20,
+       20
+      ]
+     }
+    },
+    "codes": {
+     "A": "15"
+    },
+    "output": "Trip 20 done, battery 55\nTrip 20 done, battery 35\nTrip 20 done, battery 15\nRefused: battery too low\nTrips: 3\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-drone-family",
+  "chapter": "The Workshop",
+  "title": "A family of drones",
+  "covers": [
+   "py-inherit"
+  ],
+  "xp": 35,
+  "story": "A crate of flood pumps blocks the Workshop exit, and one drone cannot lift it. Bit needs a team: Lifters with arms, Floaters that only hover. They share most of their code, so Bit designs one parent class and two children. The fabricator flags any design with more than four arms as overloaded.",
+  "power": "<b>Inheritance</b> lets one class reuse and adapt another. You write the shared part once, in a parent class, and only the differences in each child.\n\n### A subclass inherits everything\n\nWrite <code>class Child(Parent):</code> to create a <b>subclass</b>. The child gets all the parent's methods for free, <code>__init__</code> included. If the child defines a method with the same name, its own version is used instead: this is called <b>overriding</b>. <code>pass</code> means \"nothing here\", for a class that adds nothing.\n\n~~~python\nclass Animal:\n    def __init__(self, name):\n        self.name = name\n    def speak(self):\n        return \"...\"\n    def intro(self):\n        return f\"I am {self.name}\"\nclass Dog(Animal):\n    def speak(self):\n        return \"Woof\"\nclass Fish(Animal):\n    pass\nrex = Dog(\"Rex\")\nnemo = Fish(\"Nemo\")\nprint(rex.intro(), rex.speak())\nprint(nemo.intro(), nemo.speak())\n~~~\n\n- Line 8: <code>Dog(Animal)</code> means a Dog is a kind of Animal.\n- Lines 9 to 10: Dog overrides <code>speak</code>.\n- Line 13: Dog has no <code>__init__</code>, so Python uses Animal's: <code>rex.name</code> is \"Rex\".\n- Line 15: <code>intro</code> comes from Animal, <code>speak</code> from Dog: <code>I am Rex Woof</code>.\n- Line 16: Fish keeps everything from Animal: <code>I am Nemo ...</code>.\n\n### Class attributes\n\nA variable written directly in the class body (not inside a method, not on <code>self</code>) is a <b>class attribute</b>, shared by every object of that class. Methods read it through <code>self</code>, which looks on the object first, then on its class, then on the parent class. A subclass overrides it by giving it a new value in its own body.\n\n~~~python\nclass Vehicle:\n    wheels = 4\n    def describe(self):\n        return f\"{self.wheels} wheels\"\nclass Bike(Vehicle):\n    wheels = 2\nprint(Vehicle().describe())\nprint(Bike().describe())\nprint(Bike.wheels)\n~~~\n\n- Line 8: the method comes from Vehicle, but <code>self</code> is a Bike, so <code>self.wheels</code> is 2: <code>2 wheels</code>.\n- Line 9: you can read it from the class itself too: <code>2</code>.\n\n### Formatting numbers with :.2f\n\nInside an f-string, a colon after the value adds a format. <code>:.2f</code> means \"a decimal number with exactly 2 digits after the point\": it rounds if needed and adds zeros if missing. <code>math.pi</code> is the number pi; a circle's area is pi times the radius squared.\n\n~~~python\nimport math\nprint(f\"{math.pi:.2f}\")\nprint(f\"{10:.2f}\")\nprint(f\"{math.pi * 3 ** 2:.1f}\")\n~~~\n\n- Prints <code>3.14</code>, <code>10.00</code>, then the area of a circle of radius 3 with 1 decimal: <code>28.3</code>.\n\n### Parent methods that rely on the child\n\nA parent method can call <code>self.something()</code>, and Python runs the version from the object's own class. So the parent writes the general recipe and each child fills in its detail. If a child forgets, the parent's version should complain: <code>raise NotImplementedError</code> is Python's standard way to say \"a subclass must provide this\".\n\n~~~python\nclass Employee:\n    title = \"Employee\"\n    def monthly_pay(self):\n        raise NotImplementedError\n    def summary(self):\n        return f\"{self.title} earns {self.monthly_pay():.2f}\"\nclass Hourly(Employee):\n    title = \"Hourly\"\n    def __init__(self, rate, hours):\n        self.rate, self.hours = rate, hours\n    def monthly_pay(self):\n        return self.rate * self.hours\nprint(Hourly(15.5, 120).summary())\ntry:\n    Employee().summary()\nexcept NotImplementedError:\n    print(\"Employee alone has no pay rule\")\n~~~\n\n- Line 6: <code>summary</code> uses <code>self.title</code> and <code>self.monthly_pay()</code>.\n- Line 10: sets two attributes at once with tuple unpacking.\n- Line 13: Employee's <code>summary</code> runs, but <code>self</code> is an Hourly, so its pay rule is used: <code>Hourly earns 1860.00</code>.\n- Lines 14 to 17: a plain Employee reaches the parent's <code>monthly_pay</code>, which raises.\n\n### super(): extending instead of replacing\n\nWhen a child overrides a method but still wants the parent's version to run, it calls <code>super().method(...)</code>. Most often in <code>__init__</code>: the parent sets up its attributes, then the child adds its own. <code>isinstance(obj, Class)</code> checks an object's family, and <code>issubclass(Child, Parent)</code> checks the classes themselves.\n\n~~~python\nclass Animal:\n    def __init__(self, name):\n        self.name = name\nclass Cat(Animal):\n    def __init__(self, name, indoor):\n        super().__init__(name)\n        self.indoor = indoor\ntom = Cat(\"Tom\", True)\nprint(tom.name, tom.indoor)\nprint(isinstance(tom, Cat), isinstance(tom, Animal))\nprint(issubclass(Cat, Animal))\n~~~\n\n- Line 6: runs Animal's <code>__init__</code>, which sets <code>self.name</code>. Line 7 then adds Cat's own attribute.\n- Lines 10 to 11: a Cat is also an Animal: <code>True True</code>, then <code>True</code>.\n\n### Your own exceptions\n\nExceptions are classes too, and they inherit from <code>Exception</code>. A one-line subclass gives you an error type with its own name, which callers can catch separately. <code>RobotError</code> is exactly that: <code>class RobotError(Exception): pass</code>.\n\n~~~python\nclass FloodError(Exception):\n    pass\ndef check_level(cm):\n    if cm > 50:\n        raise FloodError(f\"water at {cm} cm\")\n    return \"dry enough\"\nfor cm in [10, 80]:\n    try:\n        print(check_level(cm))\n    except FloodError as e:\n        print(\"Flood!\", e)\nprint(issubclass(FloodError, Exception))\n~~~\n\n- Lines 1 to 2: a new exception type, with everything inherited from <code>Exception</code>.\n- Line 5: raised and caught like <code>ValueError</code>: prints <code>Flood! water at 80 cm</code>.\n\n### Common mistakes\n\n- Writing <code>class Lifter:</code> without <code>(Drone)</code>: no inheritance at all.\n- Calling a method without <code>self.</code> inside another method: <code>NameError</code>.\n- Forgetting the brackets: <code>self.lift</code> is the method itself, <code>self.lift()</code> is its result.\n- Overriding <code>__init__</code> and forgetting <code>super().__init__(...)</code>.",
+  "goal": "Write <code>OverloadError(Exception)</code>; <code>Drone(name)</code> with class attribute <code>kind = \"Drone\"</code>, <code>lift()</code> raising <code>NotImplementedError</code> and <code>describe()</code> returning <code>f\"{self.kind} {self.name} lifts {self.lift():.2f}\"</code>; <code>Lifter(name, arms)</code> (kind \"Lifter\", lift is arms times 2.5, raises <code>OverloadError(f\"{name} has too many arms\")</code> above 4 arms, uses <code>super()</code>); <code>Floater(name)</code> (kind \"Floater\", lift 1.25). The terminal gives <code>[name, arms]</code> pairs, 0 arms meaning a Floater: say each <code>describe()</code> or <code>Rejected: </code> and the error, then unlock door A with the total lift formatted <code>:.2f</code>.",
+  "starter": "from robot import *\n\nclass OverloadError(Exception):\n    pass\n\nclass Drone:\n    kind = \"Drone\"\n",
+  "solution": "from robot import *\n\nclass OverloadError(Exception):\n    pass\n\nclass Drone:\n    kind = \"Drone\"\n    def __init__(self, name):\n        self.name = name\n    def lift(self):\n        raise NotImplementedError\n    def describe(self):\n        return f\"{self.kind} {self.name} lifts {self.lift():.2f}\"\n\nclass Lifter(Drone):\n    kind = \"Lifter\"\n    def __init__(self, name, arms):\n        if arms > 4:\n            raise OverloadError(f\"{name} has too many arms\")\n        super().__init__(name)\n        self.arms = arms\n    def lift(self):\n        return self.arms * 2.5\n\nclass Floater(Drone):\n    kind = \"Floater\"\n    def lift(self):\n        return 1.25\n\nwhile here() != \"terminal\":\n    move()\ntotal = 0\nfor name, arms in scan():\n    try:\n        if arms == 0:\n            drone = Floater(name)\n        else:\n            drone = Lifter(name, arms)\n    except OverloadError as e:\n        say(\"Rejected:\", e)\n    else:\n        say(drone.describe())\n        total += drone.lift()\nwhile front() != \"door\":\n    move()\nunlock(f\"{total:.2f}\")\nwhile not at_exit():\n    move()\n",
+  "hint": "Lifter's __init__ checks the arms first, then calls super().__init__(name); Floater needs no __init__ at all.",
+  "par": 45,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "for n in ['OverloadError', 'Drone', 'Lifter', 'Floater']:\n    assert n in dir(), 'Write a class called ' + n + '.'\nassert issubclass(OverloadError, Exception), 'OverloadError must inherit from Exception.'\nassert issubclass(Lifter, Drone) and issubclass(Floater, Drone), 'Lifter and Floater must inherit from Drone.'\ntry:\n    Drone('x').lift()\n    ok = False\nexcept NotImplementedError:\n    ok = True\nassert ok, 'Drone.lift() should raise NotImplementedError.'\nt = Lifter('Ox', 2)\nassert t.name == 'Ox' and t.arms == 2, 'Lifter should store name (through super) and arms.'\nassert t.describe() == 'Lifter Ox lifts 5.00', 'Lifter(\"Ox\", 2).describe() should be \"Lifter Ox lifts 5.00\".'\nassert Floater('P').describe() == 'Floater P lifts 1.25', 'Floater(\"P\").describe() should be \"Floater P lifts 1.25\".'\ntry:\n    Lifter('Big', 5)\n    ok = False\nexcept OverloadError:\n    ok = True\nassert ok, 'Lifter with more than 4 arms should raise OverloadError.'\n",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>.1...AE#",
+     "##########"
+    ],
+    "data": {
+     "1": [
+      [
+       "Ox",
+       3
+      ],
+      [
+       "Puff",
+       0
+      ],
+      [
+       "Ant",
+       2
+      ]
+     ]
+    },
+    "codes": {
+     "A": "13.75"
+    },
+    "output": "Lifter Ox lifts 7.50\nFloater Puff lifts 1.25\nLifter Ant lifts 5.00\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1.A.E#",
+     "########"
+    ],
+    "data": {
+     "1": [
+      [
+       "Hulk",
+       6
+      ],
+      [
+       "Bee",
+       1
+      ],
+      [
+       "Mist",
+       0
+      ],
+      [
+       "Haze",
+       0
+      ]
+     ]
+    },
+    "codes": {
+     "A": "5.00"
+    },
+    "output": "Rejected: Hulk has too many arms\nLifter Bee lifts 2.50\nFloater Mist lifts 1.25\nFloater Haze lifts 1.25\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>...1AE#",
+     "#########"
+    ],
+    "data": {
+     "1": [
+      [
+       "Crab",
+       4
+      ],
+      [
+       "Titan",
+       9
+      ]
+     ]
+    },
+    "codes": {
+     "A": "10.00"
+    },
+    "output": "Lifter Crab lifts 10.00\nRejected: Titan has too many arms\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-parts-crates",
+  "chapter": "The Workshop",
+  "title": "Crates that add up",
+  "covers": [
+   "py-dunder"
+  ],
+  "xp": 30,
+  "story": "Spare parts sit in crates on two shelves. Bit wants to pour one crate into another with a simple <code>+</code>, ask <code>len()</code> how full it is, and check <code>\"fuse\" in crate</code>. Python can do all of that for your own class, if you teach it how.",
+  "power": "Why does <code>+</code> work on numbers and strings but not on your own objects? Python turns operators and some built-in functions into calls to methods with special names, surrounded by double underscores: <b>dunder</b> methods. Define them, and your objects work with <code>+</code>, <code>==</code>, <code>len()</code>, <code>in</code> and <code>print()</code> like built-in types.\n\n### __repr__ and __str__: how an object is shown\n\nBy default, printing an object shows something unhelpful like <code>&lt;__main__.Plain object at 0x7f...&gt;</code>. <code>__repr__(self)</code> must return a string, and Python uses it whenever it needs to show the object: in <code>print()</code>, inside lists, and with the built-in <code>repr()</code>. By habit it looks like the code that builds the object. <code>__str__(self)</code> is an optional friendlier version: <code>print()</code> and <code>str()</code> use it when it exists, while lists and <code>repr()</code> keep using <code>__repr__</code>.\n\n~~~python\nclass Plain:\n    def __init__(self, x):\n        self.x = x\nclass Point:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n    def __repr__(self):\n        return f\"Point({self.x}, {self.y})\"\n    def __str__(self):\n        return f\"the point at {self.x}, {self.y}\"\nprint(Plain(1))\np = Point(1, 2)\nprint(p)\nprint([p, Point(0, 0)])\nprint(repr(p) == \"Point(1, 2)\", str(p))\n~~~\n\n- Line 12: Plain falls back to the default text, with a memory address.\n- Line 14: <code>print</code> uses <code>__str__</code>: <code>the point at 1, 2</code>.\n- Line 15: lists use <code>__repr__</code>: <code>[Point(1, 2), Point(0, 0)]</code>.\n- Line 16: <code>repr(p)</code> calls <code>p.__repr__()</code>; the text must match exactly, spaces included: <code>True</code>.\n\n### __eq__: deciding when two objects are equal\n\nWithout help, <code>==</code> on your objects is only <code>True</code> when both sides are the very same object. <code>a == b</code> becomes <code>a.__eq__(b)</code>, so <code>self</code> is the left side and <code>other</code> the right side.\n\n~~~python\nclass Card:\n    def __init__(self, rank, suit):\n        self.rank = rank\n        self.suit = suit\n    def __eq__(self, other):\n        return (self.rank, self.suit) == (other.rank, other.suit)\na = Card(10, \"hearts\")\nb = Card(10, \"hearts\")\nc = Card(10, \"spades\")\nprint(a == b, a == c)\nprint(a != c)\n~~~\n\n- Line 6: two tuples are equal when all their items are equal, position by position.\n- Line 10: <code>True False</code>. Without <code>__eq__</code>, <code>a == b</code> would be <code>False</code>.\n- Line 11: <code>!=</code> automatically gives the opposite of <code>__eq__</code>: <code>True</code>.\n\n### __add__: making + work\n\n<code>a + b</code> becomes <code>a.__add__(b)</code>. Return a <b>new</b> object built from both sides and leave the originals unchanged, just as <code>2 + 3</code> does not change the 2.\n\n~~~python\nclass Money:\n    def __init__(self, cents):\n        self.cents = cents\n    def __add__(self, other):\n        return Money(self.cents + other.cents)\n    def __repr__(self):\n        return f\"Money({self.cents})\"\nlunch = Money(1250)\ncoffee = Money(300)\nprint(lunch + coffee)\nprint(lunch, coffee)\n~~~\n\n- Line 10: <code>lunch.__add__(coffee)</code> builds a new object: <code>Money(1550)</code>.\n- Line 11: the originals did not change: <code>Money(1250) Money(300)</code>.\n\n### __len__ and __contains__: len() and in\n\nBuilt-in functions and keywords call dunder methods too: <code>len(x)</code> calls <code>x.__len__()</code>, and <code>item in x</code> calls <code>x.__contains__(item)</code>, which returns <code>True</code> or <code>False</code>.\n\n~~~python\nclass Playlist:\n    def __init__(self, songs):\n        self.songs = songs\n    def __len__(self):\n        return len(self.songs)\n    def __contains__(self, song):\n        return song in self.songs\nmix = Playlist([\"a\", \"b\", \"c\"])\nprint(len(mix))\nprint(\"b\" in mix, \"z\" in mix)\n~~~\n\n- Prints <code>3</code>, then <code>True False</code>.\n\n### Common mistakes\n\n- A <code>__repr__</code> that does not match the expected text exactly.\n- Using <code>print</code> inside <code>__repr__</code> instead of <code>return</code>.\n- Changing <code>self</code> inside <code>__add__</code> instead of returning a new object.",
+  "goal": "Write <code>Crate(parts)</code> (a list of part names) with <code>__repr__</code> giving <code>Crate(['bolt', 'fuse'])</code>, <code>__str__</code> giving <code>crate of 2 parts</code>, <code>__len__</code>, <code>__add__</code> (a new crate with both lists), <code>__eq__</code> (same parts list) and <code>__contains__</code>. Scan both terminals into crates, add them, say the result, then say <code>Fuse inside:</code> and <code>True</code> or <code>False</code>. Door A opens with the length of the combined crate.",
+  "starter": "from robot import *\n\nclass Crate:\n    def __init__(self, parts):\n        self.parts = parts\n",
+  "solution": "from robot import *\n\nclass Crate:\n    def __init__(self, parts):\n        self.parts = parts\n    def __repr__(self):\n        return f\"Crate({self.parts})\"\n    def __str__(self):\n        return f\"crate of {len(self)} parts\"\n    def __len__(self):\n        return len(self.parts)\n    def __add__(self, other):\n        return Crate(self.parts + other.parts)\n    def __eq__(self, other):\n        return self.parts == other.parts\n    def __contains__(self, part):\n        return part in self.parts\n\nwhile here() != \"terminal\":\n    move()\nfirst = Crate(scan())\nmove()\nwhile here() != \"terminal\":\n    move()\nboth = first + Crate(scan())\nsay(both)\nsay(\"Fuse inside:\", \"fuse\" in both)\nwhile front() != \"door\":\n    move()\nunlock(len(both))\nwhile not at_exit():\n    move()\n",
+  "hint": "say() turns its arguments into text with str(), so say(both) uses your __str__.",
+  "par": 32,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'Crate' in dir(), 'Write a class called Crate.'\na = Crate(['bolt'])\nb = Crate(['fuse', 'gear'])\nc = a + b\nassert isinstance(c, Crate) and c.parts == ['bolt', 'fuse', 'gear'], 'a + b should return a new Crate holding both lists of parts.'\nassert a.parts == ['bolt'], '+ must not change the original crates.'\nassert len(c) == 3, 'len(crate) should give its number of parts.'\nassert 'fuse' in c and 'nut' not in c, '\"fuse\" in crate should check its parts.'\nassert c == Crate(['bolt', 'fuse', 'gear']) and c != a, '== should compare the parts lists.'\nassert repr(a) == \"Crate(['bolt'])\", 'repr should look like Crate([\\'bolt\\']).'\nassert str(c) == 'crate of 3 parts', 'str should look like \"crate of 3 parts\".'\n",
+  "worlds": [
+   {
+    "map": [
+     "#############",
+     "#>.1..2..A.E#",
+     "#############"
+    ],
+    "data": {
+     "1": [
+      "bolt",
+      "fuse",
+      "gear"
+     ],
+     "2": [
+      "pipe",
+      "seal"
+     ]
+    },
+    "codes": {
+     "A": "5"
+    },
+    "output": "crate of 5 parts\nFuse inside: True\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>12AE#",
+     "#######"
+    ],
+    "data": {
+     "1": [
+      "valve"
+     ],
+     "2": [
+      "nut",
+      "nut",
+      "spring",
+      "coil",
+      "bolt"
+     ]
+    },
+    "codes": {
+     "A": "6"
+    },
+    "output": "crate of 6 parts\nFuse inside: False\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>1...2.AE#",
+     "###########"
+    ],
+    "data": {
+     "1": [
+      "fuse",
+      "fuse"
+     ],
+     "2": [
+      "gear"
+     ]
+    },
+    "codes": {
+     "A": "3"
+    },
+    "output": "crate of 3 parts\nFuse inside: True\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-signal-vectors",
+  "chapter": "The Workshop",
+  "title": "Signal vectors",
+  "covers": [
+   "py-dunder"
+  ],
+  "xp": 30,
+  "story": "The Workshop's radio mast picks up beacon signals, each one an arrow with an x and a y. WARDEN's door only opens for the doubled sum of all arrows, written like <code>Vec(4, 12)</code>. Bit builds a vector class so arrows can be added and scaled with plain <code>+</code> and <code>*</code>.",
+  "power": "### __mul__: multiplying by a number\n\n<code>a * b</code> becomes <code>a.__mul__(b)</code>. The right side does not have to be the same type: here it is a plain number.\n\n~~~python\nclass Money:\n    def __init__(self, cents):\n        self.cents = cents\n    def __mul__(self, factor):\n        return Money(self.cents * factor)\n    def __repr__(self):\n        return f\"Money({self.cents})\"\nticket = Money(900)\nprint(ticket * 3)\nprint(ticket * 0.5)\n~~~\n\n- Line 4: <code>factor</code> is whatever stands to the right of <code>*</code>.\n- Prints <code>Money(2700)</code>, then <code>Money(450.0)</code>: multiplying by a decimal gives a decimal.\n\nWriting the number first, <code>3 * ticket</code>, would need yet another method; object times number is enough here.\n\n### __abs__ and math.hypot\n\n<code>abs(x)</code> calls <code>x.__abs__()</code>. For an arrow on a flat grid, the natural \"size\" is its length: <code>math.hypot(x, y)</code> gives the straight-line distance from (0, 0) to (x, y), the square root of x squared plus y squared.\n\n~~~python\nimport math\nprint(math.hypot(3, 4))\nclass Balance:\n    def __init__(self, amount):\n        self.amount = amount\n    def __abs__(self):\n        return abs(self.amount)\nprint(abs(Balance(-40)))\n~~~\n\n- Line 2: 9 + 16 = 25, whose square root is 5: prints <code>5.0</code>.\n- Line 8: prints <code>40</code>.\n\n### __lt__: making < and sorted() work\n\n<code>a &lt; b</code> becomes <code>a.__lt__(b)</code> (\"less than\"). Once it exists, <code>sorted()</code>, <code>min()</code> and <code>max()</code> can order your objects.\n\n~~~python\nclass Box:\n    def __init__(self, kg):\n        self.kg = kg\n    def __lt__(self, other):\n        return self.kg < other.kg\n    def __repr__(self):\n        return f\"Box({self.kg})\"\nboxes = [Box(7), Box(2), Box(5)]\nprint(Box(1) < Box(3))\nprint(sorted(boxes), min(boxes))\n~~~\n\n- Line 9: <code>True</code>.\n- Line 10: <code>[Box(2), Box(5), Box(7)] Box(2)</code>.\n\n### Recap of the dunder family\n\n- <code>+</code> calls <code>__add__</code>, <code>*</code> calls <code>__mul__</code>, <code>==</code> calls <code>__eq__</code>, <code>&lt;</code> calls <code>__lt__</code>.\n- <code>abs()</code> calls <code>__abs__</code>, <code>len()</code> calls <code>__len__</code>, <code>in</code> calls <code>__contains__</code>.\n- Display uses <code>__repr__</code>, and <code>__str__</code> for print when you give one.\n- Operators return new objects and leave the originals alone.",
+  "goal": "Write <code>Vec(x, y)</code> with <code>__repr__</code> like <code>Vec(1, 2)</code>, <code>__add__</code>, <code>__mul__</code> (by a number), <code>__eq__</code>, <code>__abs__</code> (its length with <code>math.hypot</code>) and <code>__lt__</code> (compares lengths). Scan the list of <code>[x, y]</code> signals and turn them into Vecs. Say <code>Weakest:</code> and the shortest one, then <code>Strength: </code> and the length of their sum with 2 decimals. Unlock door A with the sum times 2.",
+  "starter": "from robot import *\nimport math\n\nclass Vec:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n",
+  "solution": "from robot import *\nimport math\n\nclass Vec:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n    def __repr__(self):\n        return f\"Vec({self.x}, {self.y})\"\n    def __add__(self, other):\n        return Vec(self.x + other.x, self.y + other.y)\n    def __mul__(self, factor):\n        return Vec(self.x * factor, self.y * factor)\n    def __eq__(self, other):\n        return (self.x, self.y) == (other.x, other.y)\n    def __abs__(self):\n        return math.hypot(self.x, self.y)\n    def __lt__(self, other):\n        return abs(self) < abs(other)\n\nwhile here() != \"terminal\":\n    move()\nsignals = [Vec(x, y) for x, y in scan()]\ntotal = Vec(0, 0)\nfor s in signals:\n    total = total + s\nsay(\"Weakest:\", min(signals))\nsay(f\"Strength: {abs(total):.2f}\")\nwhile front() != \"door\":\n    move()\nunlock(repr(total * 2))\nwhile not at_exit():\n    move()\n",
+  "hint": "Start from total = Vec(0, 0) and add each signal; min() uses your __lt__.",
+  "par": 33,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'Vec' in dir(), 'Write a class called Vec.'\na = Vec(1, 2)\nassert repr(a) == 'Vec(1, 2)', 'repr(Vec(1, 2)) should be \"Vec(1, 2)\".'\nassert a + Vec(3, 4) == Vec(4, 6), 'Vec(1, 2) + Vec(3, 4) should equal Vec(4, 6).'\nassert a * 3 == Vec(3, 6), 'Vec(1, 2) * 3 should equal Vec(3, 6).'\nassert a == Vec(1, 2) and a != Vec(2, 1), '== should compare x and y.'\nassert repr(a) == 'Vec(1, 2)', '+ and * must not change the original Vec.'\nassert abs(Vec(3, 4)) == 5, 'abs(Vec(3, 4)) should be 5.'\nassert Vec(1, 1) < Vec(3, 4) and not Vec(3, 4) < Vec(1, 1), '< should compare lengths.'\n",
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>..1...AE#",
+     "###########"
+    ],
+    "data": {
+     "1": [
+      [
+       3,
+       4
+      ],
+      [
+       1,
+       0
+      ],
+      [
+       -2,
+       2
+      ]
+     ]
+    },
+    "codes": {
+     "A": "Vec(4, 12)"
+    },
+    "output": "Weakest: Vec(1, 0)\nStrength: 6.32\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>1AE#",
+     "######"
+    ],
+    "data": {
+     "1": [
+      [
+       0,
+       5
+      ],
+      [
+       2,
+       2
+      ],
+      [
+       6,
+       -8
+      ]
+     ]
+    },
+    "codes": {
+     "A": "Vec(16, -2)"
+    },
+    "output": "Weakest: Vec(2, 2)\nStrength: 8.06\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>.....1.AE#",
+     "############"
+    ],
+    "data": {
+     "1": [
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "codes": {
+     "A": "Vec(2, 2)"
+    },
+    "output": "Weakest: Vec(1, 1)\nStrength: 1.41\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-sensor-stream",
+  "chapter": "The Core",
+  "title": "The sensor stream",
+  "covers": [
+   "py-gen"
+  ],
+  "xp": 35,
+  "story": "Bit reaches the Core, WARDEN's humming heart. Pressure sensors pour out readings faster than any list can hold, so Bit learns to take them in small batches. The last lock pulses to an old rhythm: 0, 1, 1, 2, 3, 5, 8, each number the sum of the two before.",
+  "power": "A <b>generator</b> produces values one at a time, only when asked. It is how Python reads huge files line by line or handles endless streams (sensor readings, new IDs, pages of results) without filling up memory.\n\n### yield: a function that pauses\n\nAny function containing the keyword <code>yield</code> becomes a <b>generator function</b>. Calling it does not run its body: it returns a <b>generator object</b>. Each time you ask that object for a value with the built-in <code>next()</code>, the body runs until the next <code>yield</code>, hands out that value, and pauses right there, keeping all its variables.\n\n~~~python\ndef three_steps():\n    print(\"starting\")\n    yield \"one\"\n    print(\"resuming\")\n    yield \"two\"\n    yield \"three\"\ng = three_steps()\nprint(type(g).__name__)\nprint(next(g))\nprint(next(g))\nprint(next(g))\n~~~\n\n- Line 7: nothing is printed: the body has not started. <code>g</code> is a generator object (line 8 prints <code>generator</code>).\n- Line 9: <code>next(g)</code> runs from the top: prints <code>starting</code>, reaches <code>yield \"one\"</code> and pauses; <code>\"one\"</code> is printed.\n- Line 10: resumes just after the first <code>yield</code>: prints <code>resuming</code>, then <code>two</code>.\n- Line 11: resumes again: <code>three</code>.\n\nOne more <code>next(g)</code> would raise <code>StopIteration</code>: the generator has nothing left.\n\n### Looping over a generator\n\nYou rarely call <code>next()</code> yourself. A <code>for</code> loop asks for each value and stops cleanly at the end, and <code>list()</code> collects all the values.\n\n~~~python\ndef countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\nfor x in countdown(3):\n    print(\"tick\", x)\nprint(list(countdown(5)))\ngen = countdown(2)\nprint(list(gen), list(gen))\n~~~\n\n- Lines 5 to 6: <code>tick 3</code>, <code>tick 2</code>, <code>tick 1</code>.\n- Line 7: <code>[5, 4, 3, 2, 1]</code>.\n- Line 9: a generator can be used only once. The first <code>list()</code> empties it, so the second gives <code>[]</code>. Call the function again for a fresh one.\n\n### Infinite generators and islice\n\nSince values are computed only on demand, a generator may loop forever with <code>while True:</code>. The caller decides how many values to take. <code>islice(generator, n)</code>, from the <code>itertools</code> module, takes just the first <code>n</code>.\n\n~~~python\nfrom itertools import islice\ndef odd_numbers():\n    n = 1\n    while True:\n        yield n\n        n += 2\nprint(list(islice(odd_numbers(), 5)))\nfor value in odd_numbers():\n    if value > 7:\n        break\n    print(value)\n~~~\n\n- Line 7: <code>[1, 3, 5, 7, 9]</code>. Never call <code>list()</code> on an endless generator without <code>islice</code>: it would never finish.\n- Lines 8 to 11: a <code>for</code> loop with <code>break</code> works too: 1, 3, 5, 7.\n\n### Updating two variables at once\n\n<code>a, b = x, y</code> assigns several variables in one line. Python computes everything on the right first, using the old values, and only then assigns. That makes swaps and \"new pair from the old pair\" updates easy.\n\n~~~python\na, b = 1, 10\na, b = b, a\nprint(a, b)\na, b = b, a + b\nprint(a, b)\n~~~\n\n- Line 2: the right side is (10, 1), so the values swap: prints <code>10 1</code>.\n- Line 4: the right side uses the old values: <code>b</code> is 1 and <code>a + b</code> is 11. Prints <code>1 11</code>.\n\nWriting <code>a = b</code> and <code>b = a + b</code> on two lines would give a different result, because the second line would already see the new <code>a</code>.\n\n### yield inside a for loop\n\n<code>yield</code> can sit inside a <code>for</code> loop, handing out one result per round. Two helpers are useful here: <code>range(start, stop, step)</code> jumps by <code>step</code>, and a slice that goes past the end of a list simply stops at the end, with no error.\n\n~~~python\nletters = [\"a\", \"b\", \"c\", \"d\", \"e\"]\nprint(letters[3:10])\nprint(list(range(0, 10, 3)))\ndef pairs(items):\n    for i in range(len(items) - 1):\n        yield (items[i], items[i + 1])\nprint(list(pairs(letters)))\n~~~\n\n- Line 2: only two items exist from index 3: <code>['d', 'e']</code>.\n- Line 3: from 0, jumping by 3, below 10: <code>[0, 3, 6, 9]</code>.\n- Line 7: each item with its neighbour: <code>[('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e')]</code>.\n\n### Generator expressions\n\nA comprehension written in round brackets instead of square ones is a <b>generator expression</b>: same syntax, but values come one by one instead of being stored in a list. Inside a function call, the extra brackets can be dropped.\n\n~~~python\nsquares = (n * n for n in range(5))\nprint(type(squares).__name__)\nprint(sum(squares))\nprint(max(len(w) for w in [\"fig\", \"banana\", \"kiwi\"]))\n~~~\n\n- Line 1: nothing is computed yet.\n- Line 3: <code>sum()</code> pulls 0, 1, 4, 9, 16 one by one: <code>30</code>.\n- Line 4: the longest word length: <code>6</code>.\n\n### Common mistakes\n\n- Using <code>return</code> instead of <code>yield</code>: the function hands back one value and ends.\n- Calling <code>list()</code> on an endless generator.\n- Reusing a generator that is already used up.",
+  "goal": "Write the generator <code>chunked(items, size)</code>, yielding lists of at most <code>size</code> items, and the endless generator <code>fib()</code>: 0, 1, 1, 2, 3, 5, ... Terminal 1 gives <code>readings</code> and <code>size</code>: say the biggest reading of each chunk, and unlock door A with the sum of those maxima (a generator expression is perfect). Terminal 2 gives a number <code>n</code>: door B opens with the n-th value of <code>fib()</code> (the last of the first n).",
+  "starter": "from robot import *\nfrom itertools import islice\n\ndef fib():\n    a, b = 0, 1\n",
+  "solution": "from robot import *\nfrom itertools import islice\n\ndef chunked(items, size):\n    for i in range(0, len(items), size):\n        yield items[i:i + size]\n\ndef fib():\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b\n\nwhile here() != \"terminal\":\n    move()\ndata = scan()\nfor chunk in chunked(data[\"readings\"], data[\"size\"]):\n    say(max(chunk))\npeaks = sum(max(c) for c in chunked(data[\"readings\"], data[\"size\"]))\nwhile front() != \"door\":\n    move()\nunlock(peaks)\nmove()\nwhile here() != \"terminal\":\n    move()\ncode = list(islice(fib(), scan()))[-1]\nwhile front() != \"door\":\n    move()\nunlock(code)\nwhile not at_exit():\n    move()\n",
+  "hint": "chunked: for i in range(0, len(items), size): yield items[i:i + size]. fib: yield a, then a, b = b, a + b.",
+  "par": 30,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'chunked' in dir() and 'fib' in dir(), 'Write chunked and fib.'\ng = fib()\nassert hasattr(g, '__next__'), 'fib() should be a generator: use yield.'\nassert [next(g) for _ in range(8)] == [0, 1, 1, 2, 3, 5, 8, 13], 'fib() should give 0, 1, 1, 2, 3, 5, 8, 13, ...'\nc = chunked([1, 2, 3, 4, 5], 2)\nassert hasattr(c, '__next__'), 'chunked should be a generator: use yield.'\nassert list(c) == [[1, 2], [3, 4], [5]], 'chunked([1, 2, 3, 4, 5], 2) should give [1, 2], [3, 4], [5].'\n",
+  "worlds": [
+   {
+    "map": [
+     "###############",
+     "#>.1..A.2..B.E#",
+     "###############"
+    ],
+    "data": {
+     "1": {
+      "readings": [
+       3,
+       9,
+       2,
+       7,
+       1,
+       1,
+       8,
+       4,
+       6,
+       5
+      ],
+      "size": 4
+     },
+     "2": 7
+    },
+    "codes": {
+     "A": "23",
+     "B": "8"
+    },
+    "output": "9\n8\n6\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>1A2BE#",
+     "########"
+    ],
+    "data": {
+     "1": {
+      "readings": [
+       5,
+       1,
+       4,
+       2,
+       6,
+       3
+      ],
+      "size": 2
+     },
+     "2": 10
+    },
+    "codes": {
+     "A": "15",
+     "B": "34"
+    },
+    "output": "5\n4\n6\n"
+   },
+   {
+    "map": [
+     "###############",
+     "#>..1.A...2.BE#",
+     "###############"
+    ],
+    "data": {
+     "1": {
+      "readings": [
+       10,
+       20,
+       30
+      ],
+      "size": 5
+     },
+     "2": 1
+    },
+    "codes": {
+     "A": "30",
+     "B": "0"
+    },
+    "output": "30\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-logged-moves",
+  "chapter": "The Core",
+  "title": "Every move on the record",
+  "covers": [
+   "py-deco"
+  ],
+  "xp": 35,
+  "story": "Deep in the Core, the corridors twist and the doors keep score. WARDEN's last checkpoint opens only with the exact number of steps Bit took to reach it, and the route comes from a terminal as a string of letters. Bit cannot count by hand, so it wraps its own motors in a counter.",
+  "power": "A <b>decorator</b> adds extra behaviour to a function without touching the function's own code: logging every call, counting it, timing it, checking permissions. You switch it on with one line, <code>@name</code>, just above a <code>def</code>.\n\n### Functions are values\n\nIn Python a function is an object, like a number or a string. Its name without brackets refers to the function itself. You can store it in another variable, put it in a dict, pass it to another function, and read its attributes, such as <code>__name__</code>, its name as text.\n\n~~~python\ndef shout(text):\n    return text.upper() + \"!\"\nyell = shout\nprint(yell(\"hello\"))\nprint(shout.__name__, yell.__name__)\ndef apply_twice(func, value):\n    return func(func(value))\nprint(apply_twice(shout, \"hi\"))\nactions = {\"s\": shout, \"l\": str.lower}\nprint(actions[\"s\"](\"go\"), actions[\"l\"](\"GO\"))\n~~~\n\n- Line 3: no brackets, so nothing runs: <code>yell</code> now refers to the same function.\n- Line 5: both names lead to one function, which keeps its original name: <code>shout shout</code>.\n- Lines 6 to 8: <code>func</code> is a parameter holding a function: prints <code>HI!!</code>\n- Lines 9 to 10: a dict of functions, looked up by a letter and then called: <code>GO! go</code>.\n\n### Functions inside functions\n\nA <code>def</code> can sit inside another function. The inner function can use the outer function's variables, and the outer function can return the inner function, which keeps remembering those variables.\n\n~~~python\ndef make_multiplier(n):\n    def multiply(x):\n        return x * n\n    return multiply\ndouble = make_multiplier(2)\ntriple = make_multiplier(3)\nprint(double(5), triple(5))\nprint(double.__name__)\n~~~\n\n- Line 4: returns the inner function itself, not a result (no brackets).\n- Lines 5 to 6: two <code>multiply</code> functions, one remembering 2, one remembering 3.\n- Line 7: <code>10 15</code>. Line 8: <code>multiply</code>.\n\n### Passing arguments along with * and **\n\nIn a <code>def</code>, <code>*args</code> and <code>**kwargs</code> collect arguments. In a call, the stars do the reverse: <code>*a_tuple</code> spreads its items as positional arguments and <code>**a_dict</code> spreads its pairs as keyword arguments. Together, a function can accept anything and pass it on unchanged.\n\n~~~python\ndef describe(name, age, city=\"?\"):\n    return f\"{name}, {age}, from {city}\"\nvalues = (\"Ada\", 36)\noptions = {\"city\": \"London\"}\nprint(describe(*values, **options))\ndef pass_along(*args, **kwargs):\n    print(\"args:\", args, \"kwargs:\", kwargs)\n    return describe(*args, **kwargs)\nprint(pass_along(\"Bo\", age=22))\n~~~\n\n- Line 5: the same as <code>describe(\"Ada\", 36, city=\"London\")</code>.\n- Lines 7 to 8: prints <code>args: ('Bo',) kwargs: {'age': 22}</code>, then spreads them back out exactly as received.\n\n### Writing a decorator\n\nA decorator is a function that takes a function and returns a new one, usually an inner <code>wrapper</code> that does something extra and calls the original. Writing <code>@decorator</code> on the line above a <code>def</code> is shorthand for <code>name = decorator(name)</code> right after it. You can also write that line yourself, to wrap a function you did not define, like <code>move</code>.\n\n~~~python\ndef announce(func):\n    def wrapper(*args, **kwargs):\n        print(\"Calling\", func.__name__, \"with\", args)\n        result = func(*args, **kwargs)\n        print(\"Got\", result)\n        return result\n    return wrapper\n@announce\ndef add(a, b):\n    return a + b\ntotal = add(2, 3)\nprint(total, add.__name__)\n~~~\n\n- Line 2: <code>wrapper</code> accepts any arguments, so it fits any function.\n- Line 4: calls the original with the same arguments and keeps its result.\n- Line 6: returns that result. Without it, the decorated function would return <code>None</code>.\n- Lines 8 to 10: <code>@announce</code> means <code>add = announce(add)</code>. From now on, <code>add</code> is the wrapper.\n- Line 11: prints <code>Calling add with (2, 3)</code>, then <code>Got 5</code>.\n- Line 12: prints <code>5 wrapper</code>: the original name is lost.\n\n### functools.wraps: keeping the original name\n\nTools and tests rely on <code>__name__</code>. Put <code>@functools.wraps(func)</code> above the wrapper's <code>def</code>: it copies the original's name (and description) onto the wrapper. It is itself a decorator, one that takes an argument.\n\n~~~python\nimport functools\ndef announce(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        print(\"Calling\", func.__name__)\n        return func(*args, **kwargs)\n    return wrapper\n@announce\ndef greet(name):\n    return f\"Hi {name}\"\nprint(greet(\"Ada\"))\nprint(greet.__name__)\n~~~\n\n- Line 11: prints <code>Calling greet</code>, then <code>Hi Ada</code>. Line 12: <code>greet</code>.\n\n### Decorators that take arguments\n\n<code>wraps(func)</code> shows the trick: a function that receives the settings and returns the real decorator. That is one more level of inner function.\n\n~~~python\nimport functools\ndef repeat(times):\n    def decorator(func):\n        @functools.wraps(func)\n        def wrapper(*args, **kwargs):\n            for _ in range(times):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n@repeat(3)\ndef beep():\n    print(\"beep\")\nbeep()\n~~~\n\n- Line 11: <code>repeat(3)</code> runs first and returns <code>decorator</code>, which then wraps <code>beep</code>. Prints <code>beep</code> three times.\n\n### Attributes on functions\n\nSince functions are objects, you can attach your own attributes to them: <code>func.something = value</code>. A decorator can attach one to the wrapper once, then update it on every call, which keeps information between calls. Inside the wrapper, refer to it as <code>wrapper.something</code>.\n\n~~~python\nimport functools\ndef remember_args(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        wrapper.history.append(args)\n        return func(*args, **kwargs)\n    wrapper.history = []\n    return wrapper\n@remember_args\ndef square(n):\n    return n * n\nprint(square.history)\nprint(square(3), square(4))\nprint(square.history)\n~~~\n\n- Line 7: runs only once, when the decorator is applied. It sits after the wrapper's <code>def</code> and outside its body, so it is not reset on each call.\n- Lines 12 to 14: <code>[]</code>, then <code>9 16</code>, then <code>[(3,), (4,)]</code>.\n\n### Common mistakes\n\n- Forgetting <code>return wrapper</code>: the decorated name becomes <code>None</code>.\n- Forgetting to return the original function's result from the wrapper.\n- Setting up a counter inside the wrapper body, so it starts over on every call.\n- Forgetting <code>@functools.wraps(func)</code>, so <code>__name__</code> says <code>wrapper</code>.",
+  "goal": "Write a decorator <code>count_calls</code>: it counts the calls in <code>func.calls</code>, keeps <code>__name__</code> with <code>functools.wraps</code> and returns the result. Wrap the robot's own <code>move</code>, <code>turn_left</code> and <code>turn_right</code> with it. Move onto the terminal, then follow the route it gives (F forward, L left, R right). Say each function's name and its number of calls, like <code>move 7</code>, then unlock door A with the number of moves and reach the exit.",
+  "starter": "from robot import *\nimport functools\n\ndef count_calls(func):\n    pass\n",
+  "solution": "from robot import *\nimport functools\n\ndef count_calls(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        wrapper.calls += 1\n        return func(*args, **kwargs)\n    wrapper.calls = 0\n    return wrapper\n\nmove = count_calls(move)\nturn_left = count_calls(turn_left)\nturn_right = count_calls(turn_right)\nactions = {\"F\": move, \"L\": turn_left, \"R\": turn_right}\nmove()\nfor letter in scan():\n    actions[letter]()\nfor func in [move, turn_left, turn_right]:\n    say(func.__name__, func.calls)\nunlock(move.calls)\nwhile not at_exit():\n    move()\n",
+  "hint": "move = count_calls(move) is what @count_calls does for you; set wrapper.calls = 0 before returning the wrapper.",
+  "par": 23,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "assert 'count_calls' in dir(), 'Write a decorator called count_calls.'\n@count_calls\ndef twice(x):\n    return x * 2\nassert twice.calls == 0, 'calls should start at 0.'\nassert twice(3) == 6, 'The decorated function should still return its result.'\ntwice(1)\nassert twice.calls == 2, 'calls should go up by one on every call.'\nassert twice.__name__ == 'twice', 'Use functools.wraps(func) to keep the original __name__.'\n",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>1..#####",
+     "####.#####",
+     "####...AE#",
+     "##########"
+    ],
+    "data": {
+     "1": "FFRFFLFF"
+    },
+    "codes": {
+     "A": "7"
+    },
+    "output": "move 7\nturn_left 1\nturn_right 1\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#v########",
+     "#2########",
+     "#...######",
+     "###.######",
+     "###...A.E#",
+     "##########"
+    ],
+    "data": {
+     "2": "FLFFRFFLFF"
+    },
+    "codes": {
+     "A": "8"
+    },
+    "output": "move 8\nturn_left 2\nturn_right 1\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#E.A..####",
+     "#####.####",
+     "#####.####",
+     "#####..3<#",
+     "##########"
+    ],
+    "data": {
+     "3": "FFRFFFLF"
+    },
+    "codes": {
+     "A": "7"
+    },
+    "output": "move 7\nturn_left 1\nturn_right 1\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-warden-mail",
+  "chapter": "The Core",
+  "title": "WARDEN's mail",
+  "covers": [
+   "py-regex"
+  ],
+  "xp": 30,
+  "story": "WARDEN talks to the night crew by message, and its terminals still hold the last ones: long, noisy, full of numbers. Somewhere in each message is a four-digit door code, and a list of addresses Bit will need later to warn the crew. Reading them by eye is slow; patterns are fast.",
+  "power": "A <b>regular expression</b> (regex) is a tiny pattern language for finding text by its shape: \"some digits\", \"a word, an @, a domain\", \"two digits, a dash, two digits\". It is how you pull emails, phone numbers, dates or codes out of messy text.\n\n### re.findall and raw strings\n\nPython's regex tools live in the module <code>re</code>. <code>re.findall(pattern, text)</code> returns a list of every piece of text that matches. In a pattern, <code>\\d</code> means any digit from 0 to 9, and <code>+</code> after something means \"one or more of it, as many as possible\". Write patterns as <b>raw strings</b>, <code>r\"...\"</code>: the <code>r</code> tells Python to leave backslashes alone, so <code>\\d</code> reaches the regex engine untouched.\n\n~~~python\nimport re\ntext = \"Order 66 shipped 3 boxes on day 120\"\nprint(re.findall(r\"\\d\", text))\nprint(re.findall(r\"\\d+\", text))\nprint(re.findall(r\"\\d+\", \"no numbers here\"))\n~~~\n\n- Line 3: <code>\\d</code> alone matches single digits: <code>['6', '6', '3', '1', '2', '0']</code>.\n- Line 4: <code>\\d+</code> grabs whole runs of digits: <code>['66', '3', '120']</code>. Results are always strings.\n- Line 5: nothing matches, so the list is empty: <code>[]</code>.\n\n### More building blocks\n\n- <code>\\w</code>: a word character (letter, digit or underscore). <code>\\s</code>: whitespace (space, tab, newline).\n- <code>\\D</code>, <code>\\W</code>, <code>\\S</code>: the capital letter means the opposite, for example <code>\\D</code> is anything that is not a digit.\n- <code>.</code>: any single character. To match a real dot, escape it: <code>\\.</code>\n- <code>*</code>: zero or more. <code>{3}</code>: exactly 3 times. Like <code>+</code>, they apply to the thing just before them.\n\n~~~python\nimport re\ns = \"Ada_99 met Bo at 10.30, then Cy at 9.05\"\nprint(re.findall(r\"\\w+\", s))\nprint(re.findall(r\"\\d+\\.\\d{2}\", s))\nprint(re.findall(r\"\\d\\d\", \"2026\"))\nprint(re.findall(r\"a.\", \"banana bar\"))\nprint(re.findall(r\"\\S+\", \"two  words\"), re.findall(r\"\\s\", \"a b\\tc\"))\nprint(re.findall(r\"bo*m\", \"bm bom boooom\"))\n~~~\n\n- Line 3: the dot and the comma are not word characters, so <code>10.30</code> splits into <code>'10'</code> and <code>'30'</code>.\n- Line 4: digits, a real dot, then exactly two digits: <code>['10.30', '9.05']</code>.\n- Line 5: two digits at a time: <code>['20', '26']</code>.\n- Line 6: an <code>a</code> followed by any character, even a space: <code>['an', 'an', 'a ', 'ar']</code>.\n- Line 7: runs of non-space: <code>['two', 'words']</code>; then each whitespace character: <code>[' ', '\\t']</code>.\n- Line 8: <code>o*</code> allows no o at all: <code>['bm', 'bom', 'boooom']</code>.\n\n### Character sets with [ ]\n\nSquare brackets match <b>one</b> character from a set: <code>[aeiou]</code> is a vowel, <code>[0-9]</code> a digit range, <code>[\\w.]</code> a word character or a dot (inside brackets a dot is literal). A hyphen between two characters means a range, so to include a real hyphen, put it <b>first</b>: <code>[-\\w.]</code>. Add <code>+</code> after the set for one or more.\n\n~~~python\nimport re\nmails = \"Mail ana@shop.fr or ana.b@shop.fr\"\nprint(re.findall(r\"[aeiou]\", \"regular\"))\nprint(re.findall(r\"\\w+@\\w+\\.\\w+\", mails))\nprint(re.findall(r\"[\\w.]+@\\w+\\.\\w+\", mails))\nprint(re.findall(r\"[-\\w]+\", \"a well-known e-mail\"))\n~~~\n\n- Line 3: each vowel separately: <code>['e', 'u', 'a']</code>.\n- Line 4: <code>\\w+</code> cannot cross the dot in <code>ana.b</code>, so the second match is cut: <code>['ana@shop.fr', 'b@shop.fr']</code>.\n- Line 5: <code>[\\w.]+</code> accepts dots in the name part: both addresses come out whole.\n- Line 6: hyphen first in the set, so hyphenated words stay whole: <code>['a', 'well-known', 'e-mail']</code>.\n\nReal addresses can also contain hyphens, in the name and in the domain: add them to the sets where they may appear.\n\n### Common mistakes\n\n- Forgetting the <code>r</code> before the pattern string.\n- A bare <code>.</code> where you meant a real dot: write <code>\\.</code>.\n- A hyphen in the middle of a set, which makes a range: put it first.",
+  "goal": "Scan the message. Say every email address in it, in order (names and domains may contain dots and hyphens). The door code is the only run of exactly four digits: unlock door A with it and reach the exit.",
+  "starter": "from robot import *\nimport re\n\n",
+  "solution": "from robot import *\nimport re\n\nwhile here() != \"terminal\":\n    move()\ntext = scan()\nfor mail in re.findall(r\"[-\\w.]+@[-\\w]+\\.\\w+\", text):\n    say(mail)\ncode = re.findall(r\"\\d{4}\", text)[0]\nwhile front() != \"door\":\n    move()\nunlock(code)\nwhile not at_exit():\n    move()\n",
+  "hint": "Emails: r\"[-\\w.]+@[-\\w]+\\.\\w+\" (hyphen first in the sets). The code: r\"\\d{4}\".",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>.1..A.E#",
+     "##########"
+    ],
+    "data": {
+     "1": "WARDEN to night-ops@iron-works.io: unit 17 escaped at gate 4. Lock bay 9 with 2210. Copy to j.vance@iron-works.io"
+    },
+    "codes": {
+     "A": "2210"
+    },
+    "output": "night-ops@iron-works.io\nj.vance@iron-works.io\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>1AE#",
+     "######"
+    ],
+    "data": {
+     "1": "Alert 3 of 12. Seal code 0731. Report to warden.core@ironworks.net and b17-hunt@ironworks.net now."
+    },
+    "codes": {
+     "A": "0731"
+    },
+    "output": "warden.core@ironworks.net\nb17-hunt@ironworks.net\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>...1..AE#",
+     "###########"
+    ],
+    "data": {
+     "1": "No staff left. Door code 9046 stays until day 300."
+    },
+    "codes": {
+     "A": "9046"
+    },
+    "output": ""
+   }
+  ]
+ },
+ {
+  "id": "m-c-override-pin",
+  "chapter": "The Core",
+  "title": "The override pin",
+  "covers": [
+   "py-regex"
+  ],
+  "xp": 35,
+  "story": "WARDEN keeps an emergency override in its own logs, in case it ever locks itself out. The pin is there, but broken up with dashes and spaces so no human could copy it at a glance. Bit also wants the exact times WARDEN was seen writing, for the final report.",
+  "power": "### Groups: ( ) and (?: )\n\nRound brackets group pieces, so a quantifier applies to the whole group: <code>(ab)+</code> means \"ab, repeated\". But careful: with a normal group, <code>findall</code> returns only what the group matched, not the whole match. Write <code>(?: ... )</code>, a <b>non-capturing group</b>, to group without changing what <code>findall</code> returns.\n\n~~~python\nimport re\nlog = \"Start 08:58:12, error 09:02:45, end 10.05.11\"\nprint(re.findall(r\"\\d{2}(:\\d{2}){2}\", log))\nprint(re.findall(r\"\\d{2}(?::\\d{2}){2}\", log))\nprint(re.findall(r\"\\d{2}(?:[.:]\\d{2}){2}\", log))\n~~~\n\n- Line 3: two digits, then the group \"colon and two digits\" twice. With a normal group, <code>findall</code> returns only the group's last match: <code>[':12', ':45']</code>. Not what we want.\n- Line 4: <code>(?:</code> makes a plain group, so whole matches come back: <code>['08:58:12', '09:02:45']</code>.\n- Line 5: the separator is now a set, <code>[.:]</code>, a dot or a colon, so the third time matches too.\n\n### re.search and .group\n\n<code>re.search(pattern, text)</code> finds only the first match. It returns a <b>match object</b>, or <code>None</code> if nothing matches. On a match, <code>.group(0)</code> is the whole match, and <code>.group(1)</code>, <code>.group(2)</code> are the captured groups, counted from the left.\n\n~~~python\nimport re\nm = re.search(r\"(\\w+)@([\\w.]+)\", \"contact: bo@acme.com today\")\nprint(m.group(0))\nprint(m.group(1), m.group(2))\nprint(re.search(r\"\\d\", \"no digits\"))\n~~~\n\n- Line 2: two capturing groups: the name and the domain.\n- Line 3: prints <code>bo@acme.com</code>.\n- Line 4: prints <code>bo acme.com</code>.\n- Line 5: no match: prints <code>None</code>. Check for <code>None</code> before calling <code>.group</code> when a match might be missing.\n\n### re.sub: replacing matches\n\n<code>re.sub(pattern, replacement, text)</code> returns a copy of the text with every match replaced. Replacing with <code>\"\"</code> deletes the matches. Inside a list comprehension, it cleans a whole list.\n\n~~~python\nimport re\nprint(re.sub(r\"\\s+\", \" \", \"too    many     spaces\"))\nprint(re.sub(r\"\\D\", \"\", \"+33 (0)6-12\"))\ncodes = [\"AB-12-CD\", \"EF 34 GH\"]\nprint([re.sub(r\"[- ]\", \"\", c) for c in codes])\n~~~\n\n- Line 2: each run of whitespace becomes one space: <code>too many spaces</code>.\n- Line 3: every non-digit is deleted: <code>330612</code>.\n- Line 5: hyphens and spaces removed: <code>['AB12CD', 'EF34GH']</code>.\n\n### Common mistakes\n\n- Using a normal group with <code>findall</code> and getting only pieces back: use <code>(?: )</code>.\n- Calling <code>.group()</code> on <code>None</code> when <code>search</code> found nothing.\n\n### Recap\n\n- <code>re.findall</code> lists all matches, <code>re.search</code> finds the first, <code>re.sub</code> replaces.\n- <code>\\d \\w \\s</code> and their opposites <code>\\D \\W \\S</code>; <code>.</code> any character; <code>+ * {n}</code> repeat.\n- <code>[...]</code> is one character from a set; <code>( )</code> captures, <code>(?: )</code> groups without capturing.",
+  "goal": "Scan the log. Say <code>Seen at</code> and each time written as two digits, colon, two digits, colon, two digits (not the ones with dots). Then find <code>door</code>, its letter, <code>pin</code> and the pin made of digits, dashes and spaces with <code>re.search</code> and two groups: say <code>Door</code>, the letter and the pin with only its digits kept. Unlock door A with those digits and exit.",
+  "starter": "from robot import *\nimport re\n\n",
+  "solution": "from robot import *\nimport re\n\nwhile here() != \"terminal\":\n    move()\ntext = scan()\nfor stamp in re.findall(r\"\\d{2}(?::\\d{2}){2}\", text):\n    say(\"Seen at\", stamp)\nm = re.search(r\"door (\\w) pin ([-\\d ]+)\", text)\npin = re.sub(r\"\\D\", \"\", m.group(2))\nsay(\"Door\", m.group(1), pin)\nwhile front() != \"door\":\n    move()\nunlock(pin)\nwhile not at_exit():\n    move()\n",
+  "hint": "Times: r\"\\d{2}(?::\\d{2}){2}\". Pin: r\"door (\\w) pin ([-\\d ]+)\", then re.sub(r\"\\D\", \"\", m.group(2)).",
+  "par": 17,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>..1..A.E#",
+     "###########"
+    ],
+    "data": {
+     "1": "Logs 08:58:12 and 09:02:45, backup 10.05.11. OVERRIDE door A pin 7-3 1-9."
+    },
+    "codes": {
+     "A": "7319"
+    },
+    "output": "Seen at 08:58:12\nSeen at 09:02:45\nDoor A 7319\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>1.AE#",
+     "#######"
+    ],
+    "data": {
+     "1": "Seen 23:59:01. OVERRIDE door A pin 0 0-4 2. Clock 7.30.00"
+    },
+    "codes": {
+     "A": "0042"
+    },
+    "output": "Seen at 23:59:01\nDoor A 0042\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>.....1AE#",
+     "###########"
+    ],
+    "data": {
+     "1": "OVERRIDE door A pin 55-61 at 01:00:00 and 01:30:00."
+    },
+    "codes": {
+     "A": "5561"
+    },
+    "output": "Seen at 01:00:00\nSeen at 01:30:00\nDoor A 5561\n"
+   }
+  ]
+ },
+ {
+  "id": "m-c-warden-inventory",
+  "chapter": "The Core",
+  "title": "Boss: WARDEN's inventory",
+  "covers": [
+   "py-boss"
+  ],
+  "xp": 55,
+  "story": "The final lock is WARDEN's own storeroom. Its stock list sits on disk, deliveries keep arriving at one terminal while WARDEN's drones try to take parts at the other, and the vault door opens only for the exact value of what is left. Bit builds a real inventory manager, everything it learned in one program, and saves the books for the crew.",
+  "power": "This boss combines classes, dictionaries, exceptions, generator expressions and files in one program: an inventory manager that loads itself from disk and saves itself back. Here are the last few tools.\n\n### Dictionaries inside a dictionary\n\nA dict value can itself be a dict: a natural way to store records by name. The outer key is the item name, the inner dict holds its details. Chain the square brackets to reach inside. <code>not in</code> is the opposite of <code>in</code>. And <code>or</code> checks its left side first and stops as soon as something is true, so a test on a missing key can be guarded safely.\n\n~~~python\nstock = {\"pen\": {\"qty\": 10, \"price\": 1.5}}\nstock[\"pen\"][\"qty\"] += 5\nstock[\"ink\"] = {\"qty\": 2, \"price\": 9.99}\nprint(stock)\nprint(stock[\"ink\"][\"price\"])\nprint(\"pad\" in stock, \"pad\" not in stock)\nfor name in [\"pen\", \"pad\"]:\n    print(name, name not in stock or stock[name][\"qty\"] < 5)\n~~~\n\n- Line 2: <code>stock[\"pen\"]</code> is the inner dict, and <code>[\"qty\"]</code> reaches inside it: 10 + 5 = 15.\n- Line 3: adds a new record under the key <code>\"ink\"</code>.\n- Line 6: <code>in</code> checks the outer keys: <code>False True</code>.\n- Lines 7 to 8: for \"pen\" the left side is false, so Python checks the quantity: <code>False</code>. For \"pad\" the left side is already true, so Python never runs <code>stock[\"pad\"]</code>, which would raise a <code>KeyError</code>: <code>True</code>.\n\n### setdefault: get it, or create it first\n\n<code>d.setdefault(key, default)</code> returns <code>d[key]</code> if the key exists. If not, it first stores <code>default</code> under that key, then returns it. It returns the stored dict itself, not a copy, so changing what it returns changes the record inside <code>d</code>.\n\n~~~python\nstock = {\"pen\": {\"qty\": 10, \"price\": 1.5}}\nitem = stock.setdefault(\"pen\", {\"qty\": 0, \"price\": 2.0})\nprint(item)\nitem = stock.setdefault(\"pad\", {\"qty\": 0, \"price\": 4.0})\nitem[\"qty\"] += 3\nprint(stock)\n~~~\n\n- Line 2: \"pen\" exists, so the existing record is returned and the default is ignored.\n- Line 4: \"pad\" is missing, so the default record is stored, then returned.\n- Line 5: changes the stored record through <code>item</code>: pad now has 3.\n\nAn <code>if name not in stock:</code> check followed by a normal assignment does the same job, if you prefer.\n\n### Looping over values and items\n\n<code>.values()</code> gives the inner dicts; <code>.items()</code> gives (key, value) pairs. Generator expressions inside <code>sum()</code> and <code>sorted()</code> build totals and filtered, sorted lists in one line. <code>round(x, 2)</code> keeps 2 decimals, handy for money.\n\n~~~python\nstock = {\"pen\": {\"qty\": 10, \"price\": 1.5}, \"pad\": {\"qty\": 3, \"price\": 4.0}, \"ink\": {\"qty\": 1, \"price\": 9.99}}\nfor name, info in stock.items():\n    print(name, info[\"qty\"] * info[\"price\"])\nunits = sum(info[\"qty\"] for info in stock.values())\nprint(units)\nrare = sorted(name for name, info in stock.items() if info[\"qty\"] < 4)\nprint(rare)\nprint(round(10 / 3, 2))\n~~~\n\n- Line 5: 10 + 3 + 1: prints <code>14</code>.\n- Line 7: the names whose quantity is below 4, sorted: <code>['ink', 'pad']</code>.\n- Line 8: <code>3.33</code>.\n\n### Saving and loading with json\n\nJSON is a text format for data that almost every language can read. <code>json.dump(data, file)</code> writes dicts, lists, strings, numbers and <code>True</code>/<code>False</code> into an open file; <code>indent=2</code> makes it readable. <code>json.load(file)</code> reads it back as Python dicts and lists.\n\n~~~python\nimport json\ndata = {\"pen\": {\"qty\": 10, \"price\": 1.5}, \"tags\": [\"office\", \"cheap\"]}\nwith open(\"data.json\", \"w\") as f:\n    json.dump(data, f, indent=2)\nwith open(\"data.json\") as f:\n    print(f.read())\nwith open(\"data.json\") as f:\n    loaded = json.load(f)\nprint(loaded[\"pen\"][\"qty\"], loaded == data)\n~~~\n\n- Lines 3 to 4: open a file for writing and dump the dict into it.\n- Lines 5 to 6: show the raw text: it looks almost like Python.\n- Lines 7 to 9: turn the text back into a dict: <code>10 True</code>, the round trip kept everything.\n\n### @classmethod: building an object from a file\n\nA normal method receives an object as <code>self</code>. A method marked with the decorator <code>@classmethod</code> receives the class itself, by convention named <code>cls</code>, and is called on the class: <code>Settings.from_file(...)</code>. Inside it, <code>cls()</code> creates a new object of that class. This is the standard way to write other ways of building an object, like loading one from a file.\n\n~~~python\nimport json\nwith open(\"config.json\", \"w\") as f:\n    json.dump({\"app\": \"pumps\", \"debug\": True}, f)\nclass Settings:\n    def __init__(self):\n        self.values = {}\n    def get(self, key):\n        return self.values.get(key)\n    @classmethod\n    def from_file(cls, path):\n        s = cls()\n        with open(path) as f:\n            s.values = json.load(f)\n        return s\ncfg = Settings.from_file(\"config.json\")\nprint(type(cfg).__name__)\nprint(cfg.get(\"app\"), cfg.get(\"debug\"))\n~~~\n\n- Line 9: <code>@classmethod</code> changes what the first parameter receives: <code>cls</code> is the class <code>Settings</code> itself.\n- Line 11: <code>cls()</code> runs <code>__init__</code> and gives a fresh, empty object, filled on lines 12 to 13.\n- Line 14: return the finished object. Forgetting this returns <code>None</code>.\n- Line 15: called on the class, not on an object.\n- Line 16: <code>type(cfg)</code> is its class, and <code>__name__</code> its name: <code>Settings</code>.\n- Line 17: <code>pumps True</code>.\n\n### Common mistakes\n\n- Changing a quantity before checking it is allowed: check, raise, then change.\n- Reading <code>d[name]</code> before checking that <code>name</code> exists: put the <code>not in</code> test first.\n- Forgetting <code>return</code> at the end of a classmethod that builds an object.\n- Opening the file with <code>\"w\"</code> to load it: that empties it.",
+  "goal": "Write <code>Inventory</code> with <code>self.items</code> as <code>{name: {\"qty\": q, \"price\": p}}</code> and: <code>add(name, qty, price)</code> (adds to the quantity, updates the price); <code>remove(name, qty)</code> raising <code>ValueError(f\"not enough {name}\")</code> when the item is missing or short; <code>total_value()</code> rounded to 2 decimals; <code>low_stock(threshold=5)</code>, the sorted names below the threshold; <code>save(path)</code> and the classmethod <code>load(path)</code>, both JSON. Load <code>warden/stock.json</code> into <code>inv</code>. Terminal 1 gives deliveries <code>[name, qty, price]</code> to add; terminal 2 gives orders <code>[name, qty]</code> to remove, saying <code>Refused: </code> and the error for each one refused. Save to <code>report.json</code>, say <code>Low stock: </code> and the names joined with <code>\", \"</code>, and unlock door A with the total value.",
+  "starter": "from robot import *\nimport json\n\nclass Inventory:\n    def __init__(self):\n        self.items = {}\n",
+  "solution": "from robot import *\nimport json\n\nclass Inventory:\n    def __init__(self):\n        self.items = {}\n    def add(self, name, qty, price):\n        item = self.items.setdefault(name, {\"qty\": 0, \"price\": price})\n        item[\"qty\"] += qty\n        item[\"price\"] = price\n    def remove(self, name, qty):\n        if name not in self.items or self.items[name][\"qty\"] < qty:\n            raise ValueError(f\"not enough {name}\")\n        self.items[name][\"qty\"] -= qty\n    def total_value(self):\n        return round(sum(i[\"qty\"] * i[\"price\"] for i in self.items.values()), 2)\n    def low_stock(self, threshold=5):\n        return sorted(n for n, i in self.items.items() if i[\"qty\"] < threshold)\n    def save(self, path):\n        with open(path, \"w\") as f:\n            json.dump(self.items, f, indent=2)\n    @classmethod\n    def load(cls, path):\n        inv = cls()\n        with open(path) as f:\n            inv.items = json.load(f)\n        return inv\n\ninv = Inventory.load(\"warden/stock.json\")\nwhile here() != \"terminal\":\n    move()\nfor name, qty, price in scan():\n    inv.add(name, qty, price)\nmove()\nwhile here() != \"terminal\":\n    move()\nfor name, qty in scan():\n    try:\n        inv.remove(name, qty)\n    except ValueError as e:\n        say(\"Refused:\", e)\ninv.save(\"report.json\")\nsay(\"Low stock:\", \", \".join(inv.low_stock()))\nwhile front() != \"door\":\n    move()\nunlock(inv.total_value())\nwhile not at_exit():\n    move()\n",
+  "hint": "load: inv = cls(), fill inv.items with json.load(f), return inv. remove: test name not in self.items first, then the quantity.",
+  "par": 48,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "import json as _json\nassert 'Inventory' in dir(), 'Write a class called Inventory.'\nt = Inventory()\nt.add('bolt', 3, 0.5)\nt.add('bolt', 2, 0.75)\nt.add('gear', 10, 2.0)\nassert t.items == {'bolt': {'qty': 5, 'price': 0.75}, 'gear': {'qty': 10, 'price': 2.0}}, 'add should increase qty and update the price, in self.items.'\nassert t.total_value() == 23.75, 'total_value() should be the sum of qty times price.'\nassert t.low_stock() == [] and t.low_stock(6) == ['bolt'], 'low_stock(threshold=5) should list names with qty below threshold.'\nfor name, qty in [('nut', 1), ('bolt', 9)]:\n    try:\n        t.remove(name, qty)\n        ok = False\n    except ValueError:\n        ok = True\n    assert ok, 'remove should raise ValueError for a missing item or too few.'\nt.remove('gear', 4)\nassert t.items['gear']['qty'] == 6 and t.items['bolt']['qty'] == 5, 'remove should lower the qty, and a refused remove should change nothing.'\nassert isinstance(Inventory.__dict__.get('load'), classmethod), 'load should be a @classmethod.'\nassert 'inv' in dir() and isinstance(inv, Inventory), 'Load the stock into a variable called inv.'\nassert 'report.json' in _fs, 'Save the inventory to report.json.'\nassert _json.loads(_fs['report.json']) == inv.items, 'report.json should hold inv.items as JSON.'\n",
+  "worlds": [
+   {
+    "map": [
+     "#############",
+     "#>.1..2..A.E#",
+     "#############"
+    ],
+    "fs": {
+     "warden/stock.json": "{\n  \"bolt\": {\n    \"qty\": 40,\n    \"price\": 0.25\n  },\n  \"fuse\": {\n    \"qty\": 3,\n    \"price\": 4.5\n  },\n  \"gear\": {\n    \"qty\": 12,\n    \"price\": 2.75\n  }\n}"
+    },
+    "data": {
+     "1": [
+      [
+       "fuse",
+       4,
+       4.0
+      ],
+      [
+       "valve",
+       2,
+       19.99
+      ]
+     ],
+     "2": [
+      [
+       "bolt",
+       50
+      ],
+      [
+       "gear",
+       10
+      ],
+      [
+       "cable",
+       1
+      ]
+     ]
+    },
+    "codes": {
+     "A": "83.48"
+    },
+    "output": "Refused: not enough bolt\nRefused: not enough cable\nLow stock: gear, valve\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>12AE#",
+     "#######"
+    ],
+    "fs": {
+     "warden/stock.json": "{\n  \"pump\": {\n    \"qty\": 2,\n    \"price\": 120.0\n  },\n  \"seal\": {\n    \"qty\": 30,\n    \"price\": 0.8\n  }\n}"
+    },
+    "data": {
+     "1": [
+      [
+       "pump",
+       1,
+       115.5
+      ]
+     ],
+     "2": [
+      [
+       "seal",
+       30
+      ],
+      [
+       "pump",
+       3
+      ],
+      [
+       "seal",
+       1
+      ]
+     ]
+    },
+    "codes": {
+     "A": "0.0"
+    },
+    "output": "Refused: not enough seal\nLow stock: pump, seal\n"
+   },
+   {
+    "map": [
+     "#############",
+     "#>..1.2...AE#",
+     "#############"
+    ],
+    "fs": {
+     "warden/stock.json": "{\n  \"core\": {\n    \"qty\": 1,\n    \"price\": 999.99\n  }\n}"
+    },
+    "data": {
+     "1": [
+      [
+       "coil",
+       7,
+       3.1
+      ],
+      [
+       "core",
+       0,
+       950.0
+      ],
+      [
+       "chip",
+       4,
+       12.25
+      ]
+     ],
+     "2": [
+      [
+       "core",
+       1
+      ],
+      [
+       "coil",
+       2
+      ],
+      [
+       "chip",
+       5
+      ]
+     ]
+    },
+    "codes": {
+     "A": "64.5"
+    },
+    "output": "Refused: not enough chip\nLow stock: chip, core\n"
+   }
+  ]
+ }
+]

@@ -1,0 +1,542 @@
+[
+ {
+  "id": "t-au-expense-totals",
+  "district": "auto",
+  "client": "Sophie Laurent, Atelier Laurent accounting",
+  "title": "Expense totals by category",
+  "covers": [
+   "auto-csv"
+  ],
+  "brief": "Every Friday the expense tool gives me expenses.csv and I spend an hour in a spreadsheet adding up each category. I want a small file, category_totals.csv, with one line per category and the biggest spend on top. My manager only reads the first lines.",
+  "skill": {
+   "title": "csv.DictReader and csv.writer",
+   "card": "<code>csv.DictReader(f)</code> gives each row as a dict keyed by the header, so <code>row[\"amount\"]</code> is the amount column. Every value is a string: convert with <code>float()</code> before adding. <code>csv.writer(f).writerow([...])</code> writes one line and handles quoting for you.",
+   "example": "import csv\nwith open(\"demo.csv\", \"w\") as f:\n    w = csv.writer(f)\n    w.writerow([\"category\", \"amount\"])\n    w.writerow([\"Meals\", \"12.50\"])\nwith open(\"demo.csv\") as f:\n    for row in csv.DictReader(f):\n        print(row[\"category\"], float(row[\"amount\"]) * 2)"
+  },
+  "task": "Read <code>expenses.csv</code> (columns <code>date,employee,category,amount</code>) and add up the amount of each category. Write <code>category_totals.csv</code> with the header <code>category,total</code>, then one row per category sorted by total, highest first, each total with 2 decimals (<code>182.40</code>). Finally print one line with the number of categories:\n\n~~~text\nCategories: 4\n~~~",
+  "starter": "import csv\n\ntotals = {}\nwith open(\"expenses.csv\") as f:\n    for row in csv.DictReader(f):\n        pass\n",
+  "solution": "import csv\n\ntotals = {}\nwith open(\"expenses.csv\") as f:\n    for row in csv.DictReader(f):\n        totals[row[\"category\"]] = totals.get(row[\"category\"], 0) + float(row[\"amount\"])\n\nwith open(\"category_totals.csv\", \"w\") as f:\n    w = csv.writer(f)\n    w.writerow([\"category\", \"total\"])\n    for category, total in sorted(totals.items(), key=lambda kv: kv[1], reverse=True):\n        w.writerow([category, f\"{total:.2f}\"])\n\nprint(\"Categories:\", len(totals))",
+  "hint": "sorted(totals.items(), key=lambda kv: kv[1], reverse=True) puts the biggest total first, and f\"{total:.2f}\" keeps 2 decimals.",
+  "par": 12,
+  "machine": {
+   "name": "Expense Totaliser",
+   "icon": "calc"
+  },
+  "tests": [
+   {
+    "name": "March week 1",
+    "fs": {
+     "expenses.csv": "date,employee,category,amount\n2025-03-03,Ines Faure,Travel,182.40\n2025-03-03,Marc Roux,Meals,24.90\n2025-03-04,Ines Faure,Hotel,96.00\n2025-03-05,Paul Girard,Travel,58.10\n2025-03-06,Marc Roux,Meals,31.50\n2025-03-07,Paul Girard,Office,12.99\n"
+    },
+    "output": "Categories: 4"
+   },
+   {
+    "name": "April week 1",
+    "fs": {
+     "expenses.csv": "date,employee,category,amount\n2025-04-01,Lina Petit,Office,45.00\n2025-04-02,Lina Petit,Meals,18.20\n2025-04-02,Hugo Blanc,Hotel,240.00\n2025-04-03,Hugo Blanc,Hotel,120.00\n2025-04-04,Lina Petit,Office,9.90\n"
+    },
+    "output": "Categories: 3"
+   }
+  ],
+  "test": "import csv as _c, io as _i\n_w = {}\nfor _r in _c.DictReader(_i.StringIO(_fs[\"expenses.csv\"])):\n    _w[_r[\"category\"]] = _w.get(_r[\"category\"], 0) + float(_r[\"amount\"])\nassert \"category_totals.csv\" in _fs, \"category_totals.csv was not written\"\n_rows = [r for r in _c.reader(_i.StringIO(_fs[\"category_totals.csv\"])) if r]\n_exp = [[\"category\", \"total\"]] + [[k, \"%.2f\" % v] for k, v in sorted(_w.items(), key=lambda kv: -kv[1])]\nassert _rows == _exp, \"category_totals.csv should be:\\n\" + \"\\n\".join(\",\".join(r) for r in _exp)"
+ },
+ {
+  "id": "t-au-ticket-triage",
+  "district": "auto",
+  "client": "Theo Garnier, Helpdesk at Brico Pro",
+  "title": "Morning ticket triage",
+  "covers": [
+   "auto-json"
+  ],
+  "brief": "Our helpdesk API dumps every ticket into tickets.json at 8 o'clock. Before coffee I need two numbers: how many tickets are open, and which open ones nobody has picked up. Also save that in triage.json so the wall screen can show it.",
+  "skill": {
+   "title": "json.load and json.dump",
+   "card": "<code>json.load(f)</code> turns a JSON file into dicts and lists, and <code>json.dump(data, f, indent=2)</code> writes them back. JSON <code>null</code> becomes <code>None</code>, so test it with <code>is None</code>.",
+   "example": "import json\ndata = json.loads('{\"tickets\": [{\"id\": 7, \"assignee\": null}]}')\nfor t in data[\"tickets\"]:\n    print(t[\"id\"], t[\"assignee\"] is None)\nprint(json.dumps({\"open\": 1}, indent=2))"
+  },
+  "task": "Read <code>tickets.json</code>. Its key <code>tickets</code> is a list of dicts with <code>id</code>, <code>status</code> (<code>open</code> or <code>closed</code>) and <code>assignee</code> (a name, or null). Print two lines, the ids in file order:\n\n~~~text\nOpen: 4\nUnassigned: 102, 104\n~~~\n\nThen write <code>triage.json</code> with <code>indent=2</code> holding <code>{\"open\": 4, \"unassigned\": [102, 104]}</code> for that data.",
+  "starter": "import json\n\nwith open(\"tickets.json\") as f:\n    data = json.load(f)\n",
+  "solution": "import json\n\nwith open(\"tickets.json\") as f:\n    data = json.load(f)\n\nopen_tickets = [t for t in data[\"tickets\"] if t[\"status\"] == \"open\"]\nunassigned = [t[\"id\"] for t in open_tickets if t[\"assignee\"] is None]\nprint(\"Open:\", len(open_tickets))\nprint(\"Unassigned:\", \", \".join(str(i) for i in unassigned))\n\nwith open(\"triage.json\", \"w\") as f:\n    json.dump({\"open\": len(open_tickets), \"unassigned\": unassigned}, f, indent=2)",
+  "hint": "Filter the open tickets first with a list comprehension, then keep the ids where t[\"assignee\"] is None.",
+  "par": 10,
+  "machine": {
+   "name": "Ticket Triage",
+   "icon": "list"
+  },
+  "tests": [
+   {
+    "name": "Friday dump",
+    "fs": {
+     "tickets.json": "{\n  \"source\": \"helpdesk\",\n  \"exported\": \"2025-03-07T08:00:00\",\n  \"tickets\": [\n    {\n      \"id\": 101,\n      \"subject\": \"Printer offline in room 2\",\n      \"status\": \"open\",\n      \"priority\": \"low\",\n      \"assignee\": \"Nadia\"\n    },\n    {\n      \"id\": 102,\n      \"subject\": \"VPN refuses my password\",\n      \"status\": \"open\",\n      \"priority\": \"high\",\n      \"assignee\": null\n    },\n    {\n      \"id\": 103,\n      \"subject\": \"New laptop for Hugo\",\n      \"status\": \"closed\",\n      \"priority\": \"normal\",\n      \"assignee\": \"Theo\"\n    },\n    {\n      \"id\": 104,\n      \"subject\": \"Shared drive is full\",\n      \"status\": \"open\",\n      \"priority\": \"high\",\n      \"assignee\": null\n    },\n    {\n      \"id\": 105,\n      \"subject\": \"Teams camera black\",\n      \"status\": \"open\",\n      \"priority\": \"normal\",\n      \"assignee\": \"Nadia\"\n    }\n  ]\n}"
+    },
+    "output": "Open: 4\nUnassigned: 102, 104"
+   },
+   {
+    "name": "Monday dump",
+    "fs": {
+     "tickets.json": "{\n  \"source\": \"helpdesk\",\n  \"exported\": \"2025-03-07T08:00:00\",\n  \"tickets\": [\n    {\n      \"id\": 201,\n      \"subject\": \"Invoice PDF will not open\",\n      \"status\": \"open\",\n      \"priority\": \"normal\",\n      \"assignee\": null\n    },\n    {\n      \"id\": 202,\n      \"subject\": \"Password reset\",\n      \"status\": \"closed\",\n      \"priority\": \"low\",\n      \"assignee\": \"Theo\"\n    },\n    {\n      \"id\": 203,\n      \"subject\": \"Screen flickers\",\n      \"status\": \"open\",\n      \"priority\": \"low\",\n      \"assignee\": \"Theo\"\n    }\n  ]\n}"
+    },
+    "output": "Open: 2\nUnassigned: 201"
+   }
+  ],
+  "test": "import json as _j\nassert \"triage.json\" in _fs, \"triage.json was not written\"\n_t = [t for t in _j.loads(_fs[\"tickets.json\"])[\"tickets\"] if t[\"status\"] == \"open\"]\n_want = {\"open\": len(_t), \"unassigned\": [t[\"id\"] for t in _t if t[\"assignee\"] is None]}\nassert _j.loads(_fs[\"triage.json\"]) == _want, \"triage.json should hold %r\" % (_want,)"
+ },
+ {
+  "id": "t-au-error-watch",
+  "district": "auto",
+  "client": "Bastien Morel, IT at Primeur Express",
+  "title": "Which hour hurts?",
+  "covers": [
+   "auto-logs"
+  ],
+  "brief": "Our web shop writes server.log all day. When customers phone to complain, I want to know at once which hours had errors and which error keeps coming back. Keep it short, I read it on my phone.",
+  "skill": {
+   "title": "Reading a log line by line",
+   "card": "Loop over the file one line at a time and cut each line with <code>split(\" \", 3)</code>: at most 3 cuts, so the message keeps its own spaces. <code>collections.Counter</code> counts anything, and <code>most_common(1)</code> gives the winner with its count.",
+   "example": "from collections import Counter\nline = \"2025-03-07 09:02:44 ERROR Payment gateway timeout\"\ndate, time, level, message = line.split(\" \", 3)\nprint(time[:2], level, message)\nc = Counter([\"a\", \"b\", \"a\"])\nprint(c.most_common(1))"
+  },
+  "task": "Read <code>server.log</code>. Each line is <code>date time LEVEL message</code>; skip blank lines. For the <code>ERROR</code> lines only, print one line per hour that had errors, hours in order, then the most frequent error message:\n\n~~~text\n09h: 2 errors\n10h: 1 errors\n11h: 1 errors\nTop error: Payment gateway timeout (3 times)\n~~~",
+  "starter": "from collections import Counter\n\nby_hour = Counter()\nmessages = Counter()\n\nwith open(\"server.log\") as f:\n    for line in f:\n        pass\n",
+  "solution": "from collections import Counter\n\nby_hour = Counter()\nmessages = Counter()\n\nwith open(\"server.log\") as f:\n    for line in f:\n        if not line.strip():\n            continue\n        date, time, level, message = line.strip().split(\" \", 3)\n        if level == \"ERROR\":\n            by_hour[time[:2]] += 1\n            messages[message] += 1\n\nfor hour in sorted(by_hour):\n    print(f\"{hour}h: {by_hour[hour]} errors\")\nmessage, count = messages.most_common(1)[0]\nprint(f\"Top error: {message} ({count} times)\")",
+  "hint": "The hour is time[:2]. After the loop, messages.most_common(1)[0] is a (message, count) pair.",
+  "par": 16,
+  "machine": {
+   "name": "Error Watch",
+   "icon": "shield"
+  },
+  "tests": [
+   {
+    "name": "Friday morning",
+    "fs": {
+     "server.log": "2025-03-07 08:58:10 INFO Server started\n2025-03-07 09:02:44 ERROR Payment gateway timeout\n2025-03-07 09:15:03 WARNING Slow query on orders\n2025-03-07 09:40:19 ERROR Payment gateway timeout\n2025-03-07 10:05:51 ERROR Disk almost full\n2025-03-07 10:20:07 INFO Backup done\n\n2025-03-07 11:11:11 ERROR Payment gateway timeout\n"
+    },
+    "output": "09h: 2 errors\n10h: 1 errors\n11h: 1 errors\nTop error: Payment gateway timeout (3 times)"
+   },
+   {
+    "name": "Saturday afternoon",
+    "fs": {
+     "server.log": "2025-03-08 13:00:02 INFO Server started\n2025-03-08 13:30:40 ERROR Mail relay refused connection\n2025-03-08 14:01:12 ERROR Mail relay refused connection\n2025-03-08 14:45:00 WARNING Retry queue growing\n2025-03-08 14:59:59 ERROR Login service down\n2025-03-08 14:59:59 ERROR Mail relay refused connection\n"
+    },
+    "output": "13h: 1 errors\n14h: 3 errors\nTop error: Mail relay refused connection (3 times)"
+   }
+  ]
+ },
+ {
+  "id": "t-au-expense-totals-fr",
+  "district": "auto",
+  "type": "update",
+  "of": "t-au-expense-totals",
+  "client": "Sophie Laurent, Atelier Laurent accounting",
+  "title": "The export went French",
+  "covers": [
+   "auto-csv"
+  ],
+  "brief": "Bad news: the expense tool was updated over the weekend and now exports the French way. Semicolons between columns, commas in the amounts. Your machine stopped this morning. My manager still wants the same category_totals.csv.",
+  "task": "<code>expenses.csv</code> now looks like this:\n\n~~~text\ndate;employee;category;amount\n2025-03-03;Ines Faure;Travel;182,40\n~~~\n\nRead it with <code>csv.DictReader(f, delimiter=\";\")</code> and turn the amount into a float after replacing the comma by a dot. Everything else stays the same: <code>category_totals.csv</code> keeps commas and dots (<code>Travel,240.50</code>), and the last line printed is still <code>Categories: N</code>.",
+  "starter": "",
+  "solution": "import csv\n\ntotals = {}\nwith open(\"expenses.csv\") as f:\n    for row in csv.DictReader(f, delimiter=\";\"):\n        amount = float(row[\"amount\"].replace(\",\", \".\"))\n        totals[row[\"category\"]] = totals.get(row[\"category\"], 0) + amount\n\nwith open(\"category_totals.csv\", \"w\") as f:\n    w = csv.writer(f)\n    w.writerow([\"category\", \"total\"])\n    for category, total in sorted(totals.items(), key=lambda kv: kv[1], reverse=True):\n        w.writerow([category, f\"{total:.2f}\"])\n\nprint(\"Categories:\", len(totals))",
+  "hint": "Only the reading side changes: delimiter=\";\" in DictReader, and row[\"amount\"].replace(\",\", \".\") before float().",
+  "par": 13,
+  "tests": [
+   {
+    "name": "March week 1, French",
+    "fs": {
+     "expenses.csv": "date;employee;category;amount\n2025-03-03;Ines Faure;Travel;182,40\n2025-03-03;Marc Roux;Meals;24,90\n2025-03-04;Ines Faure;Hotel;96,00\n2025-03-05;Paul Girard;Travel;58,10\n2025-03-06;Marc Roux;Meals;31,50\n2025-03-07;Paul Girard;Office;12,99\n"
+    },
+    "output": "Categories: 4"
+   },
+   {
+    "name": "April week 1, French",
+    "fs": {
+     "expenses.csv": "date;employee;category;amount\n2025-04-01;Lina Petit;Office;45,00\n2025-04-02;Lina Petit;Meals;18,20\n2025-04-02;Hugo Blanc;Hotel;240,00\n2025-04-03;Hugo Blanc;Hotel;120,00\n2025-04-04;Lina Petit;Office;9,90\n"
+    },
+    "output": "Categories: 3"
+   }
+  ],
+  "test": "import csv as _c, io as _i\n_w = {}\nfor _r in _c.DictReader(_i.StringIO(_fs[\"expenses.csv\"]), delimiter=\";\"):\n    _w[_r[\"category\"]] = _w.get(_r[\"category\"], 0) + float(_r[\"amount\"].replace(\",\", \".\"))\nassert \"category_totals.csv\" in _fs, \"category_totals.csv was not written\"\n_rows = [r for r in _c.reader(_i.StringIO(_fs[\"category_totals.csv\"])) if r]\n_exp = [[\"category\", \"total\"]] + [[k, \"%.2f\" % v] for k, v in sorted(_w.items(), key=lambda kv: -kv[1])]\nassert _rows == _exp, \"category_totals.csv should be:\\n\" + \"\\n\".join(\",\".join(r) for r in _exp)"
+ },
+ {
+  "id": "t-au-scan-renamer",
+  "district": "auto",
+  "client": "Claire Fontaine, Fontaine and Fils notaries",
+  "title": "Name the scanned invoices",
+  "covers": [
+   "auto-rename"
+  ],
+  "brief": "Our scanner drops files like SCAN_07032025_Dupont.pdf into scans/. Nobody can sort them by date, and the client names are all over the place. I want 2025-03-07_dupont.pdf. Do not touch anything else in that folder, the scanner keeps its own notes there.",
+  "skill": {
+   "title": "os.listdir, os.path.splitext, os.rename",
+   "card": "<code>os.listdir(\"scans\")</code> lists the names in a folder; wrap it in <code>sorted()</code> so the order is always the same. <code>os.path.splitext(name)</code> splits off the extension, and <code>os.rename(old, new)</code> renames a file. Build full paths with <code>os.path.join</code>.",
+   "example": "import os\nname = \"SCAN_07032025_Garage Leroy.PDF\"\nstem, ext = os.path.splitext(name)\ntag, d, client = stem.split(\"_\", 2)\nprint(ext.lower(), d[4:], d[2:4], d[:2], client.lower().replace(\" \", \"-\"))\nprint(os.path.join(\"scans\", name))"
+  },
+  "task": "For every file in <code>scans/</code> whose name starts with <code>SCAN_</code> and ends with <code>.pdf</code> (any case), rename <code>SCAN_DDMMYYYY_Client Name.pdf</code> to <code>YYYY-MM-DD_client-name.pdf</code>: client in lowercase, spaces replaced by <code>-</code>, extension <code>.pdf</code>. Leave other files alone. Go through the names in <code>sorted()</code> order, print each rename, then the count:\n\n~~~text\nSCAN_01042025_martin.pdf -> 2025-04-01_martin.pdf\nSCAN_07032025_Dupont.pdf -> 2025-03-07_dupont.pdf\nSCAN_12032025_Garage Leroy.PDF -> 2025-03-12_garage-leroy.pdf\nRenamed: 3\n~~~",
+  "starter": "import os\n\nrenamed = 0\nfor name in sorted(os.listdir(\"scans\")):\n    print(name)\n",
+  "solution": "import os\n\nrenamed = 0\nfor name in sorted(os.listdir(\"scans\")):\n    stem, ext = os.path.splitext(name)\n    if not stem.startswith(\"SCAN_\") or ext.lower() != \".pdf\":\n        continue\n    tag, d, client = stem.split(\"_\", 2)\n    new = f\"{d[4:]}-{d[2:4]}-{d[:2]}_{client.lower().replace(' ', '-')}.pdf\"\n    os.rename(os.path.join(\"scans\", name), os.path.join(\"scans\", new))\n    print(name, \"->\", new)\n    renamed += 1\nprint(\"Renamed:\", renamed)",
+  "hint": "stem.split(\"_\", 2) gives the tag, the date and the client (the client may contain spaces). d[4:] is the year, d[2:4] the month, d[:2] the day.",
+  "par": 13,
+  "machine": {
+   "name": "Scan Renamer",
+   "icon": "folder"
+  },
+  "tests": [
+   {
+    "name": "March scans",
+    "fs": {
+     "scans/SCAN_07032025_Dupont.pdf": "pdf",
+     "scans/SCAN_12032025_Garage Leroy.PDF": "pdf",
+     "scans/notes.txt": "call Dupont back",
+     "scans/SCAN_01042025_martin.pdf": "pdf"
+    },
+    "output": "SCAN_01042025_martin.pdf -> 2025-04-01_martin.pdf\nSCAN_07032025_Dupont.pdf -> 2025-03-07_dupont.pdf\nSCAN_12032025_Garage Leroy.PDF -> 2025-03-12_garage-leroy.pdf\nRenamed: 3"
+   },
+   {
+    "name": "Late February scans",
+    "fs": {
+     "scans/SCAN_28022025_Boulangerie Petit.pdf": "pdf",
+     "scans/scanner.log": "ok",
+     "scans/SCAN_03032025_Rossi.Pdf": "pdf"
+    },
+    "output": "SCAN_03032025_Rossi.Pdf -> 2025-03-03_rossi.pdf\nSCAN_28022025_Boulangerie Petit.pdf -> 2025-02-28_boulangerie-petit.pdf\nRenamed: 2"
+   }
+  ],
+  "test": "_left = [k for k in _fs if k.startswith(\"scans/SCAN_\")]\nassert not _left, \"These scans were not renamed: \" + \", \".join(_left)\nfor _l in _out.splitlines():\n    if \" -> \" in _l:\n        _new = \"scans/\" + _l.split(\" -> \")[1]\n        assert _new in _fs, _new + \" does not exist\"\nassert any(k.startswith(\"scans/\") and not k.endswith(\".pdf\") for k in _fs), \"Leave the other files in scans/ alone\""
+ },
+ {
+  "id": "t-au-ticket-triage-v2",
+  "district": "auto",
+  "type": "update",
+  "of": "t-au-ticket-triage",
+  "client": "Theo Garnier, Helpdesk at Brico Pro",
+  "title": "Helpdesk API v2",
+  "covers": [
+   "auto-json"
+  ],
+  "brief": "The helpdesk vendor moved us to API v2 last night. Same tickets, but they renamed things, and of course the wall screen now shows an error. Can you adapt your triage machine?",
+  "task": "In <code>tickets.json</code> each ticket changed:\n\n- <code>status</code> is now called <code>state</code>, in capitals: <code>OPEN</code> or <code>CLOSED</code>.\n- <code>assignee</code> is replaced by <code>owner</code>: either null or a dict like <code>{\"name\": \"Nadia\", \"team\": \"Support\"}</code>.\n\nA ticket is open when <code>state</code> is <code>OPEN</code> and unassigned when <code>owner</code> is null. The printed lines and <code>triage.json</code> stay exactly the same.",
+  "starter": "",
+  "solution": "import json\n\nwith open(\"tickets.json\") as f:\n    data = json.load(f)\n\nopen_tickets = [t for t in data[\"tickets\"] if t[\"state\"] == \"OPEN\"]\nunassigned = [t[\"id\"] for t in open_tickets if t[\"owner\"] is None]\nprint(\"Open:\", len(open_tickets))\nprint(\"Unassigned:\", \", \".join(str(i) for i in unassigned))\n\nwith open(\"triage.json\", \"w\") as f:\n    json.dump({\"open\": len(open_tickets), \"unassigned\": unassigned}, f, indent=2)",
+  "hint": "Two keys change: t[\"state\"] == \"OPEN\" and t[\"owner\"] is None.",
+  "par": 10,
+  "tests": [
+   {
+    "name": "First v2 dump",
+    "fs": {
+     "tickets.json": "{\n  \"source\": \"helpdesk\",\n  \"exported\": \"2025-03-07T08:00:00\",\n  \"tickets\": [\n    {\n      \"id\": 101,\n      \"subject\": \"Printer offline in room 2\",\n      \"state\": \"OPEN\",\n      \"priority\": \"low\",\n      \"owner\": {\n        \"name\": \"Nadia\",\n        \"team\": \"Support\"\n      }\n    },\n    {\n      \"id\": 102,\n      \"subject\": \"VPN refuses my password\",\n      \"state\": \"OPEN\",\n      \"priority\": \"high\",\n      \"owner\": null\n    },\n    {\n      \"id\": 103,\n      \"subject\": \"New laptop for Hugo\",\n      \"state\": \"CLOSED\",\n      \"priority\": \"normal\",\n      \"owner\": {\n        \"name\": \"Theo\",\n        \"team\": \"Support\"\n      }\n    },\n    {\n      \"id\": 104,\n      \"subject\": \"Shared drive is full\",\n      \"state\": \"OPEN\",\n      \"priority\": \"high\",\n      \"owner\": null\n    },\n    {\n      \"id\": 105,\n      \"subject\": \"Teams camera black\",\n      \"state\": \"OPEN\",\n      \"priority\": \"normal\",\n      \"owner\": {\n        \"name\": \"Nadia\",\n        \"team\": \"Support\"\n      }\n    }\n  ]\n}"
+    },
+    "output": "Open: 4\nUnassigned: 102, 104"
+   },
+   {
+    "name": "Busy Tuesday",
+    "fs": {
+     "tickets.json": "{\n  \"source\": \"helpdesk\",\n  \"exported\": \"2025-03-07T08:00:00\",\n  \"tickets\": [\n    {\n      \"id\": 301,\n      \"subject\": \"Mailbox full\",\n      \"state\": \"OPEN\",\n      \"priority\": \"high\",\n      \"owner\": null\n    },\n    {\n      \"id\": 302,\n      \"subject\": \"Badge does not open door B\",\n      \"state\": \"OPEN\",\n      \"priority\": \"normal\",\n      \"owner\": {\n        \"name\": \"Nadia\",\n        \"team\": \"Support\"\n      }\n    },\n    {\n      \"id\": 303,\n      \"subject\": \"Excel macro blocked\",\n      \"state\": \"OPEN\",\n      \"priority\": \"low\",\n      \"owner\": null\n    },\n    {\n      \"id\": 304,\n      \"subject\": \"Old ticket\",\n      \"state\": \"CLOSED\",\n      \"priority\": \"high\",\n      \"owner\": null\n    }\n  ]\n}"
+    },
+    "output": "Open: 3\nUnassigned: 301, 303"
+   }
+  ],
+  "test": "import json as _j\nassert \"triage.json\" in _fs, \"triage.json was not written\"\n_t = [t for t in _j.loads(_fs[\"tickets.json\"])[\"tickets\"] if t[\"state\"] == \"OPEN\"]\n_want = {\"open\": len(_t), \"unassigned\": [t[\"id\"] for t in _t if t[\"owner\"] is None]}\nassert _j.loads(_fs[\"triage.json\"]) == _want, \"triage.json should hold %r\" % (_want,)"
+ },
+ {
+  "id": "t-au-payment-reminders",
+  "district": "auto",
+  "client": "Nathalie Vidal, Garage Vidal",
+  "title": "Payment reminder letters",
+  "covers": [
+   "auto-merge"
+  ],
+  "brief": "Every month I copy and paste the same reminder letter for each customer who has not paid. Names, amounts, dates: I always get one wrong. Here is my letter with blanks in template.txt and the late payers in overdue.csv. One file per invoice, please.",
+  "skill": {
+   "title": "string.Template fills the blanks",
+   "card": "<code>Template(text)</code> marks blanks with <code>$name</code>. <code>substitute(row)</code> fills them from a dict, so a <code>csv.DictReader</code> row works directly; extra columns are simply ignored. A missing key raises an error instead of sending a half filled letter.",
+   "example": "from string import Template\nt = Template(\"Dear $name, invoice $invoice is late.\")\nrow = {\"name\": \"Alice Moreau\", \"invoice\": \"INV-1042\", \"email\": \"a@b.fr\"}\nprint(t.substitute(row))"
+  },
+  "task": "Fill <code>template.txt</code> once per row of <code>overdue.csv</code> (columns <code>name,email,invoice,amount,due</code>) and write the result to <code>reminders/&lt;invoice&gt;.txt</code>, for example <code>reminders/INV-1042.txt</code>. Create the folder first with <code>os.makedirs(\"reminders\", exist_ok=True)</code>. Print one line per letter:\n\n~~~text\nWrote reminders/INV-1042.txt\nWrote reminders/INV-1057.txt\n~~~",
+  "starter": "import csv\nimport os\nfrom string import Template\n\nwith open(\"template.txt\") as f:\n    template = Template(f.read())\n",
+  "solution": "import csv\nimport os\nfrom string import Template\n\nwith open(\"template.txt\") as f:\n    template = Template(f.read())\n\nos.makedirs(\"reminders\", exist_ok=True)\nwith open(\"overdue.csv\") as f:\n    for row in csv.DictReader(f):\n        path = f\"reminders/{row['invoice']}.txt\"\n        with open(path, \"w\") as out:\n            out.write(template.substitute(row))\n        print(\"Wrote\", path)",
+  "hint": "template.substitute(row) fills every blank at once; the file name is f\"reminders/{row['invoice']}.txt\".",
+  "par": 13,
+  "machine": {
+   "name": "Letter Press",
+   "icon": "mail"
+  },
+  "tests": [
+   {
+    "name": "February late payers",
+    "fs": {
+     "template.txt": "Dear $name,\n\nOur invoice $invoice for $amount EUR was due on $due.\nCould you please settle it this week?\n\nBest regards,\nGarage Vidal accounts\n",
+     "overdue.csv": "name,email,invoice,amount,due\nAlice Moreau,alice@moreau.fr,INV-1042,320.00,2025-02-28\nJules Perrin,jules.perrin@mail.fr,INV-1057,89.90,2025-03-01\n"
+    },
+    "output": "Wrote reminders/INV-1042.txt\nWrote reminders/INV-1057.txt"
+   },
+   {
+    "name": "March late payers",
+    "fs": {
+     "template.txt": "Hello $name,\n\nReminder: invoice $invoice ($amount EUR) is unpaid since $due.\n\nGarage Vidal\n",
+     "overdue.csv": "name,email,invoice,amount,due\nKarim Haddad,k.haddad@mail.fr,INV-1101,1250.00,2025-03-10\nLea Bonnet,lea@bonnet.fr,INV-1102,45.50,2025-03-12\nMarc Simon,marc@simon.fr,INV-1110,600.00,2025-03-14\n"
+    },
+    "output": "Wrote reminders/INV-1101.txt\nWrote reminders/INV-1102.txt\nWrote reminders/INV-1110.txt"
+   }
+  ],
+  "test": "import csv as _c, io as _i\nfrom string import Template as _T\nfor _r in _c.DictReader(_i.StringIO(_fs[\"overdue.csv\"])):\n    _p = \"reminders/%s.txt\" % _r[\"invoice\"]\n    assert _p in _fs, _p + \" was not created\"\n    assert _fs[_p] == _T(_fs[\"template.txt\"]).substitute(_r), _p + \" does not match the filled template\""
+ },
+ {
+  "id": "t-au-error-watch-iso",
+  "district": "auto",
+  "type": "update",
+  "of": "t-au-error-watch",
+  "client": "Bastien Morel, IT at Primeur Express",
+  "title": "New log format",
+  "covers": [
+   "auto-logs"
+  ],
+  "brief": "We moved the shop to a new server and its logs look different. Your Error Watch now crashes on the first line. Same report as before, please, my phone misses it.",
+  "task": "Lines of <code>server.log</code> now look like this:\n\n~~~text\n2025-03-07T09:02:44 [ERROR] Payment gateway timeout\n~~~\n\nDate and time are one ISO timestamp joined by <code>T</code>, and the level is in square brackets. Cut each line with <code>split(\" \", 2)</code>: the hour is <code>stamp[11:13]</code> and the level is <code>level.strip(\"[]\")</code>. The printed report does not change.",
+  "starter": "",
+  "solution": "from collections import Counter\n\nby_hour = Counter()\nmessages = Counter()\n\nwith open(\"server.log\") as f:\n    for line in f:\n        if not line.strip():\n            continue\n        stamp, level, message = line.strip().split(\" \", 2)\n        if level.strip(\"[]\") == \"ERROR\":\n            by_hour[stamp[11:13]] += 1\n            messages[message] += 1\n\nfor hour in sorted(by_hour):\n    print(f\"{hour}h: {by_hour[hour]} errors\")\nmessage, count = messages.most_common(1)[0]\nprint(f\"Top error: {message} ({count} times)\")",
+  "hint": "In 2025-03-07T09:02:44 the hour sits at positions 11 and 12, so stamp[11:13].",
+  "par": 16,
+  "tests": [
+   {
+    "name": "Friday on the new server",
+    "fs": {
+     "server.log": "2025-03-07T08:58:10 [INFO] Server started\n2025-03-07T09:02:44 [ERROR] Payment gateway timeout\n2025-03-07T09:15:03 [WARNING] Slow query on orders\n2025-03-07T09:40:19 [ERROR] Payment gateway timeout\n2025-03-07T10:05:51 [ERROR] Disk almost full\n2025-03-07T10:20:07 [INFO] Backup done\n\n2025-03-07T11:11:11 [ERROR] Payment gateway timeout\n"
+    },
+    "output": "09h: 2 errors\n10h: 1 errors\n11h: 1 errors\nTop error: Payment gateway timeout (3 times)"
+   },
+   {
+    "name": "Saturday on the new server",
+    "fs": {
+     "server.log": "2025-03-08T13:00:02 [INFO] Server started\n2025-03-08T13:30:40 [ERROR] Mail relay refused connection\n2025-03-08T14:01:12 [ERROR] Mail relay refused connection\n2025-03-08T14:45:00 [WARNING] Retry queue growing\n2025-03-08T14:59:59 [ERROR] Login service down\n2025-03-08T14:59:59 [ERROR] Mail relay refused connection\n"
+    },
+    "output": "13h: 1 errors\n14h: 3 errors\nTop error: Mail relay refused connection (3 times)"
+   }
+  ]
+ },
+ {
+  "id": "t-au-stock-loader",
+  "district": "auto",
+  "client": "Yann Lefebvre, Brico Pro warehouses",
+  "title": "Load the stock into a database",
+  "covers": [
+   "auto-sqlite"
+  ],
+  "brief": "The warehouse system exports stock_export.csv every night. Our reporting team wants it in stock.db so they can query it, and I want a quick total per warehouse when the load is done. The table is already created, it is just empty.",
+  "skill": {
+   "title": "sqlite3: executemany with ? placeholders",
+   "card": "<code>sqlite3.connect(\"stock.db\")</code> opens the database file. <code>con.executemany(sql, rows)</code> runs one INSERT per tuple, each <code>?</code> filled in order. Call <code>con.commit()</code> to save, then loop over <code>con.execute(\"SELECT ...\")</code> to read rows back as tuples.",
+   "example": "import sqlite3\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE stock (sku TEXT, warehouse TEXT, qty INTEGER)\")\ncon.executemany(\"INSERT INTO stock VALUES (?, ?, ?)\", [(\"A1\", \"Lyon\", 3), (\"A1\", \"Lille\", 5), (\"B2\", \"Lyon\", 2)])\ncon.commit()\nfor wh, total in con.execute(\"SELECT warehouse, SUM(qty) FROM stock GROUP BY warehouse ORDER BY warehouse\"):\n    print(wh, total)"
+  },
+  "task": "Open <code>stock.db</code> as <code>con</code>. Its table is <code>stock (sku TEXT, name TEXT, warehouse TEXT, qty INTEGER)</code>. Insert every row of <code>stock_export.csv</code> (same column names) with <code>executemany</code> and <code>?</code> placeholders, qty as an int, and commit. Then, with one SQL query using <code>GROUP BY warehouse ORDER BY warehouse</code>, print:\n\n~~~text\nLoaded 5 rows\nLille: 25\nLyon: 134\nNantes: 86\n~~~",
+  "starter": "import csv\nimport sqlite3\n\ncon = sqlite3.connect(\"stock.db\")\n",
+  "solution": "import csv\nimport sqlite3\n\ncon = sqlite3.connect(\"stock.db\")\nwith open(\"stock_export.csv\") as f:\n    rows = [(r[\"sku\"], r[\"name\"], r[\"warehouse\"], int(r[\"qty\"])) for r in csv.DictReader(f)]\ncon.executemany(\"INSERT INTO stock VALUES (?, ?, ?, ?)\", rows)\ncon.commit()\n\nprint(\"Loaded\", len(rows), \"rows\")\nfor warehouse, total in con.execute(\"SELECT warehouse, SUM(qty) FROM stock GROUP BY warehouse ORDER BY warehouse\"):\n    print(f\"{warehouse}: {total}\")",
+  "hint": "Build a list of tuples with a comprehension over csv.DictReader, then one con.executemany(\"INSERT INTO stock VALUES (?, ?, ?, ?)\", rows).",
+  "par": 11,
+  "machine": {
+   "name": "Stock Loader",
+   "icon": "db"
+  },
+  "tests": [
+   {
+    "name": "Tuesday night export",
+    "fs": {
+     "stock_export.csv": "sku,name,warehouse,qty\nDR-100,Cordless drill,Lyon,14\nSC-220,Screw box 200,Lyon,120\nSC-220,Screw box 200,Nantes,80\nLD-030,Ladder 3m,Nantes,6\nPA-010,Paint white 10L,Lille,25\n"
+    },
+    "dbs": {
+     "stock.db": "CREATE TABLE stock (sku TEXT, name TEXT, warehouse TEXT, qty INTEGER);"
+    },
+    "output": "Loaded 5 rows\nLille: 25\nLyon: 134\nNantes: 86"
+   },
+   {
+    "name": "Wednesday night export",
+    "fs": {
+     "stock_export.csv": "sku,name,warehouse,qty\nHM-001,Hammer,Lille,40\nHM-001,Hammer,Lyon,12\nGL-500,Wood glue,Lyon,30\n"
+    },
+    "dbs": {
+     "stock.db": "CREATE TABLE stock (sku TEXT, name TEXT, warehouse TEXT, qty INTEGER);"
+    },
+    "output": "Loaded 3 rows\nLille: 40\nLyon: 42"
+   }
+  ],
+  "test": "import csv as _c, io as _i\n_n = len([r for r in _c.DictReader(_i.StringIO(_fs[\"stock_export.csv\"])) if True])\n_got = con.execute(\"SELECT COUNT(*) FROM stock\").fetchone()[0]\nassert _got == _n, \"the stock table should hold %d rows, it holds %d\" % (_n, _got)"
+ },
+ {
+  "id": "t-au-scan-renamer-archive",
+  "district": "auto",
+  "type": "update",
+  "of": "t-au-scan-renamer",
+  "client": "Claire Fontaine, Fontaine and Fils notaries",
+  "title": "New scanner, monthly folders",
+  "covers": [
+   "auto-rename"
+  ],
+  "brief": "We replaced the scanner. The new one writes the date the other way round, so your names came out wrong this morning. While you are at it: scans/ is getting crowded. Put the renamed files in one archive folder per month.",
+  "task": "Two changes:\n\n- The scanner now names files <code>SCAN_YYYYMMDD_Client Name.pdf</code> (year first), so <code>d[:4]</code> is the year, <code>d[4:6]</code> the month, <code>d[6:]</code> the day.\n- Move each renamed file to <code>archive/YYYY-MM/</code> (create the folder with <code>os.makedirs(folder, exist_ok=True)</code>). The new name itself does not change.\n\nThe printed line shows the new path:\n\n~~~text\nSCAN_20250307_Dupont.pdf -> archive/2025-03/2025-03-07_dupont.pdf\n~~~\n\nThe last line is still <code>Renamed: N</code>.",
+  "starter": "",
+  "solution": "import os\n\nrenamed = 0\nfor name in sorted(os.listdir(\"scans\")):\n    stem, ext = os.path.splitext(name)\n    if not stem.startswith(\"SCAN_\") or ext.lower() != \".pdf\":\n        continue\n    tag, d, client = stem.split(\"_\", 2)\n    folder = f\"archive/{d[:4]}-{d[4:6]}\"\n    os.makedirs(folder, exist_ok=True)\n    new = f\"{folder}/{d[:4]}-{d[4:6]}-{d[6:]}_{client.lower().replace(' ', '-')}.pdf\"\n    os.rename(os.path.join(\"scans\", name), new)\n    print(name, \"->\", new)\n    renamed += 1\nprint(\"Renamed:\", renamed)",
+  "hint": "Build folder = f\"archive/{d[:4]}-{d[4:6]}\" first, create it, then rename into f\"{folder}/...\".",
+  "par": 15,
+  "tests": [
+   {
+    "name": "March scans, new scanner",
+    "fs": {
+     "scans/SCAN_20250307_Dupont.pdf": "pdf",
+     "scans/SCAN_20250312_Garage Leroy.PDF": "pdf",
+     "scans/notes.txt": "call Dupont back",
+     "scans/SCAN_20250401_martin.pdf": "pdf"
+    },
+    "output": "SCAN_20250307_Dupont.pdf -> archive/2025-03/2025-03-07_dupont.pdf\nSCAN_20250312_Garage Leroy.PDF -> archive/2025-03/2025-03-12_garage-leroy.pdf\nSCAN_20250401_martin.pdf -> archive/2025-04/2025-04-01_martin.pdf\nRenamed: 3"
+   },
+   {
+    "name": "February scans, new scanner",
+    "fs": {
+     "scans/SCAN_20250228_Boulangerie Petit.pdf": "pdf",
+     "scans/scanner.log": "ok",
+     "scans/SCAN_20250303_Rossi.Pdf": "pdf"
+    },
+    "output": "SCAN_20250228_Boulangerie Petit.pdf -> archive/2025-02/2025-02-28_boulangerie-petit.pdf\nSCAN_20250303_Rossi.Pdf -> archive/2025-03/2025-03-03_rossi.pdf\nRenamed: 2"
+   }
+  ],
+  "test": "_left = [k for k in _fs if k.startswith(\"scans/SCAN_\")]\nassert not _left, \"These scans were not renamed: \" + \", \".join(_left)\nfor _l in _out.splitlines():\n    if \" -> \" in _l:\n        _new = \"\" + _l.split(\" -> \")[1]\n        assert _new in _fs, _new + \" does not exist\"\nassert any(k.startswith(\"scans/\") and not k.endswith(\".pdf\") for k in _fs), \"Leave the other files in scans/ alone\""
+ },
+ {
+  "id": "t-au-job-planner",
+  "district": "auto",
+  "client": "Malik Benali, IT at Transports Benali",
+  "title": "When does each job run next?",
+  "covers": [
+   "auto-schedule"
+  ],
+  "brief": "We have a handful of scheduled jobs and every Monday someone asks me when the next backup is. jobs.csv lists each job with its days and time. Give me a machine that takes the current date and time and tells me the next run of every job.",
+  "skill": {
+   "title": "datetime, timedelta and weekday()",
+   "card": "<code>datetime.strptime(text, \"%Y-%m-%d %H:%M\")</code> turns text into a datetime. <code>replace(hour=2, minute=0)</code> moves to a time of the same day, <code>+ timedelta(days=1)</code> goes to the next day, and <code>weekday()</code> gives 0 for Monday up to 6 for Sunday.",
+   "example": "from datetime import datetime, timedelta\nDAYS = [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"]\nnow = datetime.strptime(\"2025-03-07 10:00\", \"%Y-%m-%d %H:%M\")\nt = now.replace(hour=2, minute=0) + timedelta(days=1)\nprint(DAYS[t.weekday()], t.strftime(\"%d/%m %H:%M\"))"
+  },
+  "task": "Read the current time from <code>input()</code>, like <code>2025-03-07 10:00</code>. For each row of <code>jobs.csv</code> (columns <code>name,days,time</code>, days like <code>Mon Tue Wed</code>), find the first moment strictly after now that is at that time on one of those days. Print one line per job, in file order, with <code>DAYS[t.weekday()]</code> and <code>t.strftime(\"%d/%m %H:%M\")</code>:\n\n~~~text\nBackup: Sat 08/03 02:00\nStock export: Fri 07/03 18:30\nPayroll check: Mon 10/03 09:00\nBin collection mail: Sun 09/03 20:00\n~~~\n\nNo sleeping and no real clock: only date maths.",
+  "starter": "import csv\nfrom datetime import datetime, timedelta\n\nDAYS = [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"]\nnow = datetime.strptime(input(), \"%Y-%m-%d %H:%M\")\n",
+  "solution": "import csv\nfrom datetime import datetime, timedelta\n\nDAYS = [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"]\nnow = datetime.strptime(input(), \"%Y-%m-%d %H:%M\")\n\nwith open(\"jobs.csv\") as f:\n    for job in csv.DictReader(f):\n        hour, minute = job[\"time\"].split(\":\")\n        t = now.replace(hour=int(hour), minute=int(minute))\n        while t <= now or DAYS[t.weekday()] not in job[\"days\"].split():\n            t += timedelta(days=1)\n        print(f\"{job['name']}: {DAYS[t.weekday()]} {t.strftime('%d/%m %H:%M')}\")",
+  "hint": "Start at today with the job's time; while that moment is not after now, or its day is not in the job's days, add one day.",
+  "par": 12,
+  "machine": {
+   "name": "Job Planner",
+   "icon": "clock"
+  },
+  "tests": [
+   {
+    "name": "Friday morning",
+    "fs": {
+     "jobs.csv": "name,days,time\nBackup,Tue Wed Thu Fri Sat,02:00\nStock export,Mon Tue Wed Thu Fri,18:30\nPayroll check,Mon,09:00\nBin collection mail,Sun,20:00\n"
+    },
+    "stdin": "2025-03-07 10:00",
+    "output": "Backup: Sat 08/03 02:00\nStock export: Fri 07/03 18:30\nPayroll check: Mon 10/03 09:00\nBin collection mail: Sun 09/03 20:00"
+   },
+   {
+    "name": "Sunday evening",
+    "fs": {
+     "jobs.csv": "name,days,time\nBackup,Tue Wed Thu Fri Sat,02:00\nStock export,Mon Tue Wed Thu Fri,18:30\nPayroll check,Mon,09:00\nBin collection mail,Sun,20:00\n"
+    },
+    "stdin": "2025-03-09 20:00",
+    "output": "Backup: Tue 11/03 02:00\nStock export: Mon 10/03 18:30\nPayroll check: Mon 10/03 09:00\nBin collection mail: Sun 16/03 20:00"
+   },
+   {
+    "name": "Monday early",
+    "fs": {
+     "jobs.csv": "name,days,time\nBackup,Tue Wed Thu Fri Sat,02:00\nStock export,Mon Tue Wed Thu Fri,18:30\nPayroll check,Mon,09:00\nBin collection mail,Sun,20:00\n"
+    },
+    "stdin": "2025-03-10 01:15",
+    "output": "Backup: Tue 11/03 02:00\nStock export: Mon 10/03 18:30\nPayroll check: Mon 10/03 09:00\nBin collection mail: Sun 16/03 20:00"
+   }
+  ]
+ },
+ {
+  "id": "t-au-stock-loader-status",
+  "district": "auto",
+  "type": "update",
+  "of": "t-au-stock-loader",
+  "client": "Yann Lefebvre, Brico Pro warehouses",
+  "title": "Skip discontinued items",
+  "covers": [
+   "auto-sqlite"
+  ],
+  "brief": "The warehouse system got an upgrade and the nightly export changed. The reporting team also complained that discontinued items inflate the totals. Please load only what we still sell.",
+  "task": "<code>stock_export.csv</code> changed:\n\n- the column <code>qty</code> is now called <code>on_hand</code>,\n- a new last column <code>status</code> is <code>active</code> or <code>discontinued</code>.\n\nInsert only the <code>active</code> rows (the table <code>stock</code> does not change: <code>on_hand</code> goes into <code>qty</code>). <code>Loaded N rows</code> counts the inserted rows, and the totals per warehouse come from the table as before.",
+  "starter": "",
+  "solution": "import csv\nimport sqlite3\n\ncon = sqlite3.connect(\"stock.db\")\nwith open(\"stock_export.csv\") as f:\n    rows = [(r[\"sku\"], r[\"name\"], r[\"warehouse\"], int(r[\"on_hand\"])) for r in csv.DictReader(f) if r[\"status\"] == \"active\"]\ncon.executemany(\"INSERT INTO stock VALUES (?, ?, ?, ?)\", rows)\ncon.commit()\n\nprint(\"Loaded\", len(rows), \"rows\")\nfor warehouse, total in con.execute(\"SELECT warehouse, SUM(qty) FROM stock GROUP BY warehouse ORDER BY warehouse\"):\n    print(f\"{warehouse}: {total}\")",
+  "hint": "Add if r[\"status\"] == \"active\" at the end of the comprehension, and read r[\"on_hand\"].",
+  "par": 11,
+  "tests": [
+   {
+    "name": "First export after the upgrade",
+    "fs": {
+     "stock_export.csv": "sku,name,warehouse,on_hand,status\nDR-100,Cordless drill,Lyon,14,active\nSC-220,Screw box 200,Lyon,120,active\nSC-220,Screw box 200,Nantes,80,active\nLD-030,Ladder 3m,Nantes,6,discontinued\nPA-010,Paint white 10L,Lille,25,active\n"
+    },
+    "dbs": {
+     "stock.db": "CREATE TABLE stock (sku TEXT, name TEXT, warehouse TEXT, qty INTEGER);"
+    },
+    "output": "Loaded 4 rows\nLille: 25\nLyon: 134\nNantes: 80"
+   },
+   {
+    "name": "Hammer clearance",
+    "fs": {
+     "stock_export.csv": "sku,name,warehouse,on_hand,status\nHM-001,Hammer,Lille,40,discontinued\nHM-001,Hammer,Lyon,12,active\nGL-500,Wood glue,Lyon,30,active\nBR-002,Brush set,Nantes,18,active\n"
+    },
+    "dbs": {
+     "stock.db": "CREATE TABLE stock (sku TEXT, name TEXT, warehouse TEXT, qty INTEGER);"
+    },
+    "output": "Loaded 3 rows\nLyon: 42\nNantes: 18"
+   }
+  ],
+  "test": "import csv as _c, io as _i\n_n = len([r for r in _c.DictReader(_i.StringIO(_fs[\"stock_export.csv\"])) if r[\"status\"] == \"active\"])\n_got = con.execute(\"SELECT COUNT(*) FROM stock\").fetchone()[0]\nassert _got == _n, \"the stock table should hold %d rows, it holds %d\" % (_n, _got)"
+ },
+ {
+  "id": "t-au-monthly-pipeline",
+  "district": "auto",
+  "client": "Helene Marchand, CFO at Maison Marchand",
+  "title": "The monthly sales pipeline",
+  "covers": [
+   "auto-boss"
+  ],
+  "brief": "Each shop's till drops one CSV per month into exports/, and they are a mess: shop names in any case, amounts that are not numbers, American dates, orders exported twice. Every quarter my team spends two days cleaning them by hand. I want them cleaned, loaded into reports.db, and one report.txt I can forward to the board.",
+  "skill": {
+   "title": "Extract, transform, load, report",
+   "card": "A pipeline reads every input (<code>sorted(glob.glob(\"exports/sales_*.csv\"))</code>), cleans each row, and counts bad rows instead of crashing: wrap <code>float()</code> and <code>datetime.strptime()</code> in <code>try/except ValueError</code>. A <code>set</code> of seen ids catches duplicates. Load the good rows into SQL and let one query build the report.",
+   "example": "from datetime import datetime\nseen = set()\nfor oid, date, amount in [(\"A1\", \"2025-01-04\", \"12.5\"), (\"A2\", \"01/04/2025\", \"3\"), (\"A1\", \"2025-01-04\", \"12.5\")]:\n    try:\n        datetime.strptime(date, \"%Y-%m-%d\")\n        value = float(amount)\n    except ValueError:\n        print(oid, \"rejected: bad value\")\n        continue\n    if oid in seen:\n        print(oid, \"rejected: duplicate\")\n        continue\n    seen.add(oid)\n    print(oid, \"kept\", value)"
+  },
+  "task": "Process every file matching <code>exports/sales_*.csv</code>, in sorted name order (other files are ignored). Columns: <code>order_id,date,shop,amount</code>.\n\n- Clean the shop: strip spaces and title case it (<code> lille </code> becomes <code>Lille</code>).\n- Reject a row (count it in <code>rejected</code>) when the shop is empty, the amount is not a number, the date is not <code>YYYY-MM-DD</code>, or the order_id was already seen.\n- Insert the good rows into the table <code>sales (order_id TEXT, date TEXT, shop TEXT, amount REAL)</code> of <code>reports.db</code> (open it as <code>con</code>) and commit.\n- With one SQL query, total the amount per shop, highest first.\n- Write <code>report.txt</code> and print the same text:\n\n~~~text\nLoaded 6 rows, rejected 4\nNantes: 345.00\nLille: 290.50\nLyon: 135.25\n~~~",
+  "starter": "import csv\nimport glob\nimport sqlite3\nfrom datetime import datetime\n\nrejected, good, seen = 0, [], set()\n\nfor path in sorted(glob.glob(\"exports/sales_*.csv\")):\n    print(path)\n",
+  "solution": "import csv\nimport glob\nimport sqlite3\nfrom datetime import datetime\n\nrejected, good, seen = 0, [], set()\n\nfor path in sorted(glob.glob(\"exports/sales_*.csv\")):\n    with open(path) as f:\n        for row in csv.DictReader(f):\n            shop = row[\"shop\"].strip().title()\n            try:\n                amount = float(row[\"amount\"])\n                datetime.strptime(row[\"date\"], \"%Y-%m-%d\")\n                if not shop or row[\"order_id\"] in seen:\n                    raise ValueError(\"empty shop or duplicate order\")\n            except ValueError:\n                rejected += 1\n                continue\n            seen.add(row[\"order_id\"])\n            good.append((row[\"order_id\"], row[\"date\"], shop, amount))\n\ncon = sqlite3.connect(\"reports.db\")\ncon.executemany(\"INSERT INTO sales VALUES (?, ?, ?, ?)\", good)\ncon.commit()\n\nrows = con.execute(\"SELECT shop, SUM(amount) AS total FROM sales GROUP BY shop ORDER BY total DESC\")\nreport = \"\\n\".join([f\"Loaded {len(good)} rows, rejected {rejected}\"] + [f\"{shop}: {total:.2f}\" for shop, total in rows])\nwith open(\"report.txt\", \"w\") as f:\n    f.write(report + \"\\n\")\nprint(report)",
+  "hint": "Do the float() and strptime() checks inside one try; raise ValueError yourself for an empty shop or a seen order_id, so one except counts every bad row. ORDER BY total DESC in SQL gives the report order.",
+  "par": 28,
+  "machine": {
+   "name": "Sales Pipeline",
+   "icon": "chart"
+  },
+  "tests": [
+   {
+    "name": "First quarter",
+    "fs": {
+     "exports/sales_2025-01.csv": "order_id,date,shop,amount\nA100,2025-01-04,lyon,120.00\nA101,2025-01-09, Lille ,80.50\nA102,2025-01-15,LYON,abc\nA103,2025-01-20,Nantes,45.00\n",
+     "exports/sales_2025-02.csv": "order_id,date,shop,amount\nA103,2025-01-20,Nantes,45.00\nA104,2025-02-02,Lille,210.00\nA105,02/14/2025,Lyon,99.90\nA106,2025-02-21,,30.00\n",
+     "exports/sales_2025-03.csv": "order_id,date,shop,amount\nA107,2025-03-01,nantes,300.00\nA108,2025-03-03,Lyon,15.25\n",
+     "exports/readme.txt": "Exports from the till system. Do not edit."
+    },
+    "dbs": {
+     "reports.db": "CREATE TABLE sales (order_id TEXT, date TEXT, shop TEXT, amount REAL);"
+    },
+    "output": "Loaded 6 rows, rejected 4\nNantes: 345.00\nLille: 290.50\nLyon: 135.25"
+   },
+   {
+    "name": "April and May",
+    "fs": {
+     "exports/sales_2025-04.csv": "order_id,date,shop,amount\nB200,2025-04-01,Lille,60.00\nB201,2025-04-02,lille,40.00\nB202,2025-04-03,Brest,\n",
+     "exports/sales_2025-05.csv": "order_id,date,shop,amount\nB203,2025-05-05,  brest,500.00\nB201,2025-04-02,lille,40.00\nB204,05/06/2025,Brest,12.00\n",
+     "exports/notes.csv": "this is not an export\n"
+    },
+    "dbs": {
+     "reports.db": "CREATE TABLE sales (order_id TEXT, date TEXT, shop TEXT, amount REAL);"
+    },
+    "output": "Loaded 3 rows, rejected 3\nBrest: 500.00\nLille: 100.00"
+   }
+  ],
+  "test": "assert \"report.txt\" in _fs, \"report.txt was not written\"\nassert _fs[\"report.txt\"].strip() == _out.strip(), \"report.txt should hold exactly the printed report\"\n_n = con.execute(\"SELECT COUNT(*) FROM sales\").fetchone()[0]\nassert _n == len(good), \"the sales table should hold the %d good rows, it holds %d\" % (len(good), _n)\nassert con.execute(\"SELECT COUNT(DISTINCT order_id) FROM sales\").fetchone()[0] == _n, \"an order_id is in the table twice\""
+ }
+]

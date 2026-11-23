@@ -1,0 +1,532 @@
+[
+ {
+  "id": "t-pp-safe-prices",
+  "district": "py",
+  "client": "Nadia Roux, Roux Fournitures",
+  "title": "Prices that do not crash",
+  "covers": [
+   "py-errors"
+  ],
+  "brief": "Our supplier sends a price list every week and someone always types n/a or a comma instead of a dot. My little script crashes on the first bad line and I get nothing. I want the total of the good prices and a note for each bad one.",
+  "skill": {
+   "title": "try / except catches the errors you expect",
+   "card": "<code>float(\"n/a\")</code> raises a <code>ValueError</code> and stops the program. Put the risky line in a <code>try:</code> block and handle the problem in <code>except ValueError:</code>, and the loop goes on with the next line. Catch the specific error, never a bare <code>except:</code>.",
+   "example": "for text in [\"12.5\", \"n/a\"]:\n    try:\n        print(float(text))\n    except ValueError:\n        print(\"Not a price:\", text)"
+  },
+  "task": "The first input line is the number of lines that follow. Each of those lines is <code>name;price</code>. For each price that <code>float()</code> cannot read, print <code>Bad price: </code> and the name. At the end print the total of the good prices with 2 decimals:\n\n~~~text\nBad price: paper A4\nBad price: pens x10\nTotal: 66.00\n~~~",
+  "starter": "n = int(input())\ntotal = 0\nfor _ in range(n):\n    name, price = input().split(\";\")\n    total += float(price)\nprint(f\"Total: {total:.2f}\")\n",
+  "solution": "n = int(input())\ntotal = 0\nfor _ in range(n):\n    name, price = input().split(\";\")\n    try:\n        total += float(price)\n    except ValueError:\n        print(\"Bad price:\", name)\nprint(f\"Total: {total:.2f}\")",
+  "hint": "Wrap total += float(price) in try:, and print the Bad price line in except ValueError:.",
+  "par": 9,
+  "machine": {
+   "name": "Price Guard",
+   "icon": "shield"
+  },
+  "tests": [
+   {
+    "name": "Supplier list of Monday",
+    "stdin": "5\nstapler;4.90\npaper A4;n/a\ntoner;59.00\npens x10;3,50\nfolder;2.10",
+    "output": "Bad price: paper A4\nBad price: pens x10\nTotal: 66.00"
+   },
+   {
+    "name": "Clean list",
+    "stdin": "3\nlabels;7.25\nbinder;3.40\ntape;1.15",
+    "output": "Total: 11.80"
+   },
+   {
+    "name": "Supplier list of Friday",
+    "stdin": "4\nwhiteboard;89.90\nmarkers;?\neraser;2.50\nchair;TBD",
+    "output": "Bad price: markers\nBad price: chair\nTotal: 92.40"
+   }
+  ]
+ },
+ {
+  "id": "t-pp-picking-list",
+  "district": "py",
+  "client": "Bruno Lefort, Entrepot Lefort",
+  "title": "A picking list for the warehouse",
+  "covers": [
+   "py-files"
+  ],
+  "brief": "The shop drops an orders.txt file in our folder every morning. My pickers want a picking.txt they can print, with a box to tick on each line. Blank lines in the order file are just noise.",
+  "skill": {
+   "title": "open() with with",
+   "card": "<code>with open(\"name.txt\") as f:</code> opens a file and closes it for you at the end of the block. Loop on <code>f</code> to get one line at a time (with its <code>\\n</code>, so <code>strip()</code> it). Open with <code>\"w\"</code> to write, and add <code>\\n</code> yourself at the end of each line.",
+   "example": "with open(\"demo.txt\", \"w\") as out:\n    out.write(\"first\\n\")\n    out.write(\"second\\n\")\nwith open(\"demo.txt\") as f:\n    for line in f:\n        print(\"Read:\", line.strip())"
+  },
+  "task": "Read <code>orders.txt</code>: each non empty line is <code>SKU;quantity</code>. Write <code>picking.txt</code> with one line per order, like <code>[ ] 3 x A-100</code>, in the same order. Then print the number of lines written:\n\n~~~text\nPicking list: 4 lines\n~~~",
+  "starter": "# read orders.txt and write picking.txt\n",
+  "solution": "with open(\"orders.txt\") as f:\n    lines = [line.strip() for line in f if line.strip()]\nwith open(\"picking.txt\", \"w\") as out:\n    for line in lines:\n        sku, qty = line.split(\";\")\n        out.write(f\"[ ] {qty} x {sku}\\n\")\nprint(f\"Picking list: {len(lines)} lines\")",
+  "hint": "Keep only the stripped lines that are not empty, then split each one on \";\" and write f\"[ ] {qty} x {sku}\\n\".",
+  "par": 8,
+  "machine": {
+   "name": "Pick Printer",
+   "icon": "list"
+  },
+  "tests": [
+   {
+    "name": "Tuesday orders",
+    "fs": {
+     "orders.txt": "A-100;3\nB-220;1\n\nC-310;12\nA-105;2\n"
+    },
+    "output": "Picking list: 4 lines"
+   },
+   {
+    "name": "Small day",
+    "fs": {
+     "orders.txt": "\nD-900;5\nE-001;1\n"
+    },
+    "output": "Picking list: 2 lines"
+   }
+  ],
+  "test": "want = [\"[ ] %s x %s\" % (l.strip().split(\";\")[1], l.strip().split(\";\")[0]) for l in _fs[\"orders.txt\"].splitlines() if l.strip()]\nassert \"picking.txt\" in _fs, \"picking.txt was not created\"\ngot = _fs[\"picking.txt\"].splitlines()\nassert got == want, \"picking.txt should contain:\\n\" + \"\\n\".join(want) + \"\\n\\nIt contains:\\n\" + _fs[\"picking.txt\"]"
+ },
+ {
+  "id": "t-pp-late-invoices",
+  "district": "py",
+  "client": "Sophie Garnier, Cabinet Garnier Compta",
+  "title": "Which invoices are late?",
+  "covers": [
+   "py-modules"
+  ],
+  "brief": "Our clients pay at 30 days. Every morning I scroll through the invoice list and count days on my fingers. Give me the late ones and how late they are, please. I will type today's date when I run it.",
+  "skill": {
+   "title": "datetime does the date maths",
+   "card": "The standard library already knows calendars. <code>datetime.strptime(text, \"%Y-%m-%d\")</code> turns <code>\"2026-03-01\"</code> into a date, <code>+ timedelta(days=30)</code> moves it forward, and subtracting two dates gives a duration whose <code>.days</code> is a number.",
+   "example": "from datetime import datetime, timedelta\nd = datetime.strptime(\"2026-01-15\", \"%Y-%m-%d\")\ndue = d + timedelta(days=30)\nprint(due.date())\nprint((datetime(2026, 3, 1) - due).days)"
+  },
+  "task": "Read today's date from input (<code>YYYY-MM-DD</code>). Each line of <code>invoices.txt</code> is <code>code,issue date</code>. An invoice is due 30 days after its issue date. For each invoice whose due date is before today, in file order, print:\n\n~~~text\nF-1001: 49 days late\n~~~",
+  "starter": "from datetime import datetime, timedelta\ntoday = input()\n# read invoices.txt\n",
+  "solution": "from datetime import datetime, timedelta\ntoday = datetime.strptime(input(), \"%Y-%m-%d\")\nwith open(\"invoices.txt\") as f:\n    for line in f:\n        code, issued = line.strip().split(\",\")\n        due = datetime.strptime(issued, \"%Y-%m-%d\") + timedelta(days=30)\n        if due < today:\n            print(f\"{code}: {(today - due).days} days late\")",
+  "hint": "due = datetime.strptime(issued, \"%Y-%m-%d\") + timedelta(days=30), then (today - due).days.",
+  "par": 8,
+  "machine": {
+   "name": "Late Payer Radar",
+   "icon": "clock"
+  },
+  "tests": [
+   {
+    "name": "End of October",
+    "fs": {
+     "invoices.txt": "F-1001,2026-08-20\nF-1002,2026-09-15\nF-1003,2026-10-02\nF-1004,2026-09-01\n"
+    },
+    "stdin": "2026-10-28",
+    "output": "F-1001: 39 days late\nF-1002: 13 days late\nF-1004: 27 days late"
+   },
+   {
+    "name": "Early October",
+    "fs": {
+     "invoices.txt": "F-1001,2026-08-20\nF-1002,2026-09-15\nF-1003,2026-10-02\nF-1004,2026-09-01\n"
+    },
+    "stdin": "2026-10-05",
+    "output": "F-1001: 16 days late\nF-1004: 4 days late"
+   }
+  ]
+ },
+ {
+  "id": "t-pp-safe-prices-bug",
+  "district": "py",
+  "type": "bug",
+  "of": "t-pp-safe-prices",
+  "client": "Nadia Roux, Roux Fournitures",
+  "title": "The price guard went wrong",
+  "covers": [
+   "py-errors"
+  ],
+  "brief": "My nephew tidied up your price script. Now it crashes again on n/a, and on a clean list the total is far too low. Can you have a look?",
+  "task": "Same job as before: print <code>Bad price: name</code> for each unreadable price, then <code>Total: </code> with 2 decimals for the good ones. Find what was broken and fix it.",
+  "starter": "n = int(input())\nfor _ in range(n):\n    total = 0\n    name, price = input().split(\";\")\n    try:\n        total += float(price)\n    except TypeError:\n        print(\"Bad price:\", name)\nprint(f\"Total: {total:.2f}\")\n",
+  "solution": "n = int(input())\ntotal = 0\nfor _ in range(n):\n    name, price = input().split(\";\")\n    try:\n        total += float(price)\n    except ValueError:\n        print(\"Bad price:\", name)\nprint(f\"Total: {total:.2f}\")",
+  "hint": "Which error does float(\"n/a\") raise? And where should total start at 0: once, or on every line?",
+  "par": 9,
+  "tests": [
+   {
+    "name": "Supplier list of Monday",
+    "stdin": "5\nstapler;4.90\npaper A4;n/a\ntoner;59.00\npens x10;3,50\nfolder;2.10",
+    "output": "Bad price: paper A4\nBad price: pens x10\nTotal: 66.00"
+   },
+   {
+    "name": "Clean list",
+    "stdin": "3\nlabels;7.25\nbinder;3.40\ntape;1.15",
+    "output": "Total: 11.80"
+   },
+   {
+    "name": "Supplier list of Friday",
+    "stdin": "4\nwhiteboard;89.90\nmarkers;?\neraser;2.50\nchair;TBD",
+    "output": "Bad price: markers\nBad price: chair\nTotal: 92.40"
+   }
+  ]
+ },
+ {
+  "id": "t-pp-ticket",
+  "district": "py",
+  "client": "Ines Moulin, Helpdesk Interne",
+  "title": "A Ticket object for the helpdesk",
+  "covers": [
+   "py-classes"
+  ],
+  "brief": "Our helpdesk lives in a spreadsheet and nobody knows who owns what. Before we build anything bigger I want a proper Ticket in code: a number, a title, who handles it, and whether it is closed. Closing a ticket twice should be refused.",
+  "skill": {
+   "title": "A class bundles data and behaviour",
+   "card": "<code>class Ticket:</code> is a blueprint. <code>__init__</code> runs when you write <code>Ticket(101, \"VPN\")</code> and stores attributes on <code>self</code>. Methods are functions defined in the class that receive the object as <code>self</code>, so they can read and change its attributes.",
+   "example": "class Counter:\n    def __init__(self, start=0):\n        self.value = start\n    def add(self, step=1):\n        self.value += step\n        return self.value\n\nc = Counter()\nc.add()\nprint(c.add(5))"
+  },
+  "task": "Write a class <code>Ticket(number, title)</code>: <code>status</code> starts at <code>\"open\"</code> and <code>assignee</code> at <code>None</code>. Methods: <code>assign(person)</code> sets the assignee; <code>close()</code> sets the status to <code>\"closed\"</code> and raises <code>ValueError</code> if it is already closed; <code>label()</code> returns <code>#101 Printer jam on floor 2 [open]</code>.\n\nThen read <code>tickets.txt</code> (lines <code>number;title</code>), build a list <code>tickets</code> of Ticket objects (number as an int) and print the label of each.",
+  "starter": "class Ticket:\n    def __init__(self, number, title):\n        pass\n\ntickets = []\n",
+  "solution": "class Ticket:\n    def __init__(self, number, title):\n        self.number = number\n        self.title = title\n        self.status = \"open\"\n        self.assignee = None\n\n    def assign(self, person):\n        self.assignee = person\n\n    def close(self):\n        if self.status == \"closed\":\n            raise ValueError(\"ticket already closed\")\n        self.status = \"closed\"\n\n    def label(self):\n        return f\"#{self.number} {self.title} [{self.status}]\"\n\ntickets = []\nwith open(\"tickets.txt\") as f:\n    for line in f:\n        number, title = line.strip().split(\";\")\n        tickets.append(Ticket(int(number), title))\nfor t in tickets:\n    print(t.label())",
+  "hint": "In close(), test self.status first and raise ValueError(\"ticket already closed\") before changing anything.",
+  "par": 22,
+  "machine": {
+   "name": "Ticket Desk",
+   "icon": "list"
+  },
+  "tests": [
+   {
+    "name": "Monday queue",
+    "fs": {
+     "tickets.txt": "101;Printer jam on floor 2\n102;VPN keeps dropping\n103;New laptop for Ines\n"
+    },
+    "output": "#101 Printer jam on floor 2 [open]\n#102 VPN keeps dropping [open]\n#103 New laptop for Ines [open]"
+   },
+   {
+    "name": "Quiet day",
+    "fs": {
+     "tickets.txt": "204;Password reset\n"
+    },
+    "output": "#204 Password reset [open]"
+   }
+  ],
+  "test": "t = Ticket(7, \"VPN down\")\nassert t.number == 7 and t.title == \"VPN down\", \"number and title should be stored\"\nassert t.status == \"open\" and t.assignee is None, \"a new ticket is open with assignee None\"\nt.assign(\"Sam\")\nassert t.assignee == \"Sam\", \"assign('Sam') should set assignee to 'Sam'\"\nassert t.label() == \"#7 VPN down [open]\", \"label() gave %r\" % t.label()\nt.close()\nassert t.status == \"closed\" and t.label() == \"#7 VPN down [closed]\", \"close() should set the status to closed\"\ntry:\n    t.close()\n    raise AssertionError(\"closing a closed ticket should raise ValueError\")\nexcept ValueError:\n    pass\nassert len(tickets) == len([l for l in _fs[\"tickets.txt\"].splitlines() if l.strip()]), \"tickets should hold one Ticket per line\""
+ },
+ {
+  "id": "t-pp-picking-list-comments",
+  "district": "py",
+  "type": "update",
+  "of": "t-pp-picking-list",
+  "client": "Bruno Lefort, Entrepot Lefort",
+  "title": "Comments and a header",
+  "covers": [
+   "py-files"
+  ],
+  "brief": "The shop now writes notes in orders.txt, on lines starting with #. Your machine chokes on them. Skip those lines, and put a PICKING LIST title at the top of the sheet so the pickers grab the right paper.",
+  "task": "Same as before, with two changes: lines starting with <code>#</code> are comments and are ignored (they are not counted either), and <code>picking.txt</code> starts with a line <code>PICKING LIST</code> before the order lines. The printed line stays <code>Picking list: N lines</code>, N being the order lines only.",
+  "starter": "",
+  "solution": "with open(\"orders.txt\") as f:\n    lines = [line.strip() for line in f if line.strip() and not line.startswith(\"#\")]\nwith open(\"picking.txt\", \"w\") as out:\n    out.write(\"PICKING LIST\\n\")\n    for line in lines:\n        sku, qty = line.split(\";\")\n        out.write(f\"[ ] {qty} x {sku}\\n\")\nprint(f\"Picking list: {len(lines)} lines\")",
+  "hint": "Add and not line.startswith(\"#\") to the filter, and write the title before the loop.",
+  "par": 9,
+  "tests": [
+   {
+    "name": "Orders with notes",
+    "fs": {
+     "orders.txt": "# rush: client waiting\nA-100;3\nB-220;1\n\n# fragile\nC-310;12\n"
+    },
+    "output": "Picking list: 3 lines"
+   },
+   {
+    "name": "No notes today",
+    "fs": {
+     "orders.txt": "D-900;5\n\nE-001;1\n"
+    },
+    "output": "Picking list: 2 lines"
+   }
+  ],
+  "test": "want = [\"PICKING LIST\"] + [\"[ ] %s x %s\" % (l.strip().split(\";\")[1], l.strip().split(\";\")[0]) for l in _fs[\"orders.txt\"].splitlines() if l.strip() and not l.startswith(\"#\")]\nassert \"picking.txt\" in _fs, \"picking.txt was not created\"\ngot = _fs[\"picking.txt\"].splitlines()\nassert got == want, \"picking.txt should contain:\\n\" + \"\\n\".join(want) + \"\\n\\nIt contains:\\n\" + _fs[\"picking.txt\"]"
+ },
+ {
+  "id": "t-pp-ticket-kinds",
+  "district": "py",
+  "client": "Ines Moulin, Helpdesk Interne",
+  "title": "Urgent tickets and bug tickets",
+  "covers": [
+   "py-inherit"
+  ],
+  "brief": "The Ticket works. Now management wants service levels: normal tickets get an answer within 72 hours, urgent ones within 4, bug reports within 24 and they must name the broken component. I do not want three copies of the same code.",
+  "skill": {
+   "title": "A subclass reuses its parent",
+   "card": "<code>class UrgentTicket(Ticket):</code> gets every attribute and method of <code>Ticket</code>. Redefine only what differs. <code>super().describe()</code> calls the parent version so you can add to it, and <code>super().__init__(...)</code> lets the parent store its own attributes before you add yours.",
+   "example": "class Animal:\n    def __init__(self, name):\n        self.name = name\n    def speak(self):\n        return self.name + \" makes a sound\"\n\nclass Dog(Animal):\n    def speak(self):\n        return super().speak() + \": woof\"\n\nprint(Dog(\"Rex\").speak())"
+  },
+  "task": "Keep the given <code>Ticket</code>. Add two subclasses:\n\n- <code>UrgentTicket(number, title)</code>: <code>sla_hours</code> is 4 and <code>describe()</code> puts <code>URGENT </code> in front of the parent text.\n- <code>BugTicket(number, title, component)</code>: <code>sla_hours</code> is 24, it stores <code>component</code>, and <code>describe()</code> adds <code> [component]</code> after the parent text.\n\n~~~text\nURGENT #31 Server room too hot: answer within 4h\n#32 Export button: answer within 24h [billing]\n~~~",
+  "starter": "class Ticket:\n    sla_hours = 72\n    def __init__(self, number, title):\n        self.number = number\n        self.title = title\n    def describe(self):\n        return f\"#{self.number} {self.title}: answer within {self.sla_hours}h\"\n\nclass UrgentTicket(Ticket):\n    pass\n\nclass BugTicket(Ticket):\n    pass\n",
+  "solution": "class Ticket:\n    sla_hours = 72\n    def __init__(self, number, title):\n        self.number = number\n        self.title = title\n    def describe(self):\n        return f\"#{self.number} {self.title}: answer within {self.sla_hours}h\"\n\nclass UrgentTicket(Ticket):\n    sla_hours = 4\n    def describe(self):\n        return \"URGENT \" + super().describe()\n\nclass BugTicket(Ticket):\n    sla_hours = 24\n    def __init__(self, number, title, component):\n        super().__init__(number, title)\n        self.component = component\n    def describe(self):\n        return super().describe() + f\" [{self.component}]\"\n\nprint(UrgentTicket(31, \"Server room too hot\").describe())\nprint(BugTicket(32, \"Export button\", \"billing\").describe())",
+  "hint": "Set sla_hours = 4 in the class body of UrgentTicket: the parent describe() reads self.sla_hours, so it picks up the new value.",
+  "par": 22,
+  "machine": {
+   "name": "SLA Sorter",
+   "icon": "clock"
+  },
+  "tests": [
+   {
+    "name": "Service levels",
+    "output": "URGENT #31 Server room too hot: answer within 4h\n#32 Export button: answer within 24h [billing]"
+   }
+  ],
+  "test": "assert issubclass(UrgentTicket, Ticket) and issubclass(BugTicket, Ticket), \"both classes must inherit from Ticket\"\nassert Ticket(1, \"Mouse\").describe() == \"#1 Mouse: answer within 72h\", \"do not change Ticket\"\nu = UrgentTicket(5, \"Fire alarm\")\nassert u.describe() == \"URGENT #5 Fire alarm: answer within 4h\", \"UrgentTicket(5, 'Fire alarm').describe() gave %r\" % u.describe()\nb = BugTicket(6, \"Login fails\", \"auth\")\nassert b.number == 6 and b.title == \"Login fails\" and b.component == \"auth\", \"BugTicket should store number, title and component\"\nassert b.describe() == \"#6 Login fails: answer within 24h [auth]\", \"BugTicket(6, 'Login fails', 'auth').describe() gave %r\" % b.describe()"
+ },
+ {
+  "id": "t-pp-expense-money",
+  "district": "py",
+  "client": "Paul Benard, Benard Conseil",
+  "title": "Expense amounts that add up",
+  "covers": [
+   "py-dunder"
+  ],
+  "brief": "Our expense tool stores every amount in cents so we never get 0.1 + 0.2 surprises. I want a Money object my team can add, compare and print like a real amount. First use: the total and the biggest line of an expense report.",
+  "skill": {
+   "title": "Dunder methods plug into operators",
+   "card": "Python calls special methods for you: <code>a + b</code> runs <code>a.__add__(b)</code>, <code>a == b</code> runs <code>__eq__</code>, <code>a &lt; b</code> runs <code>__lt__</code> (and that is enough for <code>sorted()</code>), and <code>print()</code> falls back to <code>__repr__</code>. <code>sum(items, Money(0))</code> works once <code>+</code> does.",
+   "example": "class Score:\n    def __init__(self, points):\n        self.points = points\n    def __add__(self, other):\n        return Score(self.points + other.points)\n    def __lt__(self, other):\n        return self.points < other.points\n    def __repr__(self):\n        return f\"{self.points} pts\"\n\nscores = [Score(7), Score(3)]\nprint(sum(scores, Score(0)), sorted(scores))"
+  },
+  "task": "Write <code>Money(cents)</code> with <code>+</code> (returns a new Money), <code>==</code>, <code>&lt;</code> and a repr like <code>12.05 EUR</code> (always 2 digits after the dot). Then read <code>expenses.txt</code> (lines <code>label;cents</code>), build the list <code>amounts</code> and print:\n\n~~~text\nTotal: 256.95 EUR\nBiggest: 129.00 EUR\n~~~",
+  "starter": "class Money:\n    def __init__(self, cents):\n        self.cents = cents\n\namounts = []\n",
+  "solution": "class Money:\n    def __init__(self, cents):\n        self.cents = cents\n    def __add__(self, other):\n        return Money(self.cents + other.cents)\n    def __eq__(self, other):\n        return self.cents == other.cents\n    def __lt__(self, other):\n        return self.cents < other.cents\n    def __repr__(self):\n        return f\"{self.cents // 100}.{self.cents % 100:02d} EUR\"\n\namounts = []\nwith open(\"expenses.txt\") as f:\n    for line in f:\n        label, cents = line.strip().split(\";\")\n        amounts.append(Money(int(cents)))\nprint(\"Total:\", sum(amounts, Money(0)))\nprint(\"Biggest:\", sorted(amounts)[-1])",
+  "hint": "In __repr__, self.cents // 100 gives the euros and f\"{self.cents % 100:02d}\" the cents with a leading zero.",
+  "par": 19,
+  "machine": {
+   "name": "Cent Counter",
+   "icon": "calc"
+  },
+  "tests": [
+   {
+    "name": "Paris trip",
+    "fs": {
+     "expenses.txt": "Taxi;2350\nHotel;12900\nLunch;1805\nTrain;8640\n"
+    },
+    "output": "Total: 256.95 EUR\nBiggest: 129.00 EUR"
+   },
+   {
+    "name": "Client lunch",
+    "fs": {
+     "expenses.txt": "Parking;905\nRestaurant;6402\n"
+    },
+    "output": "Total: 73.07 EUR\nBiggest: 64.02 EUR"
+   }
+  ],
+  "test": "assert repr(Money(1205)) == \"12.05 EUR\", \"repr(Money(1205)) should be '12.05 EUR', got %r\" % repr(Money(1205))\nassert Money(100) + Money(250) == Money(350), \"Money(100) + Money(250) should equal Money(350)\"\nassert not (Money(100) == Money(101)), \"== should compare the cents\"\nassert Money(99) < Money(100) and not (Money(100) < Money(99)), \"< should compare the cents\"\nassert len(amounts) == len(_fs[\"expenses.txt\"].split()), \"amounts should hold one Money per line\""
+ },
+ {
+  "id": "t-pp-ticket-reopen",
+  "district": "py",
+  "type": "update",
+  "of": "t-pp-ticket",
+  "client": "Ines Moulin, Helpdesk Interne",
+  "title": "Reopen a ticket",
+  "covers": [
+   "py-classes"
+  ],
+  "brief": "Users keep answering 'still broken' after we close their ticket, and we open a new one each time. I want to reopen the same ticket instead, and know how many times it bounced back.",
+  "task": "Add to <code>Ticket</code>: an attribute <code>reopened</code> starting at 0, and a method <code>reopen()</code> that sets the status back to <code>\"open\"</code> and adds 1 to <code>reopened</code>. Reopening a ticket that is not closed raises <code>ValueError</code>. Everything else, including the printed labels, stays the same.",
+  "starter": "",
+  "solution": "class Ticket:\n    def __init__(self, number, title):\n        self.number = number\n        self.title = title\n        self.status = \"open\"\n        self.assignee = None\n        self.reopened = 0\n\n    def assign(self, person):\n        self.assignee = person\n\n    def close(self):\n        if self.status == \"closed\":\n            raise ValueError(\"ticket already closed\")\n        self.status = \"closed\"\n\n    def reopen(self):\n        if self.status != \"closed\":\n            raise ValueError(\"only closed tickets can be reopened\")\n        self.status = \"open\"\n        self.reopened += 1\n\n    def label(self):\n        return f\"#{self.number} {self.title} [{self.status}]\"\n\ntickets = []\nwith open(\"tickets.txt\") as f:\n    for line in f:\n        number, title = line.strip().split(\";\")\n        tickets.append(Ticket(int(number), title))\nfor t in tickets:\n    print(t.label())",
+  "hint": "Mirror close(): check the status first, raise, then change the status and the counter.",
+  "par": 28,
+  "tests": [
+   {
+    "name": "Monday queue",
+    "fs": {
+     "tickets.txt": "101;Printer jam on floor 2\n102;VPN keeps dropping\n103;New laptop for Ines\n"
+    },
+    "output": "#101 Printer jam on floor 2 [open]\n#102 VPN keeps dropping [open]\n#103 New laptop for Ines [open]"
+   },
+   {
+    "name": "Quiet day",
+    "fs": {
+     "tickets.txt": "204;Password reset\n"
+    },
+    "output": "#204 Password reset [open]"
+   }
+  ],
+  "test": "t = Ticket(7, \"VPN down\")\nassert t.number == 7 and t.title == \"VPN down\", \"number and title should be stored\"\nassert t.status == \"open\" and t.assignee is None, \"a new ticket is open with assignee None\"\nt.assign(\"Sam\")\nassert t.assignee == \"Sam\", \"assign('Sam') should set assignee to 'Sam'\"\nassert t.label() == \"#7 VPN down [open]\", \"label() gave %r\" % t.label()\nt.close()\nassert t.status == \"closed\" and t.label() == \"#7 VPN down [closed]\", \"close() should set the status to closed\"\ntry:\n    t.close()\n    raise AssertionError(\"closing a closed ticket should raise ValueError\")\nexcept ValueError:\n    pass\nassert len(tickets) == len([l for l in _fs[\"tickets.txt\"].splitlines() if l.strip()]), \"tickets should hold one Ticket per line\"\nr = Ticket(9, \"Wifi\")\nassert r.reopened == 0, \"reopened should start at 0\"\ntry:\n    r.reopen()\n    raise AssertionError(\"reopening an open ticket should raise ValueError\")\nexcept ValueError:\n    pass\nr.close(); r.reopen(); r.close(); r.reopen()\nassert r.status == \"open\" and r.reopened == 2, \"after two close/reopen cycles: status open, reopened 2\""
+ },
+ {
+  "id": "t-pp-error-stream",
+  "district": "py",
+  "client": "Yann Kerjean, Kerjean Hebergement",
+  "title": "Only the errors, please",
+  "covers": [
+   "py-gen"
+  ],
+  "brief": "Our server log is huge and 95 percent of it is INFO noise. In the morning I only want the first three errors to read, and how many there are in total. Do not load the whole file in memory, the real one is several gigabytes.",
+  "skill": {
+   "title": "yield makes a generator",
+   "card": "A function with <code>yield</code> hands out values one at a time and pauses in between, so a huge file is read line by line, never all at once. Loop over it with <code>for</code>, take the first few with <code>islice(gen, 3)</code>, or count with <code>sum(1 for _ in gen)</code>. Each call gives a fresh generator.",
+   "example": "from itertools import islice\n\ndef evens(limit):\n    for n in range(limit):\n        if n % 2 == 0:\n            yield n\n\nprint(list(islice(evens(100), 3)))\nprint(sum(1 for _ in evens(10)))"
+  },
+  "task": "Write a generator <code>errors(path)</code> that yields, for each line of the file containing <code> ERROR </code>, the message after it (stripped). Then print the first 3 messages of <code>server.log</code>, one per line, and the total count:\n\n~~~text\ndisk /data is 95% full\nbackup job timed out\nmail relay refused connection\nTotal errors: 5\n~~~",
+  "starter": "from itertools import islice\n\ndef errors(path):\n    pass\n",
+  "solution": "from itertools import islice\n\ndef errors(path):\n    with open(path) as f:\n        for line in f:\n            if \" ERROR \" in line:\n                yield line.split(\" ERROR \", 1)[1].strip()\n\nfor msg in islice(errors(\"server.log\"), 3):\n    print(msg)\nprint(\"Total errors:\", sum(1 for _ in errors(\"server.log\")))",
+  "hint": "line.split(\" ERROR \", 1)[1] is everything after the marker. Call errors(\"server.log\") again for the count.",
+  "par": 10,
+  "machine": {
+   "name": "Log Sieve",
+   "icon": "filter"
+  },
+  "tests": [
+   {
+    "name": "Busy morning",
+    "fs": {
+     "server.log": "2026-10-28 08:00:01 INFO backup started\n2026-10-28 08:02:13 ERROR disk /data is 95% full\n2026-10-28 08:05:40 WARN slow query on orders\n2026-10-28 08:07:02 ERROR backup job timed out\n2026-10-28 08:10:00 INFO user login: ines\n2026-10-28 08:11:45 ERROR mail relay refused connection\n2026-10-28 08:15:30 ERROR disk /data is 97% full\n2026-10-28 08:20:00 ERROR backup job timed out\n"
+    },
+    "output": "disk /data is 95% full\nbackup job timed out\nmail relay refused connection\nTotal errors: 5"
+   },
+   {
+    "name": "Calm morning",
+    "fs": {
+     "server.log": "2026-10-29 07:59:59 INFO server boot\n2026-10-29 08:01:10 ERROR certificate expires in 3 days\n2026-10-29 08:03:00 INFO cron ok\n"
+    },
+    "output": "certificate expires in 3 days\nTotal errors: 1"
+   }
+  ],
+  "test": "assert hasattr(errors(\"server.log\"), \"__next__\"), \"errors() should be a generator (use yield)\""
+ },
+ {
+  "id": "t-pp-audit-trail",
+  "district": "py",
+  "client": "Claire Dumas, Dumas Finance",
+  "title": "An audit trail for every money move",
+  "covers": [
+   "py-deco"
+  ],
+  "brief": "The auditors want a trace of every discount and refund our scripts compute. I have a dozen of these functions and I refuse to edit each one. Can you give me a tag I just put on top of a function?",
+  "skill": {
+   "title": "A decorator wraps a function",
+   "card": "A decorator takes a function and returns a <code>wrapper</code> that does something extra around the real call. <code>@audited</code> above <code>def refund</code> is the same as <code>refund = audited(refund)</code>. Use <code>*args, **kwargs</code> to pass every argument through, return the real result, and add <code>@functools.wraps(func)</code> so the function keeps its name.",
+   "example": "import functools\n\ndef shout(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        return func(*args, **kwargs).upper()\n    return wrapper\n\n@shout\ndef hello(name):\n    return \"hello \" + name\n\nprint(hello(\"ada\"), hello.__name__)"
+  },
+  "task": "Write a decorator <code>audited</code>: after each call, it appends a line <code>name -> result</code> to <code>audit.log</code> (open it with <code>\"a\"</code>), then returns the result. Keep the function name with <code>functools.wraps</code>. The two functions and the prints are given; with them <code>audit.log</code> must end up as:\n\n~~~text\napply_discount -> 60.0\nrefund -> -12.5\n~~~",
+  "starter": "import functools\n\ndef audited(func):\n    return func\n\n@audited\ndef apply_discount(price, pct):\n    return round(price * (1 - pct / 100), 2)\n\n@audited\ndef refund(amount):\n    return -amount\n\nprint(apply_discount(80, 25))\nprint(refund(12.5))\n",
+  "solution": "import functools\n\ndef audited(func):\n    @functools.wraps(func)\n    def wrapper(*args, **kwargs):\n        result = func(*args, **kwargs)\n        with open(\"audit.log\", \"a\") as f:\n            f.write(f\"{func.__name__} -> {result}\\n\")\n        return result\n    return wrapper\n\n@audited\ndef apply_discount(price, pct):\n    return round(price * (1 - pct / 100), 2)\n\n@audited\ndef refund(amount):\n    return -amount\n\nprint(apply_discount(80, 25))\nprint(refund(12.5))",
+  "hint": "Inside wrapper: result = func(*args, **kwargs), write the line with func.__name__, then return result.",
+  "par": 19,
+  "machine": {
+   "name": "Audit Stamp",
+   "icon": "shield"
+  },
+  "tests": [
+   {
+    "name": "Two money moves",
+    "output": "60.0\n-12.5"
+   }
+  ],
+  "test": "assert \"audit.log\" in _fs, \"audit.log was not written\"\nassert _fs[\"audit.log\"].splitlines() == [\"apply_discount -> 60.0\", \"refund -> -12.5\"], \"audit.log contains:\\n\" + _fs[\"audit.log\"]\nassert apply_discount.__name__ == \"apply_discount\" and refund.__name__ == \"refund\", \"use functools.wraps to keep the function names\""
+ },
+ {
+  "id": "t-pp-expense-money-bug",
+  "district": "py",
+  "type": "bug",
+  "of": "t-pp-expense-money",
+  "client": "Paul Benard, Benard Conseil",
+  "title": "The biggest expense is the smallest",
+  "covers": [
+   "py-dunder"
+  ],
+  "brief": "An intern changed the Money class. Now Biggest shows our cheapest line, and a parking ticket of 9.05 prints as 9.5 EUR. The accountant is not amused.",
+  "task": "Same job as before: <code>Total: ... EUR</code> and <code>Biggest: ... EUR</code>, amounts always with 2 digits after the dot. Find the broken lines in <code>Money</code> and fix them.",
+  "starter": "class Money:\n    def __init__(self, cents):\n        self.cents = cents\n    def __add__(self, other):\n        return Money(self.cents + other.cents)\n    def __eq__(self, other):\n        return self.cents == other.cents\n    def __lt__(self, other):\n        return self.cents > other.cents\n    def __repr__(self):\n        return f\"{self.cents // 100}.{self.cents % 100} EUR\"\n\namounts = []\nwith open(\"expenses.txt\") as f:\n    for line in f:\n        label, cents = line.strip().split(\";\")\n        amounts.append(Money(int(cents)))\nprint(\"Total:\", sum(amounts, Money(0)))\nprint(\"Biggest:\", sorted(amounts)[-1])\n",
+  "solution": "class Money:\n    def __init__(self, cents):\n        self.cents = cents\n    def __add__(self, other):\n        return Money(self.cents + other.cents)\n    def __eq__(self, other):\n        return self.cents == other.cents\n    def __lt__(self, other):\n        return self.cents < other.cents\n    def __repr__(self):\n        return f\"{self.cents // 100}.{self.cents % 100:02d} EUR\"\n\namounts = []\nwith open(\"expenses.txt\") as f:\n    for line in f:\n        label, cents = line.strip().split(\";\")\n        amounts.append(Money(int(cents)))\nprint(\"Total:\", sum(amounts, Money(0)))\nprint(\"Biggest:\", sorted(amounts)[-1])",
+  "hint": "sorted() puts the smallest first only if __lt__ really means less than. And 5 cents must print as 05.",
+  "par": 19,
+  "tests": [
+   {
+    "name": "Paris trip",
+    "fs": {
+     "expenses.txt": "Taxi;2350\nHotel;12900\nLunch;1805\nTrain;8640\n"
+    },
+    "output": "Total: 256.95 EUR\nBiggest: 129.00 EUR"
+   },
+   {
+    "name": "Client lunch",
+    "fs": {
+     "expenses.txt": "Parking;905\nRestaurant;6402\n"
+    },
+    "output": "Total: 73.07 EUR\nBiggest: 64.02 EUR"
+   }
+  ],
+  "test": "assert repr(Money(1205)) == \"12.05 EUR\", \"repr(Money(1205)) should be '12.05 EUR', got %r\" % repr(Money(1205))\nassert Money(100) + Money(250) == Money(350), \"Money(100) + Money(250) should equal Money(350)\"\nassert not (Money(100) == Money(101)), \"== should compare the cents\"\nassert Money(99) < Money(100) and not (Money(100) < Money(99)), \"< should compare the cents\"\nassert len(amounts) == len(_fs[\"expenses.txt\"].split()), \"amounts should hold one Money per line\""
+ },
+ {
+  "id": "t-pp-order-codes",
+  "district": "py",
+  "client": "Marc Olivier, Olivier Distribution",
+  "title": "Check the order codes",
+  "covers": [
+   "py-regex"
+  ],
+  "brief": "Our order codes look like CMD-2026-00042. Sales reps type them by hand and half the returns we get come from typos. Before the file goes to the warehouse, flag every code that does not match the format.",
+  "skill": {
+   "title": "re.fullmatch checks a whole format",
+   "card": "A regular expression describes a text pattern: <code>\\d</code> is a digit, <code>{4}</code> means exactly four times, letters and <code>-</code> match themselves. <code>re.fullmatch(pattern, text)</code> returns a match only when the <b>whole</b> text fits, and <code>None</code> otherwise. Always write patterns as raw strings: <code>r\"...\"</code>.",
+   "example": "import re\nfor zip_code in [\"75011\", \"7501\", \"75011B\"]:\n    print(zip_code, bool(re.fullmatch(r\"\\d{5}\", zip_code)))"
+  },
+  "task": "Each line of <code>codes.txt</code> is one code (strip the spaces around it). A valid code is <code>CMD-</code>, 4 digits, <code>-</code>, 5 digits. For each invalid code, in file order, print <code>Rejected: </code> and the code. Then print the number of valid codes:\n\n~~~text\nRejected: CMD-26-00043\nRejected: cmd-2026-00044\nValid codes: 3\n~~~",
+  "starter": "valid = 0\nwith open(\"codes.txt\") as f:\n    for line in f:\n        code = line.strip()\n        if code.startswith(\"CMD-\"):\n            valid += 1\n        else:\n            print(\"Rejected:\", code)\nprint(f\"Valid codes: {valid}\")\n",
+  "solution": "import re\n\nvalid = 0\nwith open(\"codes.txt\") as f:\n    for line in f:\n        code = line.strip()\n        if re.fullmatch(r\"CMD-\\d{4}-\\d{5}\", code):\n            valid += 1\n        else:\n            print(\"Rejected:\", code)\nprint(f\"Valid codes: {valid}\")",
+  "hint": "The pattern is r\"CMD-\\d{4}-\\d{5}\". Use re.fullmatch, not re.search, so extra characters are refused.",
+  "par": 10,
+  "machine": {
+   "name": "Code Checker",
+   "icon": "search"
+  },
+  "tests": [
+   {
+    "name": "Monday batch",
+    "fs": {
+     "codes.txt": "CMD-2026-00042\nCMD-26-00043\n  CMD-2026-00045 \ncmd-2026-00044\nCMD-2026-00046\n"
+    },
+    "output": "Rejected: CMD-26-00043\nRejected: cmd-2026-00044\nValid codes: 3"
+   },
+   {
+    "name": "Tuesday batch",
+    "fs": {
+     "codes.txt": "CMD-2026-001234\nCMD-2026-00101\nCMD-2026-0O102\n"
+    },
+    "output": "Rejected: CMD-2026-001234\nRejected: CMD-2026-0O102\nValid codes: 1"
+   }
+  ]
+ },
+ {
+  "id": "t-pp-invoice-ledger",
+  "district": "py",
+  "client": "Sophie Garnier, Cabinet Garnier Compta",
+  "title": "The client ledger",
+  "covers": [
+   "py-boss",
+   "py-regex",
+   "py-errors",
+   "py-classes",
+   "py-files"
+  ],
+  "brief": "Big one. Every month our clients' invoices land in one text file, and it is a mess: broken invoice numbers, amounts like 'tbc'. I want a ledger with the total per client, saved to a file our other tools can reload, and a clear list of what was rejected.",
+  "skill": {
+   "title": "Save objects with JSON, rebuild them with a classmethod",
+   "card": "<code>json.dump(data, f, indent=2)</code> writes a dict to a file and <code>json.load(f)</code> reads it back. A <code>@classmethod</code> receives the class as <code>cls</code> instead of an object: <code>Ledger.load(path)</code> creates <code>cls()</code>, fills it from the file and returns it. Raising your own <code>ValueError</code> lets one <code>except</code> handle every kind of bad line.",
+   "example": "import json\n\nclass Box:\n    def __init__(self):\n        self.items = {}\n    @classmethod\n    def load(cls, path):\n        box = cls()\n        with open(path) as f:\n            box.items = json.load(f)\n        return box\n\nwith open(\"box.json\", \"w\") as f:\n    json.dump({\"pens\": 3}, f, indent=2)\nprint(Box.load(\"box.json\").items)"
+  },
+  "task": "Write a class <code>Ledger</code> with an attribute <code>totals</code> (a dict client to amount), <code>add(client, amount)</code> (adds to the client's total, rounded to 2 decimals), <code>save(path)</code> (JSON) and a classmethod <code>load(path)</code>.\n\nThen read <code>invoices.txt</code>: lines <code>code;client;amount</code>. A line is rejected when the code is not <code>INV-</code> plus 4 digits or the amount is not a number: print <code>Rejected: </code> and the code. Add the good ones to a <code>Ledger</code> named <code>ledger</code>, save it to <code>ledger.json</code>, then print each client in alphabetical order with 2 decimals, and the number of rejected lines:\n\n~~~text\nRejected: INV-12\nRejected: INV-0006\nAcme: 450.50\nBelleville Bakery: 89.90\nRejected lines: 2\n~~~",
+  "starter": "import json, re\n\nclass Ledger:\n    def __init__(self):\n        self.totals = {}\n",
+  "solution": "import json, re\n\nclass Ledger:\n    def __init__(self):\n        self.totals = {}\n    def add(self, client, amount):\n        self.totals[client] = round(self.totals.get(client, 0) + amount, 2)\n    def save(self, path):\n        with open(path, \"w\") as f:\n            json.dump(self.totals, f, indent=2)\n    @classmethod\n    def load(cls, path):\n        ledger = cls()\n        with open(path) as f:\n            ledger.totals = json.load(f)\n        return ledger\n\nledger = Ledger()\nrejected = 0\nwith open(\"invoices.txt\") as f:\n    for line in f:\n        code, client, amount = line.strip().split(\";\")\n        try:\n            if not re.fullmatch(r\"INV-\\d{4}\", code):\n                raise ValueError(\"bad invoice code\")\n            ledger.add(client, float(amount))\n        except ValueError:\n            rejected += 1\n            print(\"Rejected:\", code)\nledger.save(\"ledger.json\")\nfor client in sorted(ledger.totals):\n    print(f\"{client}: {ledger.totals[client]:.2f}\")\nprint(\"Rejected lines:\", rejected)",
+  "hint": "Inside one try: raise ValueError yourself when re.fullmatch fails, then call float(amount), which raises ValueError on its own for 'tbc'.",
+  "par": 32,
+  "machine": {
+   "name": "Ledger Engine",
+   "icon": "db"
+  },
+  "tests": [
+   {
+    "name": "October invoices",
+    "fs": {
+     "invoices.txt": "INV-0001;Acme;300.00\nINV-12;Acme;50.00\nINV-0003;Belleville Bakery;89.90\nINV-0004;Acme;150.50\nINV-0006;Belleville Bakery;tbc\n"
+    },
+    "output": "Rejected: INV-12\nRejected: INV-0006\nAcme: 450.50\nBelleville Bakery: 89.90\nRejected lines: 2"
+   },
+   {
+    "name": "November invoices",
+    "fs": {
+     "invoices.txt": "INV-0101;Zen Garage;120.00\nINV-0102;Cafe du Port;45.10\nINV-0103;Zen Garage;80.25\nINV-0104;Cafe du Port;14.90\n"
+    },
+    "output": "Cafe du Port: 60.00\nZen Garage: 200.25\nRejected lines: 0"
+   }
+  ],
+  "test": "import json as _json\nassert \"ledger.json\" in _fs, \"ledger.json was not written\"\nassert _json.loads(_fs[\"ledger.json\"]) == ledger.totals, \"ledger.json should hold ledger.totals\"\n_l = Ledger()\n_l.add(\"A\", 10); _l.add(\"A\", 2.5); _l.add(\"B\", 0.1); _l.add(\"B\", 0.2)\nassert _l.totals == {\"A\": 12.5, \"B\": 0.3}, \"add() should sum per client and round to 2 decimals, got %r\" % (_l.totals,)\nassert isinstance(Ledger.__dict__.get(\"load\"), classmethod), \"load must be a @classmethod\""
+ }
+]

@@ -1,0 +1,3738 @@
+<title>PySQL Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/*CMCSS*/
+/* Layout: sticky top bar, then a course map sidebar beside a two-pane lesson (reading | workbench). Labs reuse the workbench. */
+:root{
+  --bg:#ECEFF5; --surface:#FFFFFF; --sunk:#F5F7FB; --ink:#16203A; --muted:#58637A; --line:#D3D9E5;
+  --py:#B87308; --py-soft:#F6E7CC; --sql:#0B7680; --sql-soft:#D2ECEE; --auto:#B0442C; --auto-soft:#F5DCD5;
+  --ok:#23804A; --ok-soft:#DCF0E3; --bad:#B8322A; --bad-soft:#F7DEDB;
+  --k:#8A3FB0; --s:#23804A; --n:#B0442C; --c:#7D879B; --d:#0B5FA8;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E1320; --surface:#161D2C; --sunk:#111725; --ink:#E4E9F2; --muted:#95A0B6; --line:#273149;
+  --py:#EBAA3C; --py-soft:#3A2E17; --sql:#3DB7C1; --sql-soft:#15343A; --auto:#E58166; --auto-soft:#3B221C;
+  --ok:#5BC37D; --ok-soft:#173523; --bad:#F07264; --bad-soft:#3D1F1C;
+  --k:#C99AF0; --s:#7FD49A; --n:#F0A07F; --c:#7C879D; --d:#7DB8F0; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0E1320; --surface:#161D2C; --sunk:#111725; --ink:#E4E9F2; --muted:#95A0B6; --line:#273149;
+  --py:#EBAA3C; --py-soft:#3A2E17; --sql:#3DB7C1; --sql-soft:#15343A; --auto:#E58166; --auto-soft:#3B221C;
+  --ok:#5BC37D; --ok-soft:#173523; --bad:#F07264; --bad-soft:#3D1F1C;
+  --k:#C99AF0; --s:#7FD49A; --n:#F0A07F; --c:#7C879D; --d:#7DB8F0; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,select,input,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+code,pre,kbd{font-family:var(--mono);font-size:.86em}
+/* beginners must see the characters they type: no ligatures turning <= into a single symbol */
+code,pre,kbd,textarea,.CodeMirror,.st-code,.xp,.status{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+:focus-visible{outline:2px solid var(--sql);outline-offset:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.25rem;letter-spacing:-.01em}
+.logo{display:block;width:36px;height:36px;flex:none} .logo svg{display:block;width:100%;height:100%}
+.gh-gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
+.gh-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;width:min(460px,100%);display:grid;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.gh-card .logo{width:64px;height:64px} .gh-card h2{font-size:1.4rem} .gh-card p,.gh-card ol{margin:0;line-height:1.5} .gh-card ol{padding-left:20px}
+.gh-tok{font:inherit;font-family:var(--mono);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
+.gh-err{color:var(--bad);min-height:1.4em}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+nav.tabs button{border:0;background:none;padding:6px 12px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:700}
+nav.tabs button[aria-current="true"]{background:var(--sunk);color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.rank{margin-left:auto;display:flex;align-items:center;gap:12px;min-width:0}
+.rank-name{font-family:var(--display);font-weight:700}
+.rank small{display:block;color:var(--muted);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+.bar{width:150px;height:8px;border-radius:99px;background:var(--sunk);border:1px solid var(--line);overflow:hidden}
+.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--py),var(--sql));transition:width .5s}
+.xp{font:600 .85rem var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+
+.view{padding-block:20px 48px}
+.engine{font-size:.8rem;color:var(--muted);font-family:var(--mono)}
+
+/* learn */
+.learn{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;align-items:start}
+.side{position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.side summary{cursor:pointer;padding:12px 14px;font-family:var(--display);font-weight:700;list-style:none;display:flex;justify-content:space-between}
+.side summary::after{content:"+";color:var(--muted)} .side details[open] summary::after{content:"-"}
+.track{border-top:1px solid var(--line);padding:10px 8px 12px}
+.track-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 6px 6px;font-family:var(--display);font-weight:700}
+.track-h span{font:600 .75rem var(--mono);color:var(--muted)}
+.mod{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 6px 2px}
+.lbtn{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:.92rem;line-height:1.3}
+.lbtn:hover{background:var(--sunk)}
+.lbtn[aria-current="true"]{background:var(--sunk);font-weight:700}
+.dot{flex:none;width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.lbtn.done .dot{border-color:var(--tc);background:var(--tc)}
+.lbtn .boss{margin-left:auto;font:600 .65rem var(--mono);color:var(--tc);border:1px solid var(--tc);border-radius:4px;padding:0 4px}
+.t-py{--tc:var(--py);--tsoft:var(--py-soft)} .t-auto{--tc:var(--auto);--tsoft:var(--auto-soft)} .t-sql{--tc:var(--sql);--tsoft:var(--sql-soft)}
+
+.lesson{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+.reading{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 24px}
+.eyebrow{font:600 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--tc)}
+.reading h1{font-size:1.9rem;margin:6px 0 4px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font:600 .72rem var(--mono);padding:2px 8px;border-radius:99px;background:var(--tsoft,var(--sunk));color:var(--tc,var(--muted))}
+.prose{max-width:66ch}
+.prose p{margin:0 0 12px} .prose ul{margin:0 0 12px;padding-left:20px}
+.prose h3{font-size:1.15rem;margin:22px 0 8px}
+.prose li{margin-bottom:4px}
+.ex-tip{font-size:.88rem;color:var(--muted);border-left:3px solid var(--tc);padding-left:10px;margin:0 0 16px;max-width:66ch}
+.ex{border:1px solid var(--line);border-radius:10px;margin:0 0 16px;overflow:hidden;background:var(--surface)}
+.ex-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 8px;background:var(--sunk);border-bottom:1px solid var(--line)}
+.ex-head .sp{flex:1}
+.ex-tag{font:600 .7rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--tc)}
+.btn.mini{padding:3px 10px;font-size:.8rem;border-radius:6px}
+.prose .ex pre{margin:0;border:0;border-radius:0;background:var(--surface)}
+.ex code[contenteditable]{display:block;outline:none;min-height:1.5em}
+.ex code[contenteditable]:focus{box-shadow:inset 3px 0 0 var(--tc)}
+.ex-note{font-size:.82rem;color:var(--muted);margin:0;padding:4px 12px;border-top:1px dashed var(--line)}
+.ex-out{border-top:1px solid var(--line);background:var(--sunk);padding:8px 12px;max-height:320px;overflow:auto}
+.prose .ex-out pre,.ex-out pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:.84rem;background:none;border:0;padding:0}
+.ex-out .hint{margin:0}
+.ex-label{font:600 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+details.tables{margin-top:6px} details.tables summary{cursor:pointer;font:600 .78rem var(--mono);color:var(--sql)}
+.stepper{position:fixed;inset:0;z-index:30;background:rgba(10,14,24,.55);display:grid;place-items:center;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.st-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.st-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+.st-head h2{font-size:1.15rem} .st-head .sp{flex:1}
+.st-say{margin:0;padding:10px 14px;background:var(--py-soft);border-bottom:1px solid var(--line);min-height:3.2em;line-height:1.5}
+.st-say code{font-size:.85em;background:var(--surface);padding:0 4px;border-radius:4px;word-break:break-word}
+.st-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);min-height:0;overflow:auto;flex:1}
+.st-code{overflow:auto;padding:8px 0;border-right:1px solid var(--line);font-family:var(--mono);font-size:.86rem;max-height:60vh}
+.ln{display:grid;grid-template-columns:3.2em 3.6em 1fr;align-items:baseline;padding:1px 10px 1px 0;white-space:pre}
+.ln .no{color:var(--c);text-align:right;padding-right:8px;font-size:.78rem}
+.ln .mark{font:600 .66rem var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.ln code{font-size:inherit}
+.ln.next{background:var(--py-soft)} .ln.next .mark{color:var(--py)}
+.ln.ran{background:var(--ok-soft)} .ln.ran .mark{color:var(--ok)}
+.st-side{padding:10px 14px;overflow:auto;max-height:60vh;min-width:0}
+.st-side h3{font-size:.9rem;margin:6px 0}
+.st-side .res{width:100%;margin-bottom:10px}
+table.vars td.val{white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:.8rem}
+table.vars tr.new td{background:var(--ok-soft)} table.vars tr.changed td{background:var(--py-soft)}
+table.vars .tag{margin-left:6px;font:600 .62rem var(--mono);text-transform:uppercase;color:var(--muted)}
+.st-out{margin:0;background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:8px;white-space:pre-wrap;word-break:break-word;font-size:.82rem;min-height:2.4em}
+.st-ctrl{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.st-ctrl input[type=range]{flex:1;min-width:120px}
+@media (max-width:760px){ .st-body{grid-template-columns:minmax(0,1fr)} .st-code{border-right:0;border-bottom:1px solid var(--line);max-height:34vh} .st-side{max-height:none} .st-keys{display:none} }
+.prose pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;margin:0 0 14px;line-height:1.5}
+.prose code{background:var(--sunk);padding:1px 4px;border-radius:4px}
+.prose pre code{background:none;padding:0}
+.task{margin-top:18px;border:1px solid var(--tc);border-radius:10px;padding:14px 16px;background:var(--tsoft)}
+.task h3{font-size:1rem;margin-bottom:6px;color:var(--tc)}
+.task p:last-child{margin-bottom:0}
+.helpers{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.reveal{margin-top:12px}
+.reveal pre{background:var(--sunk);border:1px dashed var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;white-space:pre}
+
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0;position:sticky;top:76px}
+.bench-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.bench-bar .sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:.9rem}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.go{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.ghost{background:none}
+.CodeMirror{height:340px;font-family:var(--mono);font-size:14px;background:var(--surface);color:var(--ink)}
+.CodeMirror-gutters{background:var(--sunk);border-right:1px solid var(--line)}
+.CodeMirror-linenumber{color:var(--c)}
+.CodeMirror-cursor{border-left-color:var(--ink)}
+.CodeMirror-selected,.CodeMirror-focused .CodeMirror-selected{background:var(--sql-soft)}
+.CodeMirror-matchingbracket{color:var(--ok)!important}
+.cm-keyword{color:var(--k)} .cm-string,.cm-string-2{color:var(--s)} .cm-number{color:var(--n)} .cm-comment{color:var(--c);font-style:italic}
+.cm-def,.cm-builtin{color:var(--d)} .cm-variable-2,.cm-meta{color:var(--py)} .cm-operator{color:var(--muted)}
+.stdin{border-top:1px solid var(--line);padding:8px 12px;display:grid;gap:4px}
+.stdin label{font:600 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stdin textarea{width:100%;min-height:52px;resize:vertical;font-family:var(--mono);font-size:.85rem;border:1px solid var(--line);border-radius:6px;background:var(--sunk);padding:6px 8px}
+.out{border-top:1px solid var(--line);padding:10px 12px;max-height:340px;overflow:auto;background:var(--sunk);min-height:70px}
+.out pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:.84rem}
+.out .err{color:var(--bad)}
+.out .hint{color:var(--muted);font-style:italic;font-size:.88rem}
+.verdict{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.verdict.ok{background:var(--ok-soft);color:var(--ok)}
+.verdict.bad{background:var(--bad-soft);color:var(--bad)}
+.verdict pre{margin:0;white-space:pre-wrap;color:var(--ink);font-size:.84rem;width:100%}
+.verdict b{font-family:var(--display)}
+.tbl-wrap{overflow-x:auto;margin-bottom:10px}
+table.res{border-collapse:collapse;font-size:.84rem;font-variant-numeric:tabular-nums;background:var(--surface)}
+table.res th,table.res td{border:1px solid var(--line);padding:3px 9px;text-align:left;white-space:nowrap}
+table.res th{background:var(--sql-soft);font-family:var(--mono);font-size:.78rem}
+table.res td.null{color:var(--muted);font-style:italic}
+.rows{font:.75rem var(--mono);color:var(--muted);margin:2px 0 10px}
+details.fileout{margin-top:8px} details.fileout summary{cursor:pointer;font:600 .8rem var(--mono);color:var(--auto)}
+details.fileout pre{border-left:3px solid var(--auto);padding-left:8px;margin-top:4px}
+
+/* labs */
+.lab{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.panel h2{font-size:1.05rem;margin-bottom:8px}
+.panel p.sub{color:var(--muted);font-size:.88rem;margin:0 0 10px}
+.schema-t{margin-bottom:10px}
+.schema-t button{border:0;background:none;padding:0;cursor:pointer;font:700 .9rem var(--mono);color:var(--sql)}
+.schema-t ul{list-style:none;margin:2px 0 0;padding-left:10px;font:.8rem var(--mono);color:var(--muted)}
+.lab .bench{position:static}
+.lab-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+.lab-head h1{font-size:1.6rem}
+.lab-head p{margin:0;color:var(--muted)}
+select.sel{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:5px 8px;max-width:100%}
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.flist button{width:100%;text-align:left;border:0;background:none;padding:5px 8px;border-radius:6px;cursor:pointer;font:.85rem var(--mono);word-break:break-all}
+.flist button:hover{background:var(--sunk)}
+.flist button[aria-current="true"]{background:var(--auto-soft);color:var(--auto);font-weight:600}
+.frow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.fname{display:flex;gap:6px;margin-top:8px} .fname input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--sunk);font-family:var(--mono);font-size:.85rem}
+textarea.fedit{width:100%;min-height:420px;border:0;resize:vertical;padding:12px;font:14px/1.5 var(--mono);background:var(--surface);display:block}
+.status{font:.78rem var(--mono);color:var(--muted)}
+.sync{border:1px solid var(--line);background:var(--sunk);color:var(--muted);border-radius:99px;padding:2px 10px;font:600 .72rem var(--mono);cursor:pointer;white-space:nowrap}
+.sync:hover{color:var(--ink)}
+textarea.bk{width:100%;min-height:60px;margin-top:10px;resize:vertical;border:1px solid var(--line);border-radius:6px;background:var(--sunk);padding:6px 8px;font:.78rem var(--mono)}
+@media (max-width:900px){ .rank{flex-wrap:wrap} }
+.ladder{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:.9rem}
+.ladder li{display:flex;justify-content:space-between;color:var(--muted)}
+.ladder li.got{color:var(--ink);font-weight:700}
+.ladder li span{font:.75rem var(--mono)}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:12px 16px;border-radius:10px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateY(calc(100% + 48px));visibility:hidden;transition:transform .3s,visibility .3s;z-index:20;max-width:calc(100vw - 32px)}
+.toast.show{transform:none;visibility:visible}
+.toast small{display:block;font-weight:400;opacity:.8}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/*STORY-CSS*/
+@media (max-width:1250px){ .lesson{grid-template-columns:minmax(0,1fr)} .bench{position:static} }
+@media (max-width:900px){
+  .learn,.lab{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;max-height:none}
+  .rank{margin-left:0;width:100%}
+  .bar{flex:1;width:auto}
+  .reading{padding:16px}
+  .reading h1{font-size:1.5rem}
+  .CodeMirror{height:280px}
+}
+</style>
+
+<header class="top wrap">
+  <div class="top-in">
+    <div class="brand"><span class="logo"><!--LOGO--></span>PySQL Quest</div>
+    <nav class="tabs" aria-label="Sections">
+      <button data-view="learn">Learn</button>
+      <button data-view="python">Python Lab</button>
+      <button data-view="sql">SQL Lab</button>
+      <button data-view="files">Files</button>
+    </nav>
+    <div class="rank">
+      <div><small>Rank</small><span class="rank-name" id="rankName">Zero</span></div>
+      <div class="bar" title="Progress to Hero"><span id="xpBar" style="width:0"></span></div>
+      <span class="xp" id="xpText">0 XP</span>
+      <button class="sync" id="syncStatus" data-view="files">Saved in this browser only</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+<!--STORY-VIEWS-->
+  <!-- LEARN -->
+  <section class="view" id="view-learn">
+    <div class="learn">
+      <aside class="side">
+        <details id="mapD" open>
+          <summary>Course map</summary>
+          <div id="map"></div>
+          <div class="track">
+            <div class="track-h">Rank ladder</div>
+            <ul class="ladder" id="ladder"></ul>
+          </div>
+        </details>
+      </aside>
+      <div class="lesson" id="lessonRoot">
+        <article class="reading" id="reading"></article>
+        <div class="bench">
+          <div class="bench-bar">
+            <button class="btn primary" id="lRun">Run</button>
+            <button class="btn" id="lStep" title="Run your code one line at a time and watch the variables">Step through</button>
+            <button class="btn go" id="lCheck">Check answer</button>
+            <span class="sp"></span>
+            <button class="btn ghost" id="lReset" title="Restore the starter code">Reset code</button>
+          </div>
+          <div id="lEditor"></div>
+          <div class="stdin" id="lStdinBox" hidden><label for="lStdin">Input lines (read by input())</label><textarea id="lStdin" spellcheck="false"></textarea></div>
+          <div class="out" id="lOut"><p class="hint">Run your code with the Run button or Ctrl+Enter. Check answer grades it.</p></div>
+          <div class="verdict" id="lVerdict" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PYTHON LAB -->
+  <section class="view" id="view-python" hidden>
+    <div class="lab-head"><h1>Python Lab</h1><p>Full scripts, files and a SQLite database. <code>open()</code> uses the Files tab, <code>sqlite3.connect("shop.db")</code> uses the SQL Lab database.</p></div>
+    <div class="lab">
+      <div class="panel">
+        <h2>Starter scripts</h2>
+        <p class="sub">Load a working automation, then change it.</p>
+        <select class="sel" id="pyEx" aria-label="Starter scripts"></select>
+        <div class="frow"><button class="btn" id="pyLoad">Load into editor</button></div>
+        <h2 style="margin-top:18px">Your files</h2>
+        <ul class="flist" id="pyFiles"></ul>
+      </div>
+      <div class="bench">
+        <div class="bench-bar">
+          <button class="btn primary" id="pyRunBtn">Run</button>
+          <button class="btn" id="pyStepBtn" title="A dry run, one line at a time: files and shop.db are not changed">Step through</button>
+          <span class="status" id="pyStatus"></span>
+          <span class="sp"></span>
+          <button class="btn ghost" id="pyClear">Clear output</button>
+        </div>
+        <div id="pyEditor"></div>
+        <div class="stdin"><label for="pyStdin">Input lines (read by input())</label><textarea id="pyStdin" spellcheck="false"></textarea></div>
+        <div class="out" id="pyOut"><p class="hint">Output appears here.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SQL LAB -->
+  <section class="view" id="view-sql" hidden>
+    <div class="lab-head"><h1>SQL Lab</h1><p>A real SQLite database that keeps your changes in this browser. Run several statements at once.</p></div>
+    <div class="lab">
+      <div class="panel">
+        <h2>Schema</h2>
+        <p class="sub">Click a table to query it.</p>
+        <div id="schema"></div>
+        <h2 style="margin-top:14px">Starter queries</h2>
+        <select class="sel" id="sqlEx" aria-label="Starter queries"></select>
+        <div class="frow"><button class="btn" id="sqlLoad">Load</button></div>
+        <div class="frow"><button class="btn danger" id="sqlReset">Reset database</button></div>
+      </div>
+      <div class="bench">
+        <div class="bench-bar">
+          <button class="btn primary" id="sqlRunBtn">Run</button>
+          <span class="status" id="sqlStatus"></span>
+        </div>
+        <div id="sqlEditor"></div>
+        <div class="out" id="sqlOut"><p class="hint">Results appear here.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILES -->
+  <section class="view" id="view-files" hidden>
+    <div class="lab-head"><h1>Files</h1><p>The sandbox disk your Python Lab scripts read and write. Stored in this browser.</p></div>
+    <div class="lab">
+      <div class="panel">
+        <h2>Files</h2>
+        <ul class="flist" id="fList"></ul>
+        <div class="fname"><input id="fNew" placeholder="reports/new.txt" aria-label="New file name"><button class="btn" id="fCreate">Create</button></div>
+        <div class="frow">
+          <label class="btn" for="fUpload" style="display:inline-block">Upload text file</label>
+          <input type="file" id="fUpload" hidden multiple accept=".txt,.csv,.json,.log,.md,.py,.sql,.xml,.html,.tsv,.ini,.yaml,.yml">
+          <button class="btn danger" id="fResetAll">Reset all files</button>
+        </div>
+        <h2 style="margin-top:20px">Backup and restore</h2>
+        <p class="sub">One file with your progress, XP, code drafts, files and SQL Lab database. Keep it anywhere; it works in any browser and in the offline copy.</p>
+        <div class="frow">
+          <button class="btn primary" id="bkDownload">Download backup</button>
+          <button class="btn" id="bkCopy">Copy backup</button>
+          <label class="btn" for="bkFile" style="display:inline-block">Restore from file</label>
+          <input type="file" id="bkFile" hidden accept=".json,.txt,application/json">
+        </div>
+        <textarea id="bkPaste" class="bk" spellcheck="false" placeholder="Or paste a backup here" aria-label="Paste a backup"></textarea>
+        <div class="frow"><button class="btn" id="bkRestore">Restore pasted backup</button><button class="btn" id="ghOut" hidden>Sign out of GitHub on this browser</button></div>
+        <p class="status" id="bkStatus" role="status"></p>
+      </div>
+      <div class="bench">
+        <div class="bench-bar">
+          <strong id="fTitle" style="font-family:var(--mono);font-size:.9rem;word-break:break-all">No file selected</strong>
+          <span class="sp"></span>
+          <span class="status" id="fStatus"></span>
+          <button class="btn" id="fCopy">Copy</button>
+          <button class="btn danger" id="fDelete">Delete</button>
+        </div>
+        <textarea class="fedit" id="fEdit" spellcheck="false" aria-label="File contents" disabled></textarea>
+      </div>
+    </div>
+  </section>
+  <p class="engine wrap" id="engineStatus">Loading Python and SQL engines...</p>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<div class="stepper" id="stepper" hidden role="dialog" aria-modal="true" aria-labelledby="stTitle">
+  <div class="st-card">
+    <div class="st-head"><h2 id="stTitle">Step through</h2><span class="status" id="stCount"></span><span class="sp"></span><span class="status st-keys">Arrow keys move, Esc closes</span><button class="btn" id="stClose">Close</button></div>
+    <p class="st-say" id="stSay" aria-live="polite"></p>
+    <div class="st-body">
+      <div class="st-code" id="stCode"></div>
+      <div class="st-side">
+        <h3 id="stScope">Variables</h3><div id="stVars"></div>
+        <div id="stGlobWrap" hidden><h3>Variables of the main program</h3><div id="stGlob"></div></div>
+        <h3>Output so far</h3><pre class="st-out" id="stOut"></pre>
+      </div>
+    </div>
+    <div class="st-ctrl">
+      <button class="btn" id="stFirst">First</button><button class="btn" id="stPrev">Back</button>
+      <input type="range" id="stRange" min="0" value="0" aria-label="Step">
+      <button class="btn primary" id="stNext">Next step</button><button class="btn" id="stLast">Last</button>
+    </div>
+  </div>
+</div>
+
+<script type="text/python" id="runner">
+from browser import window
+import sys, io, json, traceback, types, fnmatch, os
+
+FS = {}
+DIRS = set()  # folders made with os.makedirs/mkdir, so they exist even while empty
+
+def _norm(p):
+    p = str(p).replace('\\', '/')
+    while p.startswith('./'):
+        p = p[2:]
+    while '//' in p:
+        p = p.replace('//', '/')
+    if p in ('', '.', '/'):
+        return ''
+    return p.strip('/')
+
+def _isdir(p):
+    n = _norm(p)
+    return n == '' or n in DIRS or any(k.startswith(n + '/') for k in FS) or any(d.startswith(n + '/') for d in DIRS)
+
+class VFile:
+    def __init__(self, path, mode='r', *args, **kwargs):
+        self.name = str(path)
+        self.mode = mode
+        self.closed = False
+        self._p = _norm(path)
+        if 'b' in mode:
+            raise ValueError("binary mode is not available in this sandbox, open files in text mode")
+        if 'r' in mode:
+            if self._p not in FS:
+                raise FileNotFoundError("[Errno 2] No such file or directory: '%s'" % path)
+            self._buf = io.StringIO(FS[self._p])
+        elif 'x' in mode and self._p in FS:
+            raise FileExistsError("[Errno 17] File exists: '%s'" % path)
+        elif 'a' in mode:
+            self._buf = io.StringIO(FS.get(self._p, ''))
+            self._buf.seek(0, 2)
+        else:
+            self._buf = io.StringIO()
+            FS[self._p] = ''
+        self._w = any(c in mode for c in 'wax+')
+    def read(self, n=-1):
+        return self._buf.read() if n is None or n < 0 else self._buf.read(n)
+    def readline(self):
+        return self._buf.readline()
+    def readlines(self):
+        return self._buf.readlines()
+    def __iter__(self):
+        return iter(self._buf.readlines())
+    def write(self, s):
+        if not self._w:
+            raise OSError('File not open for writing')
+        n = self._buf.write(s)
+        FS[self._p] = self._buf.getvalue()
+        return n
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+    def flush(self):
+        pass
+    def close(self):
+        self.closed = True
+    def __enter__(self):
+        return self
+    def __exit__(self, *a):
+        self.close()
+
+def _listdir(path='.'):
+    n = _norm(path)
+    pre = n + '/' if n else ''
+    names = sorted({k[len(pre):].split('/')[0] for k in list(FS) + list(DIRS) if k.startswith(pre)})
+    if not names and n and not _isdir(n):
+        raise FileNotFoundError("[Errno 2] No such file or directory: '%s'" % path)
+    return names
+
+def _remove(p):
+    n = _norm(p)
+    if n not in FS:
+        raise FileNotFoundError("[Errno 2] No such file or directory: '%s'" % p)
+    del FS[n]
+
+def _rename(a, b):
+    na, nb = _norm(a), _norm(b)
+    if na in FS:
+        FS[nb] = FS.pop(na)
+        return
+    moved = [k for k in FS if k.startswith(na + '/')]
+    if not moved:
+        raise FileNotFoundError("[Errno 2] No such file or directory: '%s'" % a)
+    for k in moved:
+        FS[nb + k[len(na):]] = FS.pop(k)
+
+os.listdir = _listdir
+os.remove = os.unlink = _remove
+os.rename = os.replace = _rename
+def _mkdir(p, *a, **k):
+    n = _norm(p)
+    while n:
+        DIRS.add(n)
+        n = n.rpartition('/')[0]
+os.makedirs = os.mkdir = _mkdir
+# Brython's csv.DictWriter hands writerow a generator, which its writer rejects
+import csv as _csv
+_dict_to_list = _csv.DictWriter._dict_to_list
+_csv.DictWriter._dict_to_list = lambda self, rowdict: list(_dict_to_list(self, rowdict))
+os.getcwd = lambda: '/sandbox'
+os.path.exists = lambda p: _norm(p) in FS or _isdir(p)
+os.path.isfile = lambda p: _norm(p) in FS
+os.path.isdir = _isdir
+os.path.getsize = lambda p: len(FS[_norm(p)])
+
+_glob = types.ModuleType('glob')
+_glob.glob = lambda pattern, **k: sorted(f for f in FS if fnmatch.fnmatch(f, _norm(pattern)))
+sys.modules['glob'] = _glob
+
+# sqlite3 bridge onto sql.js (SQLite compiled to JavaScript)
+_sq = types.ModuleType('sqlite3')
+class Error(Exception): pass
+class OperationalError(Error): pass
+class IntegrityError(Error): pass
+class Row:
+    def __init__(self, cursor, values):
+        self._v = tuple(values)
+        self._k = [d[0] for d in cursor.description]
+    def __getitem__(self, i):
+        return self._v[i] if isinstance(i, (int, slice)) else self._v[self._k.index(i)]
+    def keys(self):
+        return list(self._k)
+    def __iter__(self):
+        return iter(self._v)
+    def __len__(self):
+        return len(self._v)
+    def __eq__(self, other):
+        return tuple(self) == tuple(other)
+    def __repr__(self):
+        return '<Row %r>' % (self._v,)
+def _params(p):
+    if p is None:
+        return []
+    if isinstance(p, dict):
+        return {(k if k[:1] in ':@$' else ':' + k): v for k, v in p.items()}
+    return list(p)
+class Cursor:
+    def __init__(self, con):
+        self.connection = con
+        self._rows = []
+        self.description = None
+        self.rowcount = -1
+        self.lastrowid = None
+        self.arraysize = 1
+    def execute(self, sql, params=None):
+        r = json.loads(window.pqSqlExec(self.connection._h, sql, json.dumps(_params(params))))
+        if 'error' in r:
+            msg = r['error']
+            raise (IntegrityError if 'constraint' in msg.lower() else OperationalError)(msg)
+        self.description = tuple((c, None, None, None, None, None, None) for c in r['columns']) or None
+        rows = [tuple(x) for x in r['rows']]
+        if self.connection.row_factory and self.description:
+            rows = [self.connection.row_factory(self, x) for x in rows]
+        self._rows = rows
+        self.rowcount = r['changes'] if not r['columns'] else -1
+        self.lastrowid = r['lastrowid']
+        self.connection.total_changes += r['changes'] if not r['columns'] else 0
+        return self
+    def executemany(self, sql, seq):
+        total = 0
+        for p in seq:
+            self.execute(sql, p)
+            total += max(self.rowcount, 0)
+        self.rowcount = total
+        return self
+    def executescript(self, script):
+        r = json.loads(window.pqSqlScript(self.connection._h, script))
+        if 'error' in r:
+            raise OperationalError(r['error'])
+        return self
+    def fetchone(self):
+        return self._rows.pop(0) if self._rows else None
+    def fetchmany(self, size=None):
+        size = size or self.arraysize
+        out, self._rows = self._rows[:size], self._rows[size:]
+        return out
+    def fetchall(self):
+        out, self._rows = self._rows, []
+        return out
+    def __iter__(self):
+        return iter(self.fetchall())
+    def close(self):
+        pass
+class Connection:
+    def __init__(self, h):
+        self._h = h
+        self.row_factory = None
+        self.total_changes = 0
+    def cursor(self):
+        return Cursor(self)
+    def execute(self, sql, params=None):
+        return self.cursor().execute(sql, params)
+    def executemany(self, sql, seq):
+        return self.cursor().executemany(sql, seq)
+    def executescript(self, script):
+        return self.cursor().executescript(script)
+    def commit(self):
+        pass  # ponytail: autocommit, use BEGIN/COMMIT statements yourself for real transactions
+    def rollback(self):
+        pass
+    def close(self):
+        pass
+    def __enter__(self):
+        return self
+    def __exit__(self, *a):
+        pass
+def connect(database, *a, **k):
+    h = window.pqSqlOpen(str(database))
+    if h < 0:
+        raise OperationalError('The SQL engine is still loading, run again in a second')
+    return Connection(h)
+for _n, _v in dict(Error=Error, OperationalError=OperationalError, IntegrityError=IntegrityError,
+                   DatabaseError=Error, Row=Row, Cursor=Cursor, Connection=Connection, connect=connect,
+                   PARSE_DECLTYPES=1, PARSE_COLNAMES=2, sqlite_version='3.x (sql.js)').items():
+    setattr(_sq, _n, _v)
+sys.modules['sqlite3'] = _sq
+
+import time
+LIMIT = 3  # seconds before a run is treated as an endless loop
+_deadline = [0]
+class RunTooLong(Exception):
+    pass
+def _guard(frame, event, arg):
+    if time.perf_counter() > _deadline[0]:
+        sys.settrace(None)
+        where = (" It was on line %d." % frame.f_lineno) if frame.f_code.co_filename == '<string>' else ""
+        raise RunTooLong("Stopped: your program ran for more than %d seconds, so it probably has a loop that never ends.%s "
+                         "Check that the loop variable changes on every path through the loop, "
+                         "including before any continue." % (LIMIT, where))
+    return _guard
+
+def _fmt():
+    e = sys.exc_info()[1]
+    if isinstance(e, RunTooLong):
+        return str(e)
+    lines = traceback.format_exc().rstrip().split('\n')
+    keep = [l for l in lines if '#runner' not in l and l.strip() not in ('exec(code, ns)', '_exec(code, ns)', 'exec(src, ns)') and 'in _exec' not in l and 'brython' not in l.lower()]
+    return '\n'.join(keep)
+def _exec(src, ns):
+    _deadline[0] = time.perf_counter() + LIMIT
+    sys.settrace(_guard)
+    try:
+        exec(src, ns)
+    finally:
+        sys.settrace(None)
+
+def run(code, stdin, fs_json, test, echo):
+    FS.clear()
+    DIRS.clear()
+    FS.update(json.loads(fs_json))
+    out = io.StringIO()
+    lines = stdin.split('\n') if stdin else []
+    def _input(prompt=''):
+        if echo:
+            out.write(str(prompt))
+        if not lines:
+            raise EOFError('EOF when reading a line: add input values in the Input box')
+        v = lines.pop(0)
+        if echo:
+            out.write(v + '\n')
+        return v
+    ns = {'__name__': '__main__', 'input': _input, 'open': VFile}
+    res = {'ok': True, 'err': '', 'test': ''}
+    old = sys.stdout, sys.stderr
+    sys.stdout = sys.stderr = out
+    try:
+        _exec(code, ns)
+    except SystemExit:
+        pass
+    except BaseException:
+        res['ok'] = False
+        res['err'] = _fmt()
+    finally:
+        sys.stdout, sys.stderr = old
+    res['out'] = out.getvalue()
+    if test and res['ok']:
+        ns['_out'] = res['out']
+        ns['_fs'] = dict(FS)
+        sys.stdout = io.StringIO()
+        try:
+            _exec(test, ns)
+            res['test'] = 'pass'
+        except AssertionError as e:
+            res['test'] = str(e) or 'A check failed.'
+        except BaseException as e:
+            res['test'] = '%s: %s' % (type(e).__name__, e)
+        finally:
+            sys.stdout = old[0]
+    res['fs'] = FS
+    return json.dumps(res)
+
+# ---- Step through: rewrite the code so every statement reports its line and variables first.
+# (Brython's sys.settrace skips line events in many frames, so tracing is done by instrumentation.)
+import ast
+MAX_STEPS = 1500
+class _StopSteps(Exception):
+    pass
+
+# The tracking calls are written into the learner's own text. Brython's ast keeps string constants as raw
+# source text and its compile() ignores edits to a parsed tree, so rebuilding source from the tree is not an option.
+def _instrument(code):
+    lines = code.split('\n')
+    before = {}   # line index -> text lines to insert above it
+    cuts = []     # (line index, column, text) inserted inside a line
+    def add(i, text):  # not setdefault: Brython's setdefault stores int keys as strings
+        before[i] = before.get(i, []) + [text]
+    def at(n, a):  # Brython's ast positions behave like strings in dict keys and slices, so make them real ints
+        return int(str(getattr(n, a)))
+    def own_line(n):
+        i = at(n, 'lineno') - 1
+        lead = lines[i][:len(lines[i]) - len(lines[i].lstrip())]
+        return len(lead) == at(n, 'col_offset') and not lines[i].lstrip().startswith('elif'), lead
+    def top(n):
+        return min([at(n, 'lineno')] + [at(d, 'lineno') for d in getattr(n, 'decorator_list', None) or []])
+    def body(stmts, scope):
+        for st in stmts:
+            visit(st, scope)
+            if type(st).__name__ == 'ImportFrom' and st.module == '__future__':
+                continue
+            ok, lead = own_line(st)
+            if ok:
+                add(top(st) - 1, lead + '__step__(%d, %r, locals())' % (at(st, 'lineno'), scope))
+    def visit(node, scope):
+        kind = type(node).__name__
+        if kind == 'Return':
+            if node.value is None:
+                cuts.append((at(node, 'lineno') - 1, at(node, 'col_offset') + 6, ' __ret__(None)'))
+            else:
+                v = node.value
+                cuts.append((at(v, 'end_lineno') - 1, at(v, 'end_col_offset'), ')'))
+                cuts.append((at(v, 'lineno') - 1, at(v, 'col_offset'), '__ret__('))
+            return
+        inner = scope
+        if kind in ('FunctionDef', 'AsyncFunctionDef'):
+            inner = node.name + '()'
+            ok, lead = own_line(node.body[0])
+            if ok:  # each call gets its own id, so the viewer can tell calls (and recursion levels) apart
+                add(top(node.body[0]) - 1, lead + '__fid__ = __newframe__()')
+        elif kind == 'ClassDef':
+            inner = node.name
+        for field in ('body', 'orelse', 'finalbody'):
+            b = getattr(node, field, None)
+            if isinstance(b, list) and b:  # Brython has no ast.stmt base class; these fields only hold statements
+                body(b, inner)
+        for h in getattr(node, 'handlers', None) or []:
+            body(h.body, inner)
+        for c in getattr(node, 'cases', None) or []:
+            body(c.body, inner)
+    body(ast.parse(code).body, '<module>')
+    for i, col, text in sorted(cuts, key=lambda c: (c[0], c[1]), reverse=True):
+        lines[i] = lines[i][:col] + text + lines[i][col:]
+    out = []
+    for i, line in enumerate(lines):
+        out.extend(before.get(i, []))
+        out.append(line)
+    return '\n'.join(out)
+
+def _short(v):
+    if isinstance(v, types.FunctionType):
+        return 'function ' + v.__name__ + '()'
+    if isinstance(v, type):
+        return 'class ' + v.__name__
+    try:
+        r = repr(v)
+    except Exception:
+        r = '<%s>' % type(v).__name__
+    return r if len(r) <= 140 else r[:137] + '...'
+
+def _snap(d):
+    res = {}
+    for k in list(d.keys()):
+        if k.startswith('__') or k in ('input', 'open'):
+            continue
+        v = d[k]
+        if isinstance(v, types.ModuleType) or getattr(v, '__module__', None) == 'robot':
+            continue
+        res[k] = [type(v).__name__, _short(v)]
+    return res
+
+def step(code, stdin, fs_json):
+    FS.clear()
+    DIRS.clear()
+    FS.update(json.loads(fs_json))
+    out = io.StringIO()
+    lines = stdin.split('\n') if stdin else []
+    def _input(prompt=''):
+        out.write(str(prompt))
+        if not lines:
+            raise EOFError('EOF when reading a line: add input values in the Input box')
+        v = lines.pop(0)
+        out.write(v + '\n')
+        return v
+    steps = []
+    g = {'__name__': '__main__', 'input': _input, 'open': VFile}
+    deadline = time.perf_counter() + LIMIT
+    frames = [0]
+    pending = []
+    def __newframe__():
+        frames[0] += 1
+        return frames[0]
+    busy = [False]  # showing a value can call the learner's own __repr__, which must not record steps
+    def __ret__(v):
+        if not busy[0]:
+            busy[0] = True
+            try:
+                pending.append([type(v).__name__, _short(v)])
+            finally:
+                busy[0] = False
+        return v
+    def __step__(line, scope, loc):
+        if busy[0]:
+            return
+        if len(steps) >= MAX_STEPS:
+            raise _StopSteps()
+        if time.perf_counter() > deadline:
+            raise RunTooLong("Stopped: the program ran for more than %d seconds, so it probably has a loop that never ends." % LIMIT)
+        busy[0] = True
+        try:
+            s = {'line': line, 'fn': scope, 'fid': loc.get('__fid__', 0) if scope.endswith('()') else 0,
+                 'vars': _snap(loc), 'out': len(out.getvalue())}
+            if pending:
+                s['ret'] = pending[-1]
+                del pending[:]
+            if scope != '<module>':
+                s['globals'] = _snap(g)
+            steps.append(s)
+        finally:
+            busy[0] = False
+    g['__step__'] = __step__
+    g['__newframe__'] = __newframe__
+    g['__ret__'] = __ret__
+    res = {'err': '', 'truncated': False, 'steps': steps}
+    try:
+        src = _instrument(code)
+    except SyntaxError as e:
+        res['err'] = 'SyntaxError: %s (line %s)' % (e.msg, e.lineno)
+        res['out'] = ''
+        steps.append({'line': 0, 'fn': '<module>', 'vars': {}, 'out': 0, 'end': True})
+        return json.dumps(res)
+    old = sys.stdout, sys.stderr
+    sys.stdout = sys.stderr = out
+    try:
+        exec(src, g)
+    except _StopSteps:
+        res['truncated'] = True
+    except SystemExit:
+        pass
+    except BaseException as e:
+        res['err'] = str(e) if isinstance(e, RunTooLong) else '%s: %s' % (type(e).__name__, e)
+    finally:
+        sys.stdout, sys.stderr = old
+    last = {'line': 0, 'fn': '<module>', 'fid': 0, 'vars': _snap(g), 'out': len(out.getvalue()), 'end': True}
+    if pending:
+        last['ret'] = pending[-1]
+    steps.append(last)
+    res['out'] = out.getvalue()
+    res['fs'] = FS
+    return json.dumps(res)
+
+window.pyRun = run
+window.pyStep = step
+# extra modules a page provides as {name: source}, e.g. the story page's robot
+for _name, _src in json.loads(getattr(window, 'pqModules', None) or '{}').items():
+    _mod = types.ModuleType(_name)
+    exec(_src, _mod.__dict__)
+    sys.modules[_name] = _mod
+window.pqPyReady()
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/mode/sql/sql.min.js"></script>
+<script>
+const R = String.raw;
+
+/* ---------- sample data ---------- */
+const SEED_SQL = R`
+CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE, city TEXT, joined TEXT);
+INSERT INTO customers VALUES
+ (1,'Alice Martin','alice@mail.com','Paris','2024-01-15'),(2,'Bruno Silva','bruno@mail.com','Lyon','2024-02-03'),
+ (3,'Chloe Dubois','chloe@mail.com','Paris','2024-03-21'),(4,'David Kim','david@mail.com','Marseille','2024-04-10'),
+ (5,'Emma Rossi','emma@mail.com','Lyon','2024-05-05'),(6,'Farid Haddad','farid@mail.com',NULL,'2024-06-18'),
+ (7,'Grace Lee','grace@mail.com','Bordeaux','2024-07-01'),(8,'Hugo Bernard','hugo@mail.com','Paris','2024-08-12'),
+ (9,'Ines Moreau','ines@mail.com','Lyon','2024-09-30'),(10,'Jules Petit','jules@mail.com','Nantes','2024-10-22');
+CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, category TEXT, price REAL, stock INTEGER);
+INSERT INTO products VALUES
+ (1,'Laptop Pro 14','Electronics',1299.00,12),(2,'Wireless Mouse','Electronics',29.90,150),(3,'USB-C Hub','Electronics',49.00,80),
+ (4,'Noise-Cancelling Headphones','Electronics',249.00,35),(5,'Standing Desk','Furniture',499.00,8),(6,'Ergonomic Chair','Furniture',349.00,15),
+ (7,'Desk Lamp','Furniture',39.90,60),(8,'Python Crash Course','Books',35.00,40),(9,'SQL Cookbook','Books',45.00,25),
+ (10,'Clean Code','Books',38.50,30),(11,'Coffee Beans 1kg','Grocery',18.90,100),(12,'Green Tea Box','Grocery',9.50,200);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER REFERENCES customers(id), order_date TEXT, status TEXT);
+INSERT INTO orders VALUES
+ (1,1,'2025-01-05','delivered'),(2,2,'2025-01-12','delivered'),(3,1,'2025-01-20','delivered'),(4,3,'2025-02-02','delivered'),
+ (5,4,'2025-02-14','cancelled'),(6,5,'2025-02-20','delivered'),(7,2,'2025-03-03','shipped'),(8,6,'2025-03-09','delivered'),
+ (9,7,'2025-03-15','delivered'),(10,8,'2025-03-28','pending'),(11,3,'2025-04-02','delivered'),(12,1,'2025-04-11','shipped'),
+ (13,5,'2025-04-19','cancelled'),(14,7,'2025-04-25','delivered'),(15,8,'2025-05-03','delivered');
+CREATE TABLE order_items (order_id INTEGER REFERENCES orders(id), product_id INTEGER REFERENCES products(id), qty INTEGER);
+INSERT INTO order_items VALUES
+ (1,1,1),(1,2,1),(2,8,1),(2,9,1),(3,11,3),(4,5,1),(4,7,2),(5,4,1),(6,2,2),(6,3,1),(7,6,1),(8,12,4),(8,11,1),
+ (9,1,1),(9,4,1),(10,10,2),(11,3,2),(11,2,1),(12,9,1),(12,8,1),(12,10,1),(13,5,1),(14,7,1),(14,12,2),(15,4,1),(15,11,2);
+CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT, title TEXT, manager_id INTEGER REFERENCES employees(id), salary INTEGER, dept TEXT);
+INSERT INTO employees VALUES
+ (1,'Sofia Laurent','CEO',NULL,180000,'Exec'),(2,'Marc Durand','CTO',1,150000,'Tech'),(3,'Lea Fontaine','CFO',1,140000,'Finance'),
+ (4,'Tom Girard','Lead Engineer',2,95000,'Tech'),(5,'Nina Roux','Data Analyst',3,62000,'Finance'),(6,'Paul Lambert','Engineer',4,72000,'Tech'),
+ (7,'Zoe Mercier','Engineer',4,70000,'Tech'),(8,'Yann Bonnet','Accountant',3,55000,'Finance');
+`;
+
+const SEED_FS = {
+  "sales.csv": R`date,region,product,units,unit_price
+2025-01-03,North,Widget,10,2.50
+2025-01-03,South,Gadget,4,12.00
+2025-01-04,East,Widget,7,2.50
+2025-01-05,North,Gizmo,3,20.00
+2025-01-05,West,Gadget,6,12.00
+2025-01-06,South,Widget,12,2.50
+2025-01-07,East,Gizmo,2,20.00
+2025-01-08,West,Widget,9,2.50
+2025-01-08,North,Gadget,5,12.00
+2025-01-09,South,Gizmo,1,20.00
+`,
+  "notes.txt": "buy coffee beans\ncall the plumber\nfinish the sql chapter\nwater the plants\n",
+  "config.json": JSON.stringify({app:"daily-report",version:1,debug:true,recipients:["ops@example.com"],schedule:{hour:9,minute:0}}, null, 2) + "\n",
+  "server.log": R`2025-03-01 08:58:12 INFO Service started
+2025-03-01 09:02:45 ERROR Database timeout
+2025-03-01 09:15:02 WARNING Slow response 2300ms
+2025-03-01 09:31:40 ERROR Database timeout
+2025-03-01 10:05:11 INFO Backup complete
+2025-03-01 10:12:09 ERROR Payment gateway unreachable
+2025-03-01 10:44:30 ERROR Database timeout
+2025-03-01 11:01:00 INFO Health check ok
+2025-03-01 11:20:15 ERROR Disk usage above 90%
+2025-03-01 11:22:47 WARNING Retrying job 42
+2025-03-01 11:59:59 ERROR Payment gateway unreachable
+`,
+  "inbox/IMG 2025-03-05 Beach.JPG": "(photo data)",
+  "inbox/IMG 2025-03-07 Sunset Walk.JPG": "(photo data)",
+  "inbox/IMG 2025-04-01 Office Party.jpeg": "(photo data)",
+  "inbox/readme.txt": "Drop holiday photos here.\n",
+  "customers.csv": R`name,email,plan,renewal
+Alice Martin,alice@mail.com,Pro,2025-11-30
+Bruno Silva,bruno@mail.com,Basic,2025-11-15
+Chloe Dubois,chloe@mail.com,Pro,2026-01-10
+`,
+  "template.txt": "Hello $name,\n\nYour $plan plan renews on $renewal.\nReply to this email if you have any questions.\n\nThe Team\n",
+  "orders_raw.csv": R`order_id,customer,amount,date
+1001, Alice Martin ,120.50,2025-03-01
+1002,Bruno Silva,abc,2025-03-01
+1003,Chloe Dubois,89.90,2025-03-02
+1004,,45.00,2025-03-02
+1005,alice martin,60.00,2025-03-03
+1006,David Kim,250.00,not-a-date
+1007,Emma Rossi,15.25,2025-03-04
+1001, Alice Martin ,120.50,2025-03-01
+`
+};
+
+const tbl = n => Array.from({length:10},(_,i)=>`${n} x ${i+1} = ${n*(i+1)}`).join("\n");
+const fizz = n => Array.from({length:n},(_,i)=>{const k=i+1;return k%15===0?"FizzBuzz":k%3===0?"Fizz":k%5===0?"Buzz":String(k)}).join("\n");
+
+/* ---------- curriculum ---------- */
+const TRACKS = [
+  {id:"py", name:"Python", cls:"t-py"},
+  {id:"auto", name:"Automation", cls:"t-auto"},
+  {id:"sql", name:"SQL", cls:"t-sql"},
+];
+
+const LESSONS = [
+/* ===== PYTHON ===== */
+{id:"py-hello", track:"py", mod:"Foundations", title:"Your first program", xp:10,
+body:R`A Python program is a list of instructions run from top to bottom. The most useful instruction to start with is <code>print()</code>, which writes text to the output.
+
+~~~
+print("Hi there")
+print(2 + 3)
+~~~
+Text goes inside quotes and is called a <b>string</b>. Numbers do not need quotes. Lines starting with <code>#</code> are comments: Python ignores them.`,
+task:`Print exactly <code>Hello, World!</code>`,
+hint:`Use print with the text in double quotes. Mind the comma and the exclamation mark.`,
+starter:R`# Write your first line of Python below
+`,
+solution:R`print("Hello, World!")`,
+test:R`assert _out.strip() == "Hello, World!", "Expected the output to be exactly: Hello, World!"`},
+
+{id:"py-vars", track:"py", mod:"Foundations", title:"Variables and types", xp:10,
+body:R`A variable is a name that points at a value. You create one with <code>=</code>.
+
+~~~
+language = "Python"     # str  (text)
+year = 1991             # int  (whole number)
+version = 3.12          # float (decimal number)
+is_fun = True           # bool (True or False)
+print(type(year))       # <class 'int'>
+~~~
+Names use lowercase words joined by underscores. Python decides the type from the value, and <code>type()</code> tells you what it picked.`,
+task:`Create <code>city</code> set to <code>"Lyon"</code>, <code>population</code> set to the integer <code>522000</code> and <code>is_capital</code> set to <code>False</code>. Then print the type of <code>population</code>.`,
+hint:`Booleans are written True and False with a capital letter, no quotes.`,
+starter:R`# Create your three variables here
+
+`,
+solution:R`city = "Lyon"
+population = 522000
+is_capital = False
+print(type(population))`,
+test:R`assert city == "Lyon", "city should be the string 'Lyon'"
+assert population == 522000 and type(population) is int, "population should be the integer 522000"
+assert is_capital is False, "is_capital should be False"
+assert "int" in _out, "Print type(population)"`},
+
+{id:"py-math", track:"py", mod:"Foundations", title:"Numbers and operators", xp:10,
+body:R`Python is a good calculator.
+
+~~~
+7 + 2    # 9
+7 - 2    # 5
+7 * 2    # 14
+7 / 2    # 3.5   true division always gives a float
+7 // 2   # 3     floor division drops the remainder
+7 % 2    # 1     modulo is the remainder
+7 ** 2   # 49    power
+round(3.14159, 2)  # 3.14
+~~~
+<code>//</code> and <code>%</code> are the pair you use to split a quantity into units: hours and minutes, boxes and leftovers, pages and lines.`,
+task:`<code>total_seconds = 7384</code> is given. Compute <code>hours</code>, <code>minutes</code> and <code>seconds</code> (the remainder after hours and minutes) with <code>//</code> and <code>%</code>, then print them.`,
+hint:`hours = total_seconds // 3600. What is left over is total_seconds % 3600; split that into minutes the same way.`,
+starter:R`total_seconds = 7384
+
+hours =
+minutes =
+seconds =
+print(hours, minutes, seconds)
+`,
+solution:R`total_seconds = 7384
+hours = total_seconds // 3600
+minutes = total_seconds % 3600 // 60
+seconds = total_seconds % 60
+print(hours, minutes, seconds)`,
+test:R`assert (hours, minutes, seconds) == (2, 3, 4), "Expected 2 hours, 3 minutes, 4 seconds; got %r" % ((hours, minutes, seconds),)`},
+
+{id:"py-strings", track:"py", mod:"Foundations", title:"Working with strings", xp:15,
+body:R`Strings come with many methods. They never change the original string, they return a new one.
+
+~~~
+s = "  hello World  "
+s.strip()        # "hello World"   removes outer spaces
+s.upper()        # "  HELLO WORLD  "
+s.title()        # "  Hello World  "
+s.split()        # ["hello", "World"]
+"-".join(["a", "b"])   # "a-b"
+~~~
+Index and slice with square brackets. The first character is at index 0, the last at -1.
+
+~~~
+word = "Python"
+word[0]      # "P"
+word[-1]     # "n"
+word[0:3]    # "Pyt"
+~~~
+An <b>f-string</b> puts values inside text: <code>f"{name} is {age}"</code>.`,
+task:`From <code>full = "  grace HOPPER  "</code> build <code>clean = "Grace Hopper"</code> and <code>initials = "GH"</code>. Then print <code>Grace Hopper (GH)</code> with an f-string.`,
+hint:`strip() then title() gives the clean name. split() gives you the two words; take index 0 of each.`,
+starter:R`full = "  grace HOPPER  "
+
+clean =
+initials =
+print(f"...")
+`,
+solution:R`full = "  grace HOPPER  "
+clean = full.strip().title()
+words = clean.split()
+initials = words[0][0] + words[1][0]
+print(f"{clean} ({initials})")`,
+test:R`assert clean == "Grace Hopper", "clean should be 'Grace Hopper', got %r" % clean
+assert initials == "GH", "initials should be 'GH', got %r" % initials
+assert "Grace Hopper (GH)" in _out, "Print: Grace Hopper (GH)"`},
+
+{id:"py-input", track:"py", mod:"Foundations", title:"Reading input", xp:15,
+body:R`<code>input()</code> reads one line typed by the user and always returns a string. Convert it before doing maths.
+
+~~~
+name = input("Your name: ")
+age = int(input("Your age: "))
+print(f"{name} will be {age + 1} next year")
+~~~
+<code>int()</code> converts to a whole number and <code>float()</code> to a decimal. Here, the lines you type in the Input box are fed to <code>input()</code> one by one.`,
+task:`Read two whole numbers, one per line, and print their sum (just the number).`,
+hint:`a = int(input()) twice, then print(a + b). Prompts inside input() are fine, the checker ignores them.`,
+stdin:"12\n30",
+starter:R`a = input()
+b = input()
+print(a + b)   # this glues text together, fix it
+`,
+solution:R`a = int(input())
+b = int(input())
+print(a + b)`,
+io:[["12\n30","42"],["-5\n5","0"],["100\n250","350"]]},
+
+{id:"py-if", track:"py", mod:"Control flow", title:"Decisions with if", xp:15,
+body:R`<code>if</code> runs a block only when a condition is true. Python marks blocks with indentation (4 spaces), not braces.
+
+~~~
+temp = 31
+if temp >= 30:
+    print("Hot")
+elif temp >= 15:
+    print("Mild")
+else:
+    print("Cold")
+~~~
+Comparisons: <code>==  !=  &lt;  &lt;=  &gt;  &gt;=</code>. Combine them with <code>and</code>, <code>or</code>, <code>not</code>. Python checks the branches in order and runs the first one that matches.`,
+task:`Read a score (integer) and print its grade: <code>A</code> for 90 and up, <code>B</code> for 80 and up, <code>C</code> for 70 and up, <code>D</code> for 60 and up, otherwise <code>F</code>.`,
+hint:`Test from the highest threshold down with if / elif / else.`,
+stdin:"73",
+starter:R`score = int(input())
+
+`,
+solution:R`score = int(input())
+if score >= 90:
+    print("A")
+elif score >= 80:
+    print("B")
+elif score >= 70:
+    print("C")
+elif score >= 60:
+    print("D")
+else:
+    print("F")`,
+io:[["95","A"],["80","B"],["79","C"],["60","D"],["12","F"]]},
+
+{id:"py-for", track:"py", mod:"Control flow", title:"Loops with for", xp:15,
+body:R`A <code>for</code> loop repeats a block once per item.
+
+~~~
+for fruit in ["apple", "kiwi"]:
+    print(fruit)
+
+for i in range(3):        # 0, 1, 2
+    print(i)
+
+for i in range(1, 6, 2):  # 1, 3, 5   (start, stop, step)
+    print(i)
+~~~
+<code>range(stop)</code> never includes <code>stop</code> itself.`,
+task:`Read a number <code>n</code> and print its multiplication table from 1 to 10, one line each, in the form <code>7 x 3 = 21</code>.`,
+hint:`for i in range(1, 11): print(f"{n} x {i} = {n * i}")`,
+stdin:"7",
+starter:R`n = int(input())
+
+`,
+solution:R`n = int(input())
+for i in range(1, 11):
+    print(f"{n} x {i} = {n * i}")`,
+io:[["7",tbl(7)],["3",tbl(3)]]},
+
+{id:"py-while", track:"py", mod:"Control flow", title:"while, break and continue", xp:20,
+body:R`A <code>while</code> loop runs as long as its condition stays true. Make sure something inside changes, or it never stops (the page then stops it after 3 seconds).
+
+~~~
+count = 3
+while count > 0:
+    print(count)
+    count -= 1        # same as count = count - 1
+print("Lift off")
+~~~
+<code>break</code> leaves the loop now, <code>continue</code> jumps to the next round.
+
+~~~
+for n in range(10):
+    if n % 2 == 0:
+        continue      # skip even numbers
+    if n > 7:
+        break
+    print(n)          # 1 3 5 7
+~~~`,
+task:`FizzBuzz. Read <code>n</code>, then print the numbers 1 to n, but print <code>Fizz</code> for multiples of 3, <code>Buzz</code> for multiples of 5 and <code>FizzBuzz</code> for multiples of both.`,
+hint:`Check the "both" case (i % 15 == 0) first, otherwise multiples of 15 print Fizz. If you use continue, add 1 to i before it, or the loop never moves on.`,
+stdin:"15",
+starter:R`n = int(input())
+i = 1
+while i <= n:
+    # your logic here
+    i += 1
+`,
+solution:R`n = int(input())
+i = 1
+while i <= n:
+    if i % 15 == 0:
+        print("FizzBuzz")
+    elif i % 3 == 0:
+        print("Fizz")
+    elif i % 5 == 0:
+        print("Buzz")
+    else:
+        print(i)
+    i += 1`,
+io:[["15",fizz(15)],["5",fizz(5)],["31",fizz(31)]]},
+
+{id:"py-lists", track:"py", mod:"Data structures", title:"Lists", xp:20,
+body:R`A list holds an ordered sequence of values and can change.
+
+~~~
+nums = [4, 8, 15]
+nums.append(16)         # [4, 8, 15, 16]
+nums.insert(0, 1)       # [1, 4, 8, 15, 16]
+nums.remove(8)          # removes the first 8
+last = nums.pop()       # removes and returns 16
+len(nums), sum(nums), max(nums), min(nums)
+sorted(nums, reverse=True)
+15 in nums              # True
+~~~
+Build a new list by looping and appending:
+
+~~~
+big = []
+for n in nums:
+    if n > 5:
+        big.append(n)
+~~~`,
+task:`From <code>temps</code>, build <code>above</code> (temperatures strictly above 20, same order), <code>avg</code> (the average rounded to 1 decimal) and <code>hottest</code>.`,
+hint:`avg = round(sum(temps) / len(temps), 1)`,
+starter:R`temps = [18, 22, 25, 19, 30, 21, 17]
+
+above = []
+avg =
+hottest =
+print(above, avg, hottest)
+`,
+solution:R`temps = [18, 22, 25, 19, 30, 21, 17]
+above = []
+for t in temps:
+    if t > 20:
+        above.append(t)
+avg = round(sum(temps) / len(temps), 1)
+hottest = max(temps)
+print(above, avg, hottest)`,
+test:R`assert above == [22, 25, 30, 21], "above should be [22, 25, 30, 21], got %r" % (above,)
+assert avg == 21.7, "avg should be 21.7, got %r" % (avg,)
+assert hottest == 30, "hottest should be 30"`},
+
+{id:"py-dicts", track:"py", mod:"Data structures", title:"Dictionaries", xp:20,
+body:R`A dictionary maps keys to values. Lookups by key are instant.
+
+~~~
+ages = {"ada": 36, "linus": 28}
+ages["grace"] = 85          # add or update
+ages.get("bob", 0)          # 0, default when the key is missing
+"ada" in ages               # True
+for name, age in ages.items():
+    print(name, age)
+~~~
+Counting things is the classic use:
+
+~~~
+counts = {}
+for letter in "banana":
+    counts[letter] = counts.get(letter, 0) + 1
+# {'b': 1, 'a': 3, 'n': 2}
+~~~
+<code>max(d, key=d.get)</code> returns the key with the largest value.`,
+task:`Count how many times each word appears in <code>sentence</code> into a dict <code>counts</code>, and store the most frequent word in <code>top</code>.`,
+hint:`Loop over sentence.split() and use counts.get(word, 0) + 1.`,
+starter:R`sentence = "the cat and the dog and the bird"
+
+counts = {}
+
+top =
+print(counts, top)
+`,
+solution:R`sentence = "the cat and the dog and the bird"
+counts = {}
+for word in sentence.split():
+    counts[word] = counts.get(word, 0) + 1
+top = max(counts, key=counts.get)
+print(counts, top)`,
+test:R`assert counts == {"the": 3, "cat": 1, "and": 2, "dog": 1, "bird": 1}, "counts is not right: %r" % (counts,)
+assert top == "the", "top should be 'the'"`},
+
+{id:"py-sets", track:"py", mod:"Data structures", title:"Tuples and sets", xp:20,
+body:R`A <b>tuple</b> is a list that cannot change. It is used for fixed records and to return several values.
+
+~~~
+point = (3, 4)
+x, y = point            # unpacking
+~~~
+A <b>set</b> keeps unique values with no order. It removes duplicates and answers "is it in there?" fast.
+
+~~~
+tags = {"python", "sql", "python"}   # {'python', 'sql'}
+a = {1, 2, 3}; b = {2, 3, 4}
+a | b    # union        {1, 2, 3, 4}
+a & b    # intersection {2, 3}
+a - b    # difference   {1}
+~~~`,
+task:`From <code>emails</code>, build <code>unique</code> (a set of the distinct emails) and <code>domains</code> (a <b>sorted list</b> of the distinct domains, the part after <code>@</code>).`,
+hint:`set(emails) removes duplicates. email.split("@")[1] is the domain. sorted() turns a set into a sorted list.`,
+starter:R`emails = ["ana@gmail.com", "bob@work.io", "ana@gmail.com",
+          "cy@work.io", "dee@mail.fr", "bob@work.io"]
+
+unique =
+domains =
+print(unique, domains)
+`,
+solution:R`emails = ["ana@gmail.com", "bob@work.io", "ana@gmail.com",
+          "cy@work.io", "dee@mail.fr", "bob@work.io"]
+unique = set(emails)
+found = set()
+for e in unique:
+    found.add(e.split("@")[1])
+domains = sorted(found)
+print(unique, domains)`,
+test:R`assert isinstance(unique, set) and len(unique) == 4, "unique should be a set of 4 emails"
+assert domains == ["gmail.com", "mail.fr", "work.io"], "domains should be ['gmail.com', 'mail.fr', 'work.io'], got %r" % (domains,)`},
+
+{id:"py-comp", track:"py", mod:"Data structures", title:"Comprehensions", xp:20,
+body:R`A comprehension builds a list, set or dict in one line.
+
+~~~
+squares = [n * n for n in range(5)]            # [0, 1, 4, 9, 16]
+odds = [n for n in range(10) if n % 2]         # [1, 3, 5, 7, 9]
+upper = {w.upper() for w in ["a", "b", "a"]}   # {'A', 'B'}
+lengths = {w: len(w) for w in ["hi", "hey"]}   # {'hi': 2, 'hey': 3}
+~~~
+Read it as: <i>expression</i> for each item in the collection, optionally if a condition holds.`,
+task:`With comprehensions, build <code>even_squares</code> (squares of the even numbers in <code>nums</code>) and <code>lengths</code> (a dict from each name to its length).`,
+hint:`[n * n for n in nums if n % 2 == 0]`,
+starter:R`nums = list(range(1, 11))
+names = ["Ada", "Linus", "Grace", "Guido"]
+
+even_squares =
+lengths =
+print(even_squares, lengths)
+`,
+solution:R`nums = list(range(1, 11))
+names = ["Ada", "Linus", "Grace", "Guido"]
+even_squares = [n * n for n in nums if n % 2 == 0]
+lengths = {name: len(name) for name in names}
+print(even_squares, lengths)`,
+test:R`assert even_squares == [4, 16, 36, 64, 100], "even_squares should be [4, 16, 36, 64, 100]"
+assert lengths == {"Ada": 3, "Linus": 5, "Grace": 5, "Guido": 5}, "lengths is not right: %r" % (lengths,)`},
+
+{id:"py-func", track:"py", mod:"Functions", title:"Functions", xp:20,
+body:R`A function packages code under a name so you can reuse it. <code>return</code> sends a value back to the caller.
+
+~~~
+def area(width, height):
+    return width * height
+
+def greet(name, greeting="Hello"):     # default value
+    return f"{greeting}, {name}!"
+
+area(3, 4)              # 12
+greet("Ada")            # 'Hello, Ada!'
+greet("Bo", "Hi")       # 'Hi, Bo!'
+greet(name="Cy", greeting="Hey")   # keyword arguments
+~~~
+A function without <code>return</code> returns <code>None</code>. Printing is not returning: tests and other code can only use what you return.`,
+task:`Write <code>bmi(weight, height)</code> returning weight / height squared rounded to 1 decimal, <code>classify(b)</code> returning <code>"under"</code> (below 18.5), <code>"normal"</code> (below 25), <code>"over"</code> (below 30) or <code>"obese"</code>, and <code>greet(name, greeting="Hello")</code> returning <code>"Hello, Ada!"</code>.`,
+hint:`height ** 2 squares the height. classify is an if / elif chain that returns early.`,
+starter:R`def bmi(weight, height):
+    pass
+
+def classify(b):
+    pass
+
+def greet(name, greeting="Hello"):
+    pass
+
+print(bmi(70, 1.75), classify(bmi(70, 1.75)), greet("Ada"))
+`,
+solution:R`def bmi(weight, height):
+    return round(weight / height ** 2, 1)
+
+def classify(b):
+    if b < 18.5:
+        return "under"
+    elif b < 25:
+        return "normal"
+    elif b < 30:
+        return "over"
+    return "obese"
+
+def greet(name, greeting="Hello"):
+    return f"{greeting}, {name}!"
+
+print(bmi(70, 1.75), classify(bmi(70, 1.75)), greet("Ada"))`,
+test:R`assert bmi(70, 1.75) == 22.9, "bmi(70, 1.75) should be 22.9, got %r" % (bmi(70, 1.75),)
+assert bmi(50, 1.8) == 15.4, "bmi(50, 1.8) should be 15.4"
+for b, want in [(18.4, "under"), (18.5, "normal"), (24.9, "normal"), (29.99, "over"), (31, "obese")]:
+    assert classify(b) == want, "classify(%r) should be %r, got %r" % (b, want, classify(b))
+assert greet("Ada") == "Hello, Ada!", "greet('Ada') should return 'Hello, Ada!'"
+assert greet("Bo", "Hi") == "Hi, Bo!", "greet('Bo', 'Hi') should return 'Hi, Bo!'"`},
+
+{id:"py-args", track:"py", mod:"Functions", title:"*args, **kwargs and lambda", xp:25,
+body:R`<code>*args</code> collects any number of positional arguments into a tuple, <code>**kwargs</code> collects keyword arguments into a dict.
+
+~~~
+def show(*args, **kwargs):
+    print(args, kwargs)
+
+show(1, 2, color="red")   # (1, 2) {'color': 'red'}
+~~~
+A <code>lambda</code> is a tiny unnamed function, perfect as a sort key:
+
+~~~
+people = [("Ada", 36), ("Bo", 22)]
+sorted(people, key=lambda p: p[1])        # youngest first
+max(people, key=lambda p: p[1])           # ('Ada', 36)
+~~~`,
+task:`Write <code>total(*nums)</code> returning the sum of all arguments, <code>describe(**info)</code> returning <code>"key=value"</code> pairs joined by <code>", "</code> in sorted key order, and build <code>by_age</code>: <code>people</code> sorted by age, youngest first.`,
+hint:`", ".join(f"{k}={info[k]}" for k in sorted(info))`,
+starter:R`people = [("Ada", 36), ("Linus", 28), ("Grace", 85), ("Guido", 69)]
+
+def total(*nums):
+    pass
+
+def describe(**info):
+    pass
+
+by_age =
+print(total(1, 2, 3), describe(lang="py", level=3), by_age)
+`,
+solution:R`people = [("Ada", 36), ("Linus", 28), ("Grace", 85), ("Guido", 69)]
+
+def total(*nums):
+    return sum(nums)
+
+def describe(**info):
+    return ", ".join(f"{k}={info[k]}" for k in sorted(info))
+
+by_age = sorted(people, key=lambda p: p[1])
+print(total(1, 2, 3), describe(lang="py", level=3), by_age)`,
+test:R`assert total() == 0 and total(5) == 5 and total(1, 2, 3, 4) == 10, "total should add all its arguments"
+assert describe(lang="py", level=3) == "lang=py, level=3", "describe(lang='py', level=3) should return 'lang=py, level=3'"
+assert describe(b=2, a=1) == "a=1, b=2", "describe should sort keys"
+assert [p[0] for p in by_age] == ["Linus", "Ada", "Guido", "Grace"], "by_age order is wrong: %r" % (by_age,)`},
+
+{id:"py-rec", track:"py", mod:"Functions", title:"Recursion", xp:25,
+body:R`A recursive function calls itself on a smaller piece of the problem, and stops at a <b>base case</b>.
+
+~~~
+def countdown(n):
+    if n == 0:            # base case
+        print("Go")
+        return
+    print(n)
+    countdown(n - 1)      # smaller problem
+~~~
+Recursion shines on nested data such as folders, menus or JSON. <code>isinstance(x, list)</code> tells you whether to go deeper.`,
+task:`Write <code>factorial(n)</code> recursively (factorial of 0 is 1) and <code>flatten(items)</code>, which turns any nested list into a flat list.`,
+hint:`flatten: for each item, if it is a list, extend the result with flatten(item), otherwise append it.`,
+starter:R`def factorial(n):
+    pass
+
+def flatten(items):
+    pass
+
+print(factorial(5), flatten([1, [2, [3, 4]], 5]))
+`,
+solution:R`def factorial(n):
+    if n == 0:
+        return 1
+    return n * factorial(n - 1)
+
+def flatten(items):
+    out = []
+    for item in items:
+        if isinstance(item, list):
+            out.extend(flatten(item))
+        else:
+            out.append(item)
+    return out
+
+print(factorial(5), flatten([1, [2, [3, 4]], 5]))`,
+test:R`assert factorial(0) == 1 and factorial(1) == 1 and factorial(5) == 120 and factorial(10) == 3628800, "factorial gives wrong results"
+assert flatten([1, [2, [3, 4]], 5]) == [1, 2, 3, 4, 5], "flatten([1, [2, [3, 4]], 5]) should be [1, 2, 3, 4, 5]"
+assert flatten([]) == [] and flatten([[[]], ["a"]]) == ["a"], "flatten should handle empty lists"`},
+
+{id:"py-errors", track:"py", mod:"Robust code", title:"Errors and exceptions", xp:25,
+body:R`When something goes wrong Python raises an <b>exception</b>. Catch the ones you expect with <code>try / except</code>.
+
+~~~
+try:
+    n = int("abc")
+except ValueError as e:
+    print("Not a number:", e)
+else:
+    print("Parsed", n)       # runs only when no error
+finally:
+    print("Always runs")
+~~~
+Raise your own to reject bad input early:
+
+~~~
+def withdraw(balance, amount):
+    if amount > balance:
+        raise ValueError("insufficient funds")
+    return balance - amount
+~~~
+Catch specific exceptions. A bare <code>except:</code> also hides your own bugs.`,
+task:`Write <code>safe_divide(a, b)</code> returning <code>a / b</code>, or <code>None</code> when b is zero (catch <code>ZeroDivisionError</code>). Write <code>parse_age(text)</code> returning an int, and raising <code>ValueError</code> for text that is not a number or for a negative age.`,
+hint:`int("abc") already raises ValueError. After converting, raise ValueError yourself if the age is below 0.`,
+starter:R`def safe_divide(a, b):
+    pass
+
+def parse_age(text):
+    pass
+
+print(safe_divide(10, 4), safe_divide(1, 0), parse_age("42"))
+`,
+solution:R`def safe_divide(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None
+
+def parse_age(text):
+    age = int(text)
+    if age < 0:
+        raise ValueError("age cannot be negative")
+    return age
+
+print(safe_divide(10, 4), safe_divide(1, 0), parse_age("42"))`,
+test:R`assert safe_divide(10, 4) == 2.5, "safe_divide(10, 4) should be 2.5"
+assert safe_divide(1, 0) is None, "safe_divide(1, 0) should return None"
+assert parse_age("42") == 42, "parse_age('42') should return 42"
+for bad in ["abc", "-3", ""]:
+    try:
+        parse_age(bad)
+    except ValueError:
+        continue
+    raise AssertionError("parse_age(%r) should raise ValueError" % bad)`},
+
+{id:"py-files", track:"py", mod:"Robust code", title:"Reading and writing files", xp:25,
+body:R`<code>open()</code> gives you a file. Always use <code>with</code>: it closes the file for you.
+
+~~~
+with open("notes.txt") as f:
+    text = f.read()              # whole file as one string
+
+with open("notes.txt") as f:
+    for line in f:               # one line at a time
+        print(line.strip())
+
+with open("out.txt", "w") as f:  # "w" overwrites, "a" appends
+    f.write("first line\n")
+~~~
+In this platform files live in a sandbox disk. Lessons start from a fresh copy of the sample files (see the Files tab), so you cannot break anything.`,
+task:`Read <code>notes.txt</code> and write <code>todo.txt</code> with each non-empty line numbered: <code>1. buy coffee beans</code>, <code>2. ...</code>. Store the number of tasks in <code>line_count</code>.`,
+hint:`enumerate(lines, start=1) gives you the number and the line together.`,
+starter:R`with open("notes.txt") as f:
+    lines =
+
+line_count =
+
+with open("todo.txt", "w") as out:
+    pass
+`,
+solution:R`with open("notes.txt") as f:
+    lines = [line.strip() for line in f if line.strip()]
+
+line_count = len(lines)
+
+with open("todo.txt", "w") as out:
+    for i, line in enumerate(lines, start=1):
+        out.write(f"{i}. {line}\n")
+print(f"Wrote {line_count} tasks")`,
+test:R`want = ["%d. %s" % (i, l) for i, l in enumerate([x for x in _fs["notes.txt"].splitlines() if x.strip()], 1)]
+assert "todo.txt" in _fs, "todo.txt was not created"
+got = [l for l in _fs["todo.txt"].splitlines() if l.strip()]
+assert got == want, "todo.txt should contain:\n" + "\n".join(want) + "\n\nIt contains:\n" + _fs["todo.txt"]
+assert line_count == 4, "line_count should be 4"`},
+
+{id:"py-modules", track:"py", mod:"Robust code", title:"Modules and the standard library", xp:25,
+body:R`Python ships with a large standard library. <code>import</code> brings a module in.
+
+~~~
+import math
+from datetime import datetime, date, timedelta
+from collections import Counter
+import random
+
+math.sqrt(16)                                # 4.0
+Counter("banana").most_common(1)             # [('a', 3)]
+d = datetime.strptime("2026-03-01", "%Y-%m-%d").date()
+d + timedelta(days=30)                       # date(2026, 3, 31)
+(date(2026, 3, 1) - date(2026, 1, 1)).days   # 59
+random.choice(["a", "b"])
+~~~
+Before writing a helper, check whether the standard library already has it. It usually does.`,
+task:`Write <code>days_between(a, b)</code> taking two <code>"YYYY-MM-DD"</code> strings and returning the absolute number of days between them, and <code>most_common_letter(text)</code> returning the most frequent letter, ignoring spaces.`,
+hint:`Counter(text.replace(" ", "")).most_common(1)[0][0]`,
+starter:R`from datetime import datetime
+from collections import Counter
+
+def days_between(a, b):
+    pass
+
+def most_common_letter(text):
+    pass
+
+print(days_between("2026-01-01", "2026-03-01"), most_common_letter("hello world"))
+`,
+solution:R`from datetime import datetime
+from collections import Counter
+
+def days_between(a, b):
+    fmt = "%Y-%m-%d"
+    return abs((datetime.strptime(b, fmt) - datetime.strptime(a, fmt)).days)
+
+def most_common_letter(text):
+    return Counter(text.replace(" ", "")).most_common(1)[0][0]
+
+print(days_between("2026-01-01", "2026-03-01"), most_common_letter("hello world"))`,
+test:R`assert days_between("2026-01-01", "2026-03-01") == 59, "days_between('2026-01-01', '2026-03-01') should be 59"
+assert days_between("2026-03-01", "2026-01-01") == 59, "days_between should not be negative"
+assert days_between("2024-02-28", "2024-03-01") == 2, "2024 is a leap year: expected 2"
+assert most_common_letter("hello world") == "l", "most_common_letter('hello world') should be 'l'"
+assert most_common_letter("a bb  b") == "b", "spaces should be ignored"`},
+
+{id:"py-classes", track:"py", mod:"Objects", title:"Classes", xp:30,
+body:R`A class is a blueprint that bundles data (attributes) with behaviour (methods). <code>__init__</code> runs when you create an object; <code>self</code> is the object itself.
+
+~~~
+class Counter:
+    def __init__(self, start=0):
+        self.value = start
+
+    def increment(self, step=1):
+        self.value += step
+        return self.value
+
+c = Counter()
+c.increment()      # 1
+c.increment(5)     # 6
+c.value            # 6
+~~~`,
+task:`Write a class <code>BankAccount(owner, balance=0)</code> with <code>deposit(amount)</code> and <code>withdraw(amount)</code>. Both raise <code>ValueError</code> for amounts of 0 or less; <code>withdraw</code> also raises it when the balance is too low. Both return the new balance.`,
+hint:`Validate first, then change self.balance, then return it.`,
+starter:R`class BankAccount:
+    def __init__(self, owner, balance=0):
+        pass
+
+acct = BankAccount("Ada", 100)
+`,
+solution:R`class BankAccount:
+    def __init__(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError("deposit must be positive")
+        self.balance += amount
+        return self.balance
+
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError("withdrawal must be positive")
+        if amount > self.balance:
+            raise ValueError("insufficient funds")
+        self.balance -= amount
+        return self.balance
+
+acct = BankAccount("Ada", 100)
+print(acct.deposit(50), acct.withdraw(30))`,
+test:R`a = BankAccount("Ada", 100)
+assert a.owner == "Ada" and a.balance == 100, "owner and balance should be stored"
+assert BankAccount("Bo").balance == 0, "balance should default to 0"
+assert a.deposit(50) == 150 and a.withdraw(30) == 120 and a.balance == 120, "deposit/withdraw should return the new balance"
+for call in (lambda: a.withdraw(1000), lambda: a.deposit(0), lambda: a.withdraw(-5)):
+    try:
+        call()
+    except ValueError:
+        continue
+    raise AssertionError("Invalid amounts and overdrafts must raise ValueError")
+assert a.balance == 120, "a failed operation must not change the balance"`},
+
+{id:"py-inherit", track:"py", mod:"Objects", title:"Inheritance", xp:30,
+body:R`A subclass reuses everything from its parent and overrides what differs. <code>super()</code> calls the parent version.
+
+~~~
+class Animal:
+    def __init__(self, name):
+        self.name = name
+    def speak(self):
+        return "..."
+    def __str__(self):              # used by print() and str()
+        return f"{self.name} says {self.speak()}"
+
+class Dog(Animal):
+    def speak(self):
+        return "Woof"
+
+print(Dog("Rex"))     # Rex says Woof
+~~~`,
+task:`Write a base class <code>Shape</code> with <code>area()</code> raising <code>NotImplementedError</code> and <code>describe()</code> returning <code>f"{self.name} with area {self.area():.2f}"</code>. Then <code>Rectangle(w, h)</code> and <code>Circle(r)</code> subclasses with <code>name</code> set to <code>"Rectangle"</code> / <code>"Circle"</code>.`,
+hint:`Set self.name inside each subclass __init__. Circle area is math.pi * r ** 2.`,
+starter:R`import math
+
+class Shape:
+    name = "Shape"
+
+class Rectangle(Shape):
+    pass
+
+class Circle(Shape):
+    pass
+`,
+solution:R`import math
+
+class Shape:
+    name = "Shape"
+    def area(self):
+        raise NotImplementedError
+    def describe(self):
+        return f"{self.name} with area {self.area():.2f}"
+
+class Rectangle(Shape):
+    name = "Rectangle"
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+    def area(self):
+        return self.w * self.h
+
+class Circle(Shape):
+    name = "Circle"
+    def __init__(self, r):
+        self.r = r
+    def area(self):
+        return math.pi * self.r ** 2
+
+print(Rectangle(3, 4).describe(), Circle(2).describe())`,
+test:R`assert issubclass(Rectangle, Shape) and issubclass(Circle, Shape), "Rectangle and Circle must inherit from Shape"
+assert Rectangle(3, 4).area() == 12, "Rectangle(3, 4).area() should be 12"
+assert round(Circle(1).area(), 4) == 3.1416, "Circle(1).area() should be pi"
+assert Circle(2).describe() == "Circle with area 12.57", "Circle(2).describe() gave %r" % Circle(2).describe()
+assert Rectangle(2, 5).describe() == "Rectangle with area 10.00", "Rectangle(2, 5).describe() gave %r" % Rectangle(2, 5).describe()
+try:
+    Shape().area()
+    raise AssertionError("Shape().area() should raise NotImplementedError")
+except NotImplementedError:
+    pass`},
+
+{id:"py-dunder", track:"py", mod:"Objects", title:"Special methods", xp:30,
+body:R`Methods with double underscores (dunders) let your objects work with Python operators and built-ins.
+
+~~~
+class Money:
+    def __init__(self, cents):
+        self.cents = cents
+    def __add__(self, other):          # a + b
+        return Money(self.cents + other.cents)
+    def __eq__(self, other):           # a == b
+        return self.cents == other.cents
+    def __lt__(self, other):           # a < b, enables sorted()
+        return self.cents < other.cents
+    def __repr__(self):                # how it prints in lists and the console
+        return f"Money({self.cents})"
+~~~
+Others: <code>__len__</code>, <code>__abs__</code>, <code>__mul__</code>, <code>__contains__</code>, <code>__iter__</code>.`,
+task:`Write <code>Vector(x, y)</code> supporting <code>v + w</code>, <code>v * 3</code> (scale by a number), <code>v == w</code>, <code>abs(v)</code> (its length) and a repr like <code>Vector(1, 2)</code>.`,
+hint:`abs(v) calls __abs__; return math.hypot(self.x, self.y).`,
+starter:R`import math
+
+class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+`,
+solution:R`import math
+
+class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __add__(self, other):
+        return Vector(self.x + other.x, self.y + other.y)
+    def __mul__(self, k):
+        return Vector(self.x * k, self.y * k)
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
+    def __abs__(self):
+        return math.hypot(self.x, self.y)
+    def __repr__(self):
+        return f"Vector({self.x}, {self.y})"
+
+print(Vector(1, 2) + Vector(3, 4), abs(Vector(3, 4)))`,
+test:R`assert Vector(1, 2) + Vector(3, 4) == Vector(4, 6), "Vector(1, 2) + Vector(3, 4) should equal Vector(4, 6)"
+assert Vector(1, 2) * 3 == Vector(3, 6), "Vector(1, 2) * 3 should equal Vector(3, 6)"
+assert not (Vector(1, 2) == Vector(2, 1)), "== should compare both coordinates"
+assert abs(Vector(3, 4)) == 5, "abs(Vector(3, 4)) should be 5"
+assert repr(Vector(1, 2)) == "Vector(1, 2)", "repr should be 'Vector(1, 2)', got %r" % repr(Vector(1, 2))`},
+
+{id:"py-gen", track:"py", mod:"Pro tools", title:"Generators", xp:30,
+body:R`A function with <code>yield</code> becomes a generator: it produces values one at a time and pauses between them. It can even be infinite, because nothing is computed until you ask.
+
+~~~
+def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+list(countdown(3))        # [3, 2, 1]
+
+from itertools import islice
+def naturals():
+    n = 1
+    while True:
+        yield n
+        n += 1
+list(islice(naturals(), 5))   # [1, 2, 3, 4, 5]
+~~~
+Generator expressions use parentheses: <code>sum(x * x for x in range(1000))</code> never builds a list.`,
+task:`Write <code>fib()</code>, an infinite generator of Fibonacci numbers starting 0, 1, 1, 2, ... and <code>chunked(items, size)</code>, a generator yielding lists of at most <code>size</code> items.`,
+hint:`fib: a, b = 0, 1; loop: yield a; a, b = b, a + b. chunked: for i in range(0, len(items), size): yield items[i:i + size]`,
+starter:R`from itertools import islice
+
+def fib():
+    pass
+
+def chunked(items, size):
+    pass
+
+print(list(islice(fib(), 10)), list(chunked([1, 2, 3, 4, 5, 6, 7], 3)))
+`,
+solution:R`from itertools import islice
+
+def fib():
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+def chunked(items, size):
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+
+print(list(islice(fib(), 10)), list(chunked([1, 2, 3, 4, 5, 6, 7], 3)))`,
+test:R`from itertools import islice as _isl
+g = fib()
+assert hasattr(g, "__next__"), "fib() should return a generator (use yield)"
+assert list(_isl(g, 10)) == [0, 1, 1, 2, 3, 5, 8, 13, 21, 34], "fib() sequence is wrong"
+c = chunked([1, 2, 3, 4, 5, 6, 7], 3)
+assert hasattr(c, "__next__"), "chunked should be a generator (use yield)"
+assert list(c) == [[1, 2, 3], [4, 5, 6], [7]], "chunked([1..7], 3) should give [[1, 2, 3], [4, 5, 6], [7]]"`},
+
+{id:"py-deco", track:"py", mod:"Pro tools", title:"Decorators", xp:35,
+body:R`A decorator wraps a function to add behaviour without touching its code: logging, timing, retries, caching, permission checks.
+
+~~~
+import functools
+
+def shout(func):
+    @functools.wraps(func)          # keeps the original name and docstring
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        return result.upper()
+    return wrapper
+
+@shout                              # same as hello = shout(hello)
+def hello(name):
+    return f"hello {name}"
+
+hello("ada")    # 'HELLO ADA'
+~~~
+Functions are objects, so the wrapper can carry attributes: <code>wrapper.calls = 0</code>.`,
+task:`Write a decorator <code>count_calls</code> that counts how many times the decorated function runs, exposed as <code>func.calls</code>, keeps the original <code>__name__</code>, and still returns the result.`,
+hint:`Set wrapper.calls = 0 before returning wrapper, and do wrapper.calls += 1 inside it.`,
+starter:R`import functools
+
+def count_calls(func):
+    pass
+
+@count_calls
+def add(a, b):
+    return a + b
+
+add(1, 2); add(3, 4)
+print(add.calls)
+`,
+solution:R`import functools
+
+def count_calls(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        wrapper.calls += 1
+        return func(*args, **kwargs)
+    wrapper.calls = 0
+    return wrapper
+
+@count_calls
+def add(a, b):
+    return a + b
+
+add(1, 2); add(3, 4)
+print(add.calls)`,
+test:R`@count_calls
+def _mul(a, b=2):
+    return a * b
+assert _mul.calls == 0, "calls should start at 0"
+assert _mul(3) == 6 and _mul(2, b=5) == 10, "the decorated function must still return its result"
+assert _mul.calls == 2, "calls should be 2 after two calls, got %r" % _mul.calls
+assert _mul.__name__ == "_mul", "use functools.wraps to keep the function name"`},
+
+{id:"py-regex", track:"py", mod:"Pro tools", title:"Regular expressions", xp:35,
+body:R`Regular expressions describe text patterns. The <code>re</code> module finds, extracts and replaces them.
+
+~~~
+import re
+re.findall(r"\d+", "3 cats, 12 dogs")            # ['3', '12']
+re.search(r"(\w+)@(\w+)\.com", "mail bo@acme.com").group(2)   # 'acme'
+re.sub(r"\s+", " ", "too    many   spaces")     # 'too many spaces'
+~~~
+Building blocks: <code>\d</code> digit, <code>\w</code> letter/digit/underscore, <code>\s</code> whitespace, <code>.</code> any character, <code>+</code> one or more, <code>*</code> zero or more, <code>{2}</code> exactly two, <code>[...]</code> a set, <code>( )</code> a group. Always use raw strings: <code>r"..."</code>.`,
+task:`From <code>text</code>, extract <code>emails</code> (a list, in order) and <code>phones</code>: the two phone numbers with every separator removed, like <code>"0612345678"</code>.`,
+hint:R`Emails: r"[-\w.+]+@[-\w]+\.\w+" (put a literal - first inside [ ]). Phones are 5 pairs of digits separated by a space or a dash: r"\d{2}(?:[- ]\d{2}){4}". Then re.sub(r"\D", "", p) keeps only digits.`,
+starter:R`import re
+
+text = "Contact ana@shop.fr or support@help-desk.com. Call 06 12 34 56 78 or 01-23-45-67-89."
+
+emails =
+phones =
+print(emails, phones)
+`,
+solution:R`import re
+
+text = "Contact ana@shop.fr or support@help-desk.com. Call 06 12 34 56 78 or 01-23-45-67-89."
+
+emails = re.findall(r"[-\w.+]+@[-\w]+\.\w+", text)
+phones = [re.sub(r"\D", "", p) for p in re.findall(r"\d{2}(?:[- ]\d{2}){4}", text)]
+print(emails, phones)`,
+test:R`assert emails == ["ana@shop.fr", "support@help-desk.com"], "emails should be ['ana@shop.fr', 'support@help-desk.com'], got %r" % (emails,)
+assert phones == ["0612345678", "0123456789"], "phones should be ['0612345678', '0123456789'], got %r" % (phones,)`},
+
+{id:"py-boss", track:"py", mod:"Pro tools", title:"Boss: inventory manager", xp:60, boss:true,
+body:R`Time to combine classes, dictionaries, errors, comprehensions and files in one small program.
+
+Saving objects to disk is usually done with JSON:
+
+~~~
+import json
+with open("data.json", "w") as f:
+    json.dump({"pens": {"qty": 3, "price": 1.5}}, f, indent=2)
+with open("data.json") as f:
+    data = json.load(f)
+~~~
+A <code>@classmethod</code> receives the class instead of an object, the usual way to build an object from a file: <code>Inventory.load("stock.json")</code>.`,
+task:`Write <code>Inventory</code> with:
+<ul><li><code>add(name, qty, price)</code>: adds stock (adding an existing item increases its qty and updates the price)</li>
+<li><code>remove(name, qty)</code>: raises <code>ValueError</code> when the item is missing or there is not enough</li>
+<li><code>total_value()</code>: sum of qty x price, rounded to 2 decimals</li>
+<li><code>low_stock(threshold=5)</code>: sorted names with qty below threshold</li>
+<li><code>save(path)</code> and classmethod <code>load(path)</code> using JSON</li></ul>`,
+hint:`Store self.items = {name: {"qty": q, "price": p}}. load creates cls(), then fills inv.items from json.load.`,
+starter:R`import json
+
+class Inventory:
+    def __init__(self):
+        self.items = {}
+`,
+solution:R`import json
+
+class Inventory:
+    def __init__(self):
+        self.items = {}
+
+    def add(self, name, qty, price):
+        item = self.items.setdefault(name, {"qty": 0, "price": price})
+        item["qty"] += qty
+        item["price"] = price
+
+    def remove(self, name, qty):
+        if name not in self.items or self.items[name]["qty"] < qty:
+            raise ValueError(f"not enough {name}")
+        self.items[name]["qty"] -= qty
+
+    def total_value(self):
+        return round(sum(i["qty"] * i["price"] for i in self.items.values()), 2)
+
+    def low_stock(self, threshold=5):
+        return sorted(n for n, i in self.items.items() if i["qty"] < threshold)
+
+    def save(self, path):
+        with open(path, "w") as f:
+            json.dump(self.items, f, indent=2)
+
+    @classmethod
+    def load(cls, path):
+        inv = cls()
+        with open(path) as f:
+            inv.items = json.load(f)
+        return inv
+
+inv = Inventory()
+inv.add("pen", 10, 1.5)
+inv.add("notebook", 3, 4.0)
+inv.save("stock.json")
+print(Inventory.load("stock.json").total_value())`,
+test:R`inv = Inventory()
+inv.add("pen", 10, 1.5); inv.add("pad", 3, 4.0); inv.add("pen", 2, 2.0); inv.add("ink", 1, 9.99)
+assert inv.items["pen"]["qty"] == 12, "adding an existing item should increase its quantity"
+assert inv.total_value() == round(12 * 2.0 + 3 * 4.0 + 9.99, 2), "total_value is wrong: %r" % inv.total_value()
+assert inv.low_stock() == ["ink", "pad"], "low_stock() should be ['ink', 'pad'], got %r" % (inv.low_stock(),)
+assert inv.low_stock(2) == ["ink"], "low_stock(2) should be ['ink']"
+inv.remove("pen", 2)
+assert inv.items["pen"]["qty"] == 10, "remove should decrease the quantity"
+for args in (("pen", 99), ("ghost", 1)):
+    try:
+        inv.remove(*args)
+    except ValueError:
+        continue
+    raise AssertionError("remove%r should raise ValueError" % (args,))
+inv.save("check_inv.json")
+again = Inventory.load("check_inv.json")
+assert isinstance(again, Inventory), "load should return an Inventory"
+assert again.total_value() == inv.total_value(), "a saved and reloaded inventory should have the same value"`},
+
+/* ===== AUTOMATION ===== */
+{id:"auto-csv", track:"auto", mod:"Data files", title:"CSV reports", xp:30,
+body:R`CSV is the universal export format of spreadsheets, CRMs and banks. The <code>csv</code> module handles quoting and commas inside values for you.
+
+~~~
+import csv
+with open("sales.csv") as f:
+    for row in csv.DictReader(f):     # each row is a dict keyed by the header
+        print(row["region"], row["units"])
+
+with open("out.csv", "w") as f:
+    w = csv.writer(f)
+    w.writerow(["region", "total"])
+    w.writerow(["North", "145.00"])
+~~~
+Every value read from a CSV is a string: convert with <code>int()</code> or <code>float()</code> before maths.`,
+task:`Read <code>sales.csv</code>, build <code>totals</code>, a dict from region to revenue (units x unit_price, as float), and write <code>region_totals.csv</code> with header <code>region,total</code>, one row per region sorted by total (highest first), totals with 2 decimals.`,
+hint:`sorted(totals.items(), key=lambda kv: kv[1], reverse=True), and f"{value:.2f}" for formatting.`,
+starter:R`import csv
+
+totals = {}
+with open("sales.csv") as f:
+    for row in csv.DictReader(f):
+        pass
+
+print(totals)
+`,
+solution:R`import csv
+
+totals = {}
+with open("sales.csv") as f:
+    for row in csv.DictReader(f):
+        amount = int(row["units"]) * float(row["unit_price"])
+        totals[row["region"]] = totals.get(row["region"], 0) + amount
+
+with open("region_totals.csv", "w") as f:
+    w = csv.writer(f)
+    w.writerow(["region", "total"])
+    for region, total in sorted(totals.items(), key=lambda kv: kv[1], reverse=True):
+        w.writerow([region, f"{total:.2f}"])
+
+print(totals)`,
+test:R`import csv as _c, io as _i
+want = {}
+for r in _c.DictReader(_i.StringIO(_fs["sales.csv"])):
+    want[r["region"]] = want.get(r["region"], 0) + int(r["units"]) * float(r["unit_price"])
+assert {k: round(v, 2) for k, v in totals.items()} == {k: round(v, 2) for k, v in want.items()}, "totals should be %r" % want
+assert "region_totals.csv" in _fs, "region_totals.csv was not written"
+rows = [r for r in _c.reader(_i.StringIO(_fs["region_totals.csv"])) if r]
+exp = [["region", "total"]] + [[k, "%.2f" % v] for k, v in sorted(want.items(), key=lambda kv: -kv[1])]
+assert rows == exp, "region_totals.csv should be:\n" + "\n".join(",".join(r) for r in exp)`},
+
+{id:"auto-json", track:"auto", mod:"Data files", title:"JSON configs and APIs", xp:30,
+body:R`JSON is how web APIs and config files talk. It maps directly onto Python dicts and lists.
+
+~~~
+import json
+data = json.loads('{"ok": true, "items": [1, 2]}')   # text to Python
+data["items"].append(3)
+text = json.dumps(data, indent=2)                   # Python to text
+
+with open("config.json") as f:
+    cfg = json.load(f)                               # file to Python
+with open("config.json", "w") as f:
+    json.dump(cfg, f, indent=2)                      # Python to file
+~~~
+JSON <code>true/false/null</code> become Python <code>True/False/None</code>.`,
+task:`Update <code>config.json</code>: set <code>debug</code> to false, increase <code>version</code> by 1, append <code>"data@example.com"</code> to <code>recipients</code>, then save it back with indent 2. Also set <code>report_time</code> to the schedule formatted as <code>"09:00"</code>.`,
+hint:`f"{cfg['schedule']['hour']:02d}:{cfg['schedule']['minute']:02d}" pads with zeros.`,
+starter:R`import json
+
+with open("config.json") as f:
+    cfg = json.load(f)
+
+report_time =
+`,
+solution:R`import json
+
+with open("config.json") as f:
+    cfg = json.load(f)
+
+cfg["debug"] = False
+cfg["version"] += 1
+cfg["recipients"].append("data@example.com")
+
+with open("config.json", "w") as f:
+    json.dump(cfg, f, indent=2)
+
+s = cfg["schedule"]
+report_time = f"{s['hour']:02d}:{s['minute']:02d}"
+print(report_time)`,
+test:R`import json as _j
+c = _j.loads(_fs["config.json"])
+assert c["debug"] is False, "debug should be false in the saved file"
+assert c["version"] == 2, "version should be 2 in the saved file"
+assert c["recipients"] == ["ops@example.com", "data@example.com"], "recipients should end with data@example.com"
+assert c["app"] == "daily-report", "keep the other keys unchanged"
+assert report_time == "09:00", "report_time should be '09:00', got %r" % (report_time,)`},
+
+{id:"auto-logs", track:"auto", mod:"Data files", title:"Log monitoring", xp:35,
+body:R`Scanning logs is one of the most common automations: count errors, spot the noisy ones, alert when a threshold is crossed.
+
+~~~
+with open("server.log") as f:
+    for line in f:
+        date, time, level, message = line.strip().split(" ", 3)
+~~~
+<code>split(" ", 3)</code> splits at most 3 times, so the message keeps its own spaces. <code>collections.Counter</code> counts anything hashable and gives you <code>most_common()</code>.`,
+task:`From <code>server.log</code>, build <code>errors_by_hour</code>: a dict from hour (<code>"09"</code>, <code>"10"</code>...) to the number of ERROR lines, and <code>top_error</code>: the most frequent ERROR message.`,
+hint:`The hour is time[:2]. Count messages with Counter and take most_common(1)[0][0].`,
+starter:R`from collections import Counter
+
+errors_by_hour = {}
+messages = Counter()
+
+with open("server.log") as f:
+    for line in f:
+        pass
+
+top_error =
+print(errors_by_hour, top_error)
+`,
+solution:R`from collections import Counter
+
+errors_by_hour = {}
+messages = Counter()
+
+with open("server.log") as f:
+    for line in f:
+        if not line.strip():
+            continue
+        date, time, level, message = line.strip().split(" ", 3)
+        if level == "ERROR":
+            hour = time[:2]
+            errors_by_hour[hour] = errors_by_hour.get(hour, 0) + 1
+            messages[message] += 1
+
+top_error = messages.most_common(1)[0][0]
+print(errors_by_hour, top_error)`,
+test:R`assert errors_by_hour == {"09": 2, "10": 2, "11": 2}, "errors_by_hour should be {'09': 2, '10': 2, '11': 2}, got %r" % (errors_by_hour,)
+assert top_error == "Database timeout", "top_error should be 'Database timeout', got %r" % (top_error,)`},
+
+{id:"auto-rename", track:"auto", mod:"File system", title:"Batch renaming files", xp:35,
+body:R`Renaming hundreds of files by hand is exactly the job to automate. <code>os</code> lists, moves and deletes files.
+
+~~~
+import os
+os.listdir("inbox")                       # names inside a folder
+os.path.join("inbox", "a.txt")            # 'inbox/a.txt'
+os.path.splitext("photo.JPG")             # ('photo', '.JPG')
+os.rename("inbox/old.txt", "inbox/new.txt")
+os.path.exists("inbox/new.txt")           # True
+~~~
+Always compute the full list of renames first, check it, then apply it.`,
+task:`In <code>inbox/</code>, rename every photo (<code>.jpg</code> or <code>.jpeg</code>, any case) named like <code>IMG 2025-03-07 Sunset Walk.JPG</code> to <code>2025-03-07_sunset-walk.jpg</code>. Leave other files alone. Store the number of renamed files in <code>renamed</code>.`,
+hint:`name[4:14] is the date when the name starts with "IMG ". The title is the rest of the stem, lowercased, spaces replaced by "-".`,
+starter:R`import os
+
+renamed = 0
+for name in os.listdir("inbox"):
+    print(name)
+`,
+solution:R`import os
+
+renamed = 0
+for name in os.listdir("inbox"):
+    stem, ext = os.path.splitext(name)
+    if ext.lower() not in (".jpg", ".jpeg") or not stem.startswith("IMG "):
+        continue
+    date = stem[4:14]
+    title = stem[15:].strip().lower().replace(" ", "-")
+    new = f"{date}_{title}.jpg"
+    os.rename(os.path.join("inbox", name), os.path.join("inbox", new))
+    print(name, "->", new)
+    renamed += 1`,
+test:R`got = sorted(k for k in _fs if k.startswith("inbox/"))
+want = ["inbox/2025-03-05_beach.jpg", "inbox/2025-03-07_sunset-walk.jpg", "inbox/2025-04-01_office-party.jpg", "inbox/readme.txt"]
+assert got == want, "inbox should contain:\n" + "\n".join(want) + "\n\nIt contains:\n" + "\n".join(got)
+assert renamed == 3, "renamed should be 3"`},
+
+{id:"auto-merge", track:"auto", mod:"File system", title:"Mail merge", xp:35,
+body:R`Generating one document per row (letters, invoices, certificates, emails) is mail merge. <code>string.Template</code> fills <code>$placeholders</code> safely.
+
+~~~
+from string import Template
+t = Template("Hi $name, you owe $amount")
+t.substitute(name="Bo", amount="12 EUR")
+t.substitute({"name": "Bo", "amount": "12 EUR"})   # a dict works too
+~~~
+Combine it with <code>csv.DictReader</code>: each row is already a dict with the right keys.`,
+task:`For each row of <code>customers.csv</code>, fill <code>template.txt</code> and write it to <code>letters/&lt;first name in lowercase&gt;.txt</code> (for example <code>letters/alice.txt</code>).`,
+hint:`row["name"].split()[0].lower() gives the first name. Template(text).substitute(row) fills everything at once.`,
+starter:R`import csv
+from string import Template
+
+with open("template.txt") as f:
+    template = Template(f.read())
+`,
+solution:R`import csv
+from string import Template
+
+with open("template.txt") as f:
+    template = Template(f.read())
+
+with open("customers.csv") as f:
+    for row in csv.DictReader(f):
+        first = row["name"].split()[0].lower()
+        with open(f"letters/{first}.txt", "w") as out:
+            out.write(template.substitute(row))
+        print("Wrote letters/" + first + ".txt")`,
+test:R`import csv as _c, io as _i
+from string import Template as _T
+for r in _c.DictReader(_i.StringIO(_fs["customers.csv"])):
+    p = "letters/%s.txt" % r["name"].split()[0].lower()
+    assert p in _fs, p + " was not created"
+    assert _fs[p] == _T(_fs["template.txt"]).substitute(r), p + " does not match the filled template"`},
+
+{id:"auto-sqlite", track:"auto", mod:"Databases", title:"Python meets SQL", xp:40,
+body:R`The <code>sqlite3</code> module runs SQL from Python. This is how scripts load data into a database and query it back.
+
+~~~
+import sqlite3
+con = sqlite3.connect(":memory:")       # or a file name like "shop.db"
+con.execute("CREATE TABLE t (name TEXT, n INTEGER)")
+con.executemany("INSERT INTO t VALUES (?, ?)", [("a", 1), ("b", 2)])
+con.commit()
+for name, n in con.execute("SELECT name, n FROM t WHERE n > ?", (0,)):
+    print(name, n)
+~~~
+Always pass values with <code>?</code> placeholders, never by building the SQL string yourself: that is how SQL injection happens.`,
+task:`Load <code>sales.csv</code> into a table <code>sales</code> in an in-memory database, then use one SQL query with <code>GROUP BY</code> to build <code>units_by_product</code>, a dict from product to total units.`,
+hint:`rows = [(r["product"], int(r["units"])) for r in csv.DictReader(f)], then dict(con.execute("SELECT product, SUM(units) FROM sales GROUP BY product")).`,
+starter:R`import csv
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE sales (date TEXT, region TEXT, product TEXT, units INTEGER, unit_price REAL)")
+`,
+solution:R`import csv
+import sqlite3
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE sales (date TEXT, region TEXT, product TEXT, units INTEGER, unit_price REAL)")
+
+with open("sales.csv") as f:
+    rows = [(r["date"], r["region"], r["product"], int(r["units"]), float(r["unit_price"]))
+            for r in csv.DictReader(f)]
+con.executemany("INSERT INTO sales VALUES (?, ?, ?, ?, ?)", rows)
+
+units_by_product = dict(con.execute("SELECT product, SUM(units) FROM sales GROUP BY product").fetchall())
+print(units_by_product)`,
+test:R`assert units_by_product == {"Widget": 38, "Gadget": 15, "Gizmo": 6}, "units_by_product should be {'Widget': 38, 'Gadget': 15, 'Gizmo': 6}, got %r" % (units_by_product,)`},
+
+{id:"auto-schedule", track:"auto", mod:"Databases", title:"Scheduling with datetime", xp:40,
+body:R`Every scheduled job (backups, reports, reminders) needs to know when it runs next. <code>datetime</code> and <code>timedelta</code> do the calendar maths.
+
+~~~
+from datetime import datetime, timedelta
+now = datetime(2025, 3, 7, 10, 0)
+now.weekday()                       # 0 = Monday ... 6 = Sunday, here 4 (Friday)
+now.replace(hour=9, minute=0)       # same day, 09:00
+now + timedelta(days=1)             # next day
+now.strftime("%a %d %b %H:%M")      # 'Fri 07 Mar 10:00'
+~~~`,
+task:`Write <code>next_runs(start, count)</code> returning the next <code>count</code> datetimes, strictly after <code>start</code>, for a job that runs every weekday (Monday to Friday) at 09:00.`,
+hint:`Begin with start.replace(hour=9, minute=0, second=0, microsecond=0); if that is not after start, add a day. Then loop day by day, skipping weekday() 5 and 6.`,
+starter:R`from datetime import datetime, timedelta
+
+def next_runs(start, count):
+    runs = []
+    return runs
+
+for run in next_runs(datetime(2025, 3, 7, 10, 0), 5):
+    print(run.strftime("%a %d %b %H:%M"))
+`,
+solution:R`from datetime import datetime, timedelta
+
+def next_runs(start, count):
+    runs = []
+    t = start.replace(hour=9, minute=0, second=0, microsecond=0)
+    if t <= start:
+        t += timedelta(days=1)
+    while len(runs) < count:
+        if t.weekday() < 5:
+            runs.append(t)
+        t += timedelta(days=1)
+    return runs
+
+for run in next_runs(datetime(2025, 3, 7, 10, 0), 5):
+    print(run.strftime("%a %d %b %H:%M"))`,
+test:R`from datetime import datetime as D
+assert next_runs(D(2025, 3, 7, 10, 0), 5) == [D(2025, 3, d, 9, 0) for d in (10, 11, 12, 13, 14)], "From Friday 10:00 the next runs are Mon 10 to Fri 14 March at 09:00"
+assert next_runs(D(2025, 3, 10, 8, 0), 2) == [D(2025, 3, 10, 9, 0), D(2025, 3, 11, 9, 0)], "From Monday 08:00 the first run is the same day at 09:00"
+assert next_runs(D(2025, 3, 10, 9, 0), 1) == [D(2025, 3, 11, 9, 0)], "Runs must be strictly after start"`},
+
+{id:"auto-boss", track:"auto", mod:"Databases", title:"Boss: ETL pipeline", xp:80, boss:true,
+body:R`A real automation pipeline has three stages: <b>extract</b> raw data, <b>transform</b> it (clean, validate, deduplicate), <b>load</b> it somewhere useful, then report. Bad rows are counted and skipped, never allowed to crash the run.
+
+~~~
+from datetime import datetime
+def valid_date(s):
+    try:
+        datetime.strptime(s, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+~~~`,
+task:`Process <code>orders_raw.csv</code>:
+<ul><li>strip spaces and title-case customer names (<code>alice martin</code> becomes <code>Alice Martin</code>)</li>
+<li>reject rows with an empty customer, a non-numeric amount, an invalid date or an already seen order_id; count them in <code>rejected</code></li>
+<li>load the good rows into a sqlite3 table <code>clean_orders</code></li>
+<li>with SQL, total the amount per customer and write <code>report.txt</code> with lines like <code>Alice Martin: 180.50</code>, highest total first</li></ul>`,
+hint:`Keep a set of seen order ids. float(amount) inside try/except catches "abc". ORDER BY total DESC in SQL gives the report order.`,
+starter:R`import csv
+import sqlite3
+from datetime import datetime
+
+rejected = 0
+good = []
+seen = set()
+
+with open("orders_raw.csv") as f:
+    for row in csv.DictReader(f):
+        pass
+`,
+solution:R`import csv
+import sqlite3
+from datetime import datetime
+
+rejected = 0
+good = []
+seen = set()
+
+with open("orders_raw.csv") as f:
+    for row in csv.DictReader(f):
+        oid = row["order_id"].strip()
+        name = row["customer"].strip().title()
+        try:
+            amount = float(row["amount"])
+            datetime.strptime(row["date"].strip(), "%Y-%m-%d")
+        except ValueError:
+            rejected += 1
+            continue
+        if not name or oid in seen:
+            rejected += 1
+            continue
+        seen.add(oid)
+        good.append((int(oid), name, amount, row["date"].strip()))
+
+con = sqlite3.connect(":memory:")
+con.execute("CREATE TABLE clean_orders (order_id INTEGER PRIMARY KEY, customer TEXT, amount REAL, date TEXT)")
+con.executemany("INSERT INTO clean_orders VALUES (?, ?, ?, ?)", good)
+
+rows = con.execute("SELECT customer, SUM(amount) AS total FROM clean_orders GROUP BY customer ORDER BY total DESC").fetchall()
+with open("report.txt", "w") as f:
+    for customer, total in rows:
+        f.write(f"{customer}: {total:.2f}\n")
+
+print(f"Loaded {len(good)} rows, rejected {rejected}")
+print(open("report.txt").read())`,
+test:R`assert rejected == 4, "rejected should be 4 (bad amount, empty customer, bad date, duplicate id), got %r" % (rejected,)
+assert "report.txt" in _fs, "report.txt was not written"
+got = [l.strip() for l in _fs["report.txt"].splitlines() if l.strip()]
+want = ["Alice Martin: 180.50", "Chloe Dubois: 89.90", "Emma Rossi: 15.25"]
+assert got == want, "report.txt should be:\n" + "\n".join(want) + "\n\nIt is:\n" + "\n".join(got)`},
+
+/* ===== SQL ===== */
+{id:"sql-select", track:"sql", mod:"Querying", title:"SELECT", xp:10,
+body:R`SQL asks questions of tables. Every query starts with <code>SELECT</code> (which columns) and <code>FROM</code> (which table).
+
+~~~
+SELECT * FROM products;            -- every column
+SELECT name, price FROM products;  -- only these columns
+SELECT name, price * 1.2 AS price_with_tax FROM products;
+~~~
+<code>AS</code> renames a column in the result. Keywords are not case sensitive, but writing them in capitals keeps queries readable. The sample shop database has <code>customers</code>, <code>products</code>, <code>orders</code>, <code>order_items</code> and <code>employees</code>.`,
+task:`List the <code>name</code> and <code>city</code> of every customer.`,
+hint:`SELECT name, city FROM customers;`,
+starter:R`-- Write your query here
+SELECT * FROM customers;
+`,
+solution:R`SELECT name, city FROM customers;`},
+
+{id:"sql-where", track:"sql", mod:"Querying", title:"Filtering with WHERE", xp:10,
+body:R`<code>WHERE</code> keeps only the rows that match a condition.
+
+~~~
+SELECT name FROM products WHERE price > 100;
+SELECT name FROM products WHERE category = 'Books' AND price <= 40;
+SELECT name FROM products WHERE category = 'Books' OR category = 'Grocery';
+SELECT name FROM products WHERE NOT category = 'Books';
+~~~
+Text values use single quotes. Comparison operators: <code>=  &lt;&gt;  &lt;  &lt;=  &gt;  &gt;=</code>.`,
+task:`List the <code>name</code> and <code>price</code> of products in the <code>Electronics</code> category that cost less than 100.`,
+hint:`Two conditions joined with AND.`,
+starter:R`SELECT name, price
+FROM products
+`,
+solution:R`SELECT name, price FROM products WHERE category = 'Electronics' AND price < 100;`},
+
+{id:"sql-order", track:"sql", mod:"Querying", title:"ORDER BY, LIMIT, DISTINCT", xp:15,
+body:R`Rows come back in no guaranteed order unless you ask.
+
+~~~
+SELECT name, price FROM products ORDER BY price;            -- cheapest first
+SELECT name, price FROM products ORDER BY price DESC;       -- most expensive first
+SELECT name, price FROM products ORDER BY category, price DESC;
+SELECT name FROM products ORDER BY price DESC LIMIT 5;      -- top 5
+SELECT DISTINCT category FROM products;                     -- each value once
+~~~`,
+task:`Show the <code>name</code> and <code>price</code> of the 3 most expensive products, most expensive first.`,
+hint:`ORDER BY price DESC LIMIT 3`,
+starter:R`SELECT name, price FROM products;
+`,
+solution:R`SELECT name, price FROM products ORDER BY price DESC LIMIT 3;`, ordered:true},
+
+{id:"sql-in", track:"sql", mod:"Querying", title:"IN, BETWEEN, LIKE and NULL", xp:15,
+body:R`Shortcuts for common filters:
+
+~~~
+WHERE city IN ('Paris', 'Lyon')                  -- one of a list
+WHERE price BETWEEN 10 AND 50                     -- inclusive range
+WHERE name LIKE 'C%'                              -- starts with C
+WHERE email LIKE '%@mail.com'                     -- ends with
+WHERE name LIKE '_o%'                             -- second letter is o
+WHERE city IS NULL                                -- missing value
+~~~
+<code>NULL</code> means unknown. <code>city = NULL</code> is never true: always use <code>IS NULL</code> or <code>IS NOT NULL</code>. Dates stored as <code>'YYYY-MM-DD'</code> text compare correctly with <code>BETWEEN</code>.`,
+task:`List the <code>name</code>, <code>city</code> and <code>joined</code> date of customers from Paris or Lyon who joined between 2024-01-01 and 2024-06-30.`,
+hint:`city IN ('Paris', 'Lyon') AND joined BETWEEN '2024-01-01' AND '2024-06-30'`,
+starter:R`SELECT name, city, joined FROM customers
+`,
+solution:R`SELECT name, city, joined FROM customers WHERE city IN ('Paris', 'Lyon') AND joined BETWEEN '2024-01-01' AND '2024-06-30';`},
+
+{id:"sql-case", track:"sql", mod:"Querying", title:"CASE and COALESCE", xp:20,
+body:R`<code>CASE</code> is SQL's if / else. It creates a computed column.
+
+~~~
+SELECT name,
+       CASE WHEN stock = 0  THEN 'sold out'
+            WHEN stock < 20 THEN 'low'
+            ELSE 'ok' END AS stock_level
+FROM products;
+~~~
+<code>COALESCE(a, b)</code> returns the first value that is not NULL, handy for defaults: <code>COALESCE(city, 'Unknown')</code>.`,
+task:`Show each product's <code>name</code>, <code>price</code> and a <code>tier</code> column: <code>'premium'</code> from 300, <code>'standard'</code> from 40, otherwise <code>'budget'</code>.`,
+hint:`CASE WHEN price >= 300 THEN 'premium' WHEN price >= 40 THEN 'standard' ELSE 'budget' END AS tier`,
+starter:R`SELECT name, price
+FROM products;
+`,
+solution:R`SELECT name, price, CASE WHEN price >= 300 THEN 'premium' WHEN price >= 40 THEN 'standard' ELSE 'budget' END AS tier FROM products;`},
+
+{id:"sql-agg", track:"sql", mod:"Aggregating", title:"Aggregate functions", xp:20,
+body:R`Aggregate functions squash many rows into one value.
+
+~~~
+SELECT COUNT(*) FROM orders;                 -- number of rows
+SELECT COUNT(city) FROM customers;           -- non-NULL values only
+SELECT SUM(stock), AVG(price), MIN(price), MAX(price) FROM products;
+SELECT ROUND(AVG(price), 2) FROM products;
+~~~`,
+task:`In one row, return the number of products, the lowest price, the highest price and the average price rounded to 2 decimals.`,
+hint:`SELECT COUNT(*), MIN(price), MAX(price), ROUND(AVG(price), 2) FROM products;`,
+starter:R`SELECT
+FROM products;
+`,
+solution:R`SELECT COUNT(*), MIN(price), MAX(price), ROUND(AVG(price), 2) FROM products;`},
+
+{id:"sql-group", track:"sql", mod:"Aggregating", title:"GROUP BY and HAVING", xp:25,
+body:R`<code>GROUP BY</code> runs the aggregate once per group instead of once for the whole table.
+
+~~~
+SELECT status, COUNT(*) AS n
+FROM orders
+GROUP BY status;
+~~~
+<code>WHERE</code> filters rows <i>before</i> grouping; <code>HAVING</code> filters groups <i>after</i>:
+
+~~~
+SELECT customer_id, COUNT(*) AS n
+FROM orders
+WHERE status <> 'cancelled'
+GROUP BY customer_id
+HAVING COUNT(*) >= 2;
+~~~`,
+task:`For each category with more than 2 products, show <code>category</code>, the number of products and the average price rounded to 2 decimals.`,
+hint:`GROUP BY category HAVING COUNT(*) > 2`,
+starter:R`SELECT category
+FROM products
+`,
+solution:R`SELECT category, COUNT(*) AS n, ROUND(AVG(price), 2) AS avg_price FROM products GROUP BY category HAVING COUNT(*) > 2;`},
+
+{id:"sql-join", track:"sql", mod:"Joining", title:"INNER JOIN", xp:25,
+body:R`Data is split across tables and linked by ids. A <code>JOIN</code> stitches rows back together where the condition matches.
+
+~~~
+SELECT orders.id, customers.name
+FROM orders
+JOIN customers ON customers.id = orders.customer_id;
+~~~
+Table aliases keep it short:
+
+~~~
+SELECT o.id, c.name, o.status
+FROM orders AS o
+JOIN customers AS c ON c.id = o.customer_id;
+~~~
+An inner join drops rows that have no match on the other side.`,
+task:`For every order, show the order <code>id</code>, the customer <code>name</code> and the <code>order_date</code>.`,
+hint:`FROM orders o JOIN customers c ON c.id = o.customer_id`,
+starter:R`SELECT
+FROM orders o
+`,
+solution:R`SELECT o.id, c.name, o.order_date FROM orders o JOIN customers c ON c.id = o.customer_id;`},
+
+{id:"sql-left", track:"sql", mod:"Joining", title:"LEFT JOIN", xp:25,
+body:R`A <code>LEFT JOIN</code> keeps every row of the left table, even without a match. The right side columns are then <code>NULL</code>.
+
+~~~
+SELECT c.name, o.id AS order_id
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id;
+~~~
+Filtering on <code>IS NULL</code> afterwards finds the rows with no match: customers who never ordered, products never sold.`,
+task:`List the <code>name</code> of customers who have never placed an order.`,
+hint:`LEFT JOIN orders, then WHERE o.id IS NULL.`,
+starter:R`SELECT c.name
+FROM customers c
+`,
+solution:R`SELECT c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id IS NULL;`},
+
+{id:"sql-multi", track:"sql", mod:"Joining", title:"Joining many tables", xp:30,
+body:R`Joins chain. To get from a customer to the products they bought you walk: customers, orders, order_items, products.
+
+~~~
+SELECT c.name, p.name AS product, oi.qty
+FROM customers c
+JOIN orders o       ON o.customer_id = c.id
+JOIN order_items oi ON oi.order_id = o.id
+JOIN products p     ON p.id = oi.product_id;
+~~~
+Add <code>GROUP BY</code> on top to turn the line items into totals.`,
+task:`Show each customer's <code>name</code> and <code>revenue</code> (sum of qty x price, rounded to 2 decimals) for orders that are not cancelled, highest revenue first.`,
+hint:`Join all four tables, WHERE o.status <> 'cancelled', GROUP BY c.id, ORDER BY revenue DESC.`,
+starter:R`SELECT c.name
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+`,
+solution:R`SELECT c.name, ROUND(SUM(oi.qty * p.price), 2) AS revenue
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+JOIN order_items oi ON oi.order_id = o.id
+JOIN products p ON p.id = oi.product_id
+WHERE o.status <> 'cancelled'
+GROUP BY c.id
+ORDER BY revenue DESC;`, ordered:true},
+
+{id:"sql-self", track:"sql", mod:"Joining", title:"Self joins", xp:30,
+body:R`A table can join itself. In <code>employees</code>, <code>manager_id</code> points at another employee's <code>id</code>, so you join employees to employees with two aliases.
+
+~~~
+SELECT e.name, m.name AS manager
+FROM employees e
+JOIN employees m ON m.id = e.manager_id;
+~~~
+Use a <code>LEFT JOIN</code> to keep people with no manager.`,
+task:`List every employee as <code>employee</code> with their manager's name as <code>manager</code>. The CEO must appear with a NULL manager.`,
+hint:`FROM employees e LEFT JOIN employees m ON m.id = e.manager_id`,
+starter:R`SELECT e.name AS employee
+FROM employees e
+`,
+solution:R`SELECT e.name AS employee, m.name AS manager FROM employees e LEFT JOIN employees m ON m.id = e.manager_id;`},
+
+{id:"sql-sub", track:"sql", mod:"Advanced queries", title:"Subqueries", xp:30,
+body:R`A subquery is a query inside another, in parentheses.
+
+~~~
+-- compare with a single computed value
+SELECT name FROM employees WHERE salary > (SELECT AVG(salary) FROM employees);
+
+-- test membership in a list
+SELECT name FROM customers
+WHERE id IN (SELECT customer_id FROM orders WHERE status = 'pending');
+
+-- EXISTS: is there at least one matching row?
+SELECT name FROM products p
+WHERE NOT EXISTS (SELECT 1 FROM order_items oi WHERE oi.product_id = p.id);
+~~~`,
+task:`List the <code>name</code> and <code>price</code> of products priced above the average product price.`,
+hint:`WHERE price > (SELECT AVG(price) FROM products)`,
+starter:R`SELECT name, price FROM products
+`,
+solution:R`SELECT name, price FROM products WHERE price > (SELECT AVG(price) FROM products);`},
+
+{id:"sql-cte", track:"sql", mod:"Advanced queries", title:"Common table expressions", xp:35,
+body:R`<code>WITH</code> names a subquery so you can build a query in readable steps.
+
+~~~
+WITH big_orders AS (
+    SELECT order_id, SUM(qty) AS items
+    FROM order_items
+    GROUP BY order_id
+)
+SELECT * FROM big_orders WHERE items >= 3;
+~~~
+SQLite date helpers: <code>strftime('%Y-%m', order_date)</code> gives <code>'2025-03'</code>, <code>date('now')</code> today, <code>julianday(a) - julianday(b)</code> a difference in days.`,
+task:`Using a CTE, compute revenue per month (<code>month</code> as <code>YYYY-MM</code>, <code>revenue</code> rounded to 2 decimals) for orders that are not cancelled, ordered by month.`,
+hint:`In the CTE, select strftime('%Y-%m', o.order_date) AS month and oi.qty * p.price AS amount. Then GROUP BY month.`,
+starter:R`WITH lines AS (
+    SELECT
+    FROM orders o
+)
+SELECT month FROM lines;
+`,
+solution:R`WITH lines AS (
+    SELECT strftime('%Y-%m', o.order_date) AS month, oi.qty * p.price AS amount
+    FROM orders o
+    JOIN order_items oi ON oi.order_id = o.id
+    JOIN products p ON p.id = oi.product_id
+    WHERE o.status <> 'cancelled'
+)
+SELECT month, ROUND(SUM(amount), 2) AS revenue FROM lines GROUP BY month ORDER BY month;`, ordered:true},
+
+{id:"sql-window", track:"sql", mod:"Advanced queries", title:"Window functions", xp:40,
+body:R`Window functions compute across related rows <b>without</b> collapsing them like GROUP BY does.
+
+~~~
+SELECT name, dept, salary,
+       RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS rank_in_dept,
+       AVG(salary) OVER (PARTITION BY dept) AS dept_avg
+FROM employees;
+
+-- running total
+SELECT order_date, id,
+       COUNT(*) OVER (ORDER BY order_date) AS orders_so_far
+FROM orders;
+~~~
+<code>PARTITION BY</code> splits rows into groups, <code>ORDER BY</code> sets the order inside each. Also useful: <code>ROW_NUMBER()</code>, <code>DENSE_RANK()</code>, <code>LAG(col)</code>, <code>LEAD(col)</code>.`,
+task:`Show each product's <code>name</code>, <code>category</code>, <code>price</code> and <code>price_rank</code>: its <code>RANK()</code> by price (most expensive = 1) within its category.`,
+hint:`RANK() OVER (PARTITION BY category ORDER BY price DESC) AS price_rank`,
+starter:R`SELECT name, category, price
+FROM products;
+`,
+solution:R`SELECT name, category, price, RANK() OVER (PARTITION BY category ORDER BY price DESC) AS price_rank FROM products;`},
+
+{id:"sql-rec", track:"sql", mod:"Advanced queries", title:"Recursive queries", xp:45,
+body:R`A recursive CTE repeats itself until it finds no new rows. It walks trees and graphs: org charts, category trees, bill of materials.
+
+~~~
+WITH RECURSIVE n(x) AS (
+    SELECT 1                     -- anchor: the starting rows
+    UNION ALL
+    SELECT x + 1 FROM n          -- recursive step, reads the previous rows
+    WHERE x < 5
+)
+SELECT x FROM n;                 -- 1, 2, 3, 4, 5
+~~~`,
+task:`List every employee's <code>name</code> and <code>level</code> in the org chart: the CEO (no manager) is level 0, their direct reports level 1, and so on.`,
+hint:`Anchor: SELECT id, name, 0 FROM employees WHERE manager_id IS NULL. Step: join employees e to the CTE on e.manager_id = chain.id and add 1 to level.`,
+starter:R`WITH RECURSIVE chain(id, name, level) AS (
+    SELECT id, name, 0 FROM employees WHERE manager_id IS NULL
+    UNION ALL
+    -- your recursive step
+)
+SELECT name, level FROM chain;
+`,
+solution:R`WITH RECURSIVE chain(id, name, level) AS (
+    SELECT id, name, 0 FROM employees WHERE manager_id IS NULL
+    UNION ALL
+    SELECT e.id, e.name, c.level + 1 FROM employees e JOIN chain c ON e.manager_id = c.id
+)
+SELECT name, level FROM chain;`},
+
+{id:"sql-dml", track:"sql", mod:"Changing data", title:"INSERT, UPDATE, DELETE", xp:30,
+body:R`Queries read data; these statements change it.
+
+~~~
+INSERT INTO customers (name, email, city, joined)
+VALUES ('Lou Garnier', 'lou@mail.com', 'Lille', '2025-02-01');
+
+UPDATE products SET stock = stock - 1 WHERE id = 3;
+
+DELETE FROM orders WHERE status = 'pending';
+~~~
+An <code>UPDATE</code> or <code>DELETE</code> without <code>WHERE</code> hits <b>every</b> row. Run the matching <code>SELECT</code> first to see what you are about to change.`,
+task:`Three statements: add the customer <code>Karim Ali</code> (<code>karim@mail.com</code>, Lille, joined <code>2025-01-10</code>); raise every <code>Books</code> price by 10% rounded to 2 decimals; delete the cancelled orders.`,
+hint:`UPDATE products SET price = ROUND(price * 1.1, 2) WHERE category = 'Books';`,
+starter:R`-- 1. insert
+
+-- 2. update
+
+-- 3. delete
+`,
+solution:R`INSERT INTO customers (name, email, city, joined) VALUES ('Karim Ali', 'karim@mail.com', 'Lille', '2025-01-10');
+UPDATE products SET price = ROUND(price * 1.1, 2) WHERE category = 'Books';
+DELETE FROM orders WHERE status = 'cancelled';`,
+verify:["SELECT name, email, city, joined FROM customers WHERE name = 'Karim Ali'","SELECT name, price FROM products","SELECT id FROM orders"]},
+
+{id:"sql-create", track:"sql", mod:"Changing data", title:"CREATE TABLE and constraints", xp:35,
+body:R`A table definition lists columns, their types and the rules the data must follow.
+
+~~~
+CREATE TABLE suppliers (
+    id      INTEGER PRIMARY KEY,           -- unique id, auto-filled
+    name    TEXT NOT NULL UNIQUE,          -- required, no duplicates
+    country TEXT DEFAULT 'FR',
+    rating  INTEGER CHECK (rating BETWEEN 1 AND 5),
+    product_id INTEGER REFERENCES products(id)   -- foreign key
+);
+~~~
+Constraints protect data from bad writes in every app that touches the table, which is why they belong in the database.`,
+task:`Create <code>reviews</code> with columns <code>id INTEGER PRIMARY KEY</code>, <code>product_id INTEGER NOT NULL</code> (referencing products), <code>rating INTEGER NOT NULL</code> with a CHECK between 1 and 5, <code>comment TEXT</code>. Insert two reviews: product 1, rating 5, <code>'Fast and light'</code>; product 9, rating 4, <code>'Great recipes'</code>.`,
+hint:`Use exactly those types; the checker compares column names, types, NOT NULL and primary key.`,
+starter:R`CREATE TABLE reviews (
+
+);
+`,
+solution:R`CREATE TABLE reviews (
+    id INTEGER PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id),
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT
+);
+INSERT INTO reviews (product_id, rating, comment) VALUES (1, 5, 'Fast and light'), (9, 4, 'Great recipes');`,
+verify:["SELECT name, type, \"notnull\", pk FROM pragma_table_info('reviews') ORDER BY cid","SELECT product_id, rating, comment FROM reviews"]},
+
+{id:"sql-view", track:"sql", mod:"Changing data", title:"Views and indexes", xp:35,
+body:R`A <b>view</b> saves a query under a name. It behaves like a read-only table that is always up to date.
+
+~~~
+CREATE VIEW paris_customers AS
+SELECT name, email FROM customers WHERE city = 'Paris';
+
+SELECT * FROM paris_customers;
+~~~
+An <b>index</b> makes lookups on a column fast, like the index of a book. Add one on columns you filter or join on often.
+
+~~~
+CREATE INDEX idx_products_category ON products(category);
+~~~`,
+task:`Create a view <code>customer_revenue</code> with columns <code>name</code> and <code>revenue</code> (non-cancelled orders, rounded to 2 decimals), and an index <code>idx_orders_customer</code> on <code>orders(customer_id)</code>.`,
+hint:`Reuse the query from "Joining many tables" inside CREATE VIEW customer_revenue AS ...`,
+starter:R`CREATE VIEW customer_revenue AS
+SELECT ...;
+
+`,
+solution:R`CREATE VIEW customer_revenue AS
+SELECT c.name, ROUND(SUM(oi.qty * p.price), 2) AS revenue
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+JOIN order_items oi ON oi.order_id = o.id
+JOIN products p ON p.id = oi.product_id
+WHERE o.status <> 'cancelled'
+GROUP BY c.id;
+CREATE INDEX idx_orders_customer ON orders(customer_id);`,
+verify:["SELECT name, revenue FROM customer_revenue","SELECT name, tbl_name FROM sqlite_master WHERE type = 'index' AND name = 'idx_orders_customer'"]},
+
+{id:"sql-trigger", track:"sql", mod:"Changing data", title:"Triggers: automation in SQL", xp:45,
+body:R`A trigger runs SQL automatically when a table changes: audit trails, stock updates, timestamps. No application code needed.
+
+~~~
+CREATE TRIGGER stamp_order
+AFTER INSERT ON orders
+BEGIN
+    UPDATE orders SET status = 'pending' WHERE id = NEW.id AND status IS NULL;
+END;
+~~~
+Inside a trigger, <code>OLD</code> is the row before the change and <code>NEW</code> the row after it. <code>AFTER UPDATE OF price</code> fires only when that column is updated, and a <code>WHEN</code> clause adds a condition.`,
+task:`Create a table <code>price_log(product_id, old_price, new_price, changed_at TEXT DEFAULT CURRENT_TIMESTAMP)</code> and a trigger <code>log_price</code> that inserts a row into it whenever a product's price <b>actually changes</b>. The checker will update some prices and read the log.`,
+hint:`AFTER UPDATE OF price ON products WHEN OLD.price <> NEW.price BEGIN INSERT INTO price_log (product_id, old_price, new_price) VALUES (OLD.id, OLD.price, NEW.price); END;`,
+starter:R`CREATE TABLE price_log (
+
+);
+
+CREATE TRIGGER log_price
+`,
+solution:R`CREATE TABLE price_log (product_id INTEGER, old_price REAL, new_price REAL, changed_at TEXT DEFAULT CURRENT_TIMESTAMP);
+CREATE TRIGGER log_price AFTER UPDATE OF price ON products
+WHEN OLD.price <> NEW.price
+BEGIN
+    INSERT INTO price_log (product_id, old_price, new_price) VALUES (OLD.id, OLD.price, NEW.price);
+END;`,
+verify:["UPDATE products SET price = price + 5 WHERE category = 'Grocery'; UPDATE products SET price = price WHERE id = 1; SELECT product_id, old_price, new_price FROM price_log"]},
+
+{id:"sql-tx", track:"sql", mod:"Changing data", title:"Transactions", xp:35,
+body:R`A transaction groups statements so they all succeed or none do. Moving money between accounts is the classic case: never debit without crediting.
+
+~~~
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;        -- make it permanent
+
+BEGIN;
+DELETE FROM accounts;
+ROLLBACK;      -- oops: undo everything since BEGIN
+~~~`,
+task:`In one script: start a transaction, delete every product, then <code>ROLLBACK</code>. Then in a second transaction add 10 to the <code>stock</code> of every Furniture product and <code>COMMIT</code>.`,
+hint:`BEGIN; DELETE FROM products; ROLLBACK; BEGIN; UPDATE ...; COMMIT;`,
+starter:R`BEGIN;
+DELETE FROM products;
+-- undo it
+
+`,
+solution:R`BEGIN;
+DELETE FROM products;
+ROLLBACK;
+BEGIN;
+UPDATE products SET stock = stock + 10 WHERE category = 'Furniture';
+COMMIT;`,
+verify:["SELECT id, stock FROM products"]},
+
+{id:"sql-boss", track:"sql", mod:"Changing data", title:"Boss: best customer per city", xp:80, boss:true,
+body:R`Real reporting questions combine everything: joins to gather the data, a CTE to aggregate it, a window function to rank it, and a filter on the rank.
+
+~~~
+WITH ranked AS (
+    SELECT dept, name, salary,
+           ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS rn
+    FROM employees
+)
+SELECT dept, name, salary FROM ranked WHERE rn = 1;   -- top earner per dept
+~~~`,
+task:`For every city (ignore customers with no city), show <code>city</code>, the <code>name</code> of the customer with the highest revenue there and that <code>revenue</code> (non-cancelled orders, rounded to 2 decimals). Order by city. Cities whose customers never ordered do not appear.`,
+hint:`CTE 1: revenue per customer with city. CTE 2: ROW_NUMBER() OVER (PARTITION BY city ORDER BY revenue DESC). Keep rn = 1.`,
+starter:R`WITH rev AS (
+    SELECT c.city, c.name, SUM(oi.qty * p.price) AS revenue
+    FROM customers c
+    -- joins here
+    GROUP BY c.id
+)
+SELECT * FROM rev;
+`,
+solution:R`WITH rev AS (
+    SELECT c.city, c.name, SUM(oi.qty * p.price) AS revenue
+    FROM customers c
+    JOIN orders o ON o.customer_id = c.id
+    JOIN order_items oi ON oi.order_id = o.id
+    JOIN products p ON p.id = oi.product_id
+    WHERE o.status <> 'cancelled' AND c.city IS NOT NULL
+    GROUP BY c.id
+), ranked AS (
+    SELECT city, name, revenue, ROW_NUMBER() OVER (PARTITION BY city ORDER BY revenue DESC) AS rn FROM rev
+)
+SELECT city, name, ROUND(revenue, 2) AS revenue FROM ranked WHERE rn = 1 ORDER BY city;`, ordered:true},
+];
+
+// Full lesson explanations, merged in by build.js from content/*.json
+const BODIES = /*BODIES*/{};
+for (const l of LESSONS) if (BODIES[l.id]) l.body = BODIES[l.id];
+
+const PY_EXAMPLES = {
+"Sales report from CSV": R`import csv
+from collections import defaultdict
+
+totals = defaultdict(float)
+with open("sales.csv") as f:
+    for row in csv.DictReader(f):
+        totals[row["product"]] += int(row["units"]) * float(row["unit_price"])
+
+with open("reports/sales_summary.txt", "w") as out:
+    out.write("Revenue by product\n")
+    for product, total in sorted(totals.items(), key=lambda kv: -kv[1]):
+        line = f"{product:<10}{total:>10.2f}"
+        print(line)
+        out.write(line + "\n")
+
+print("\nSaved reports/sales_summary.txt, open the Files tab to see it.")
+`,
+"Log monitor with alert": R`from collections import Counter
+
+THRESHOLD = 2
+errors = Counter()
+with open("server.log") as f:
+    for line in f:
+        parts = line.strip().split(" ", 3)
+        if len(parts) == 4 and parts[2] == "ERROR":
+            errors[parts[3]] += 1
+
+alerts = [f"ALERT {msg!r} happened {n} times" for msg, n in errors.items() if n >= THRESHOLD]
+print("\n".join(alerts) or "All good")
+
+with open("alerts.txt", "a") as f:
+    for a in alerts:
+        f.write(a + "\n")
+`,
+"Python + shop.db (SQL Lab)": R`import sqlite3
+
+# shop.db is the same database as the SQL Lab tab
+con = sqlite3.connect("shop.db")
+con.row_factory = sqlite3.Row
+
+query = """
+SELECT c.name, COUNT(o.id) AS orders
+FROM customers c LEFT JOIN orders o ON o.customer_id = c.id
+GROUP BY c.id ORDER BY orders DESC
+"""
+for row in con.execute(query):
+    print(f"{row['name']:<15} {'#' * row['orders']}")
+
+# Write back: flag low stock in a new table
+con.execute("CREATE TABLE IF NOT EXISTS restock (product TEXT, stock INTEGER)")
+con.execute("DELETE FROM restock")
+low = con.execute("SELECT name, stock FROM products WHERE stock < 20").fetchall()
+con.executemany("INSERT INTO restock VALUES (?, ?)", [tuple(r) for r in low])
+print(f"\n{len(low)} products need restocking, see the restock table in SQL Lab")
+`,
+"Interactive quiz (uses input)": R`questions = [
+    ("Which keyword defines a function?", "def"),
+    ("Which SQL clause filters groups?", "having"),
+    ("What does len([1, 2, 3]) return?", "3"),
+]
+score = 0
+for q, answer in questions:
+    guess = input(q + " ").strip().lower()
+    if guess == answer:
+        score += 1
+        print("  Correct")
+    else:
+        print(f"  Not quite, it was {answer}")
+print(f"Score: {score}/{len(questions)}")
+`,
+"File organiser": R`import os
+
+# Sort every file at the top level into a folder named after its extension
+moved = 0
+for name in os.listdir("."):
+    if os.path.isdir(name):
+        continue
+    ext = os.path.splitext(name)[1].lstrip(".").lower() or "other"
+    os.rename(name, f"{ext}/{name}")
+    print(f"{name} -> {ext}/{name}")
+    moved += 1
+print(f"Moved {moved} files. Use Files > Reset all files to undo.")
+`,
+};
+const PY_STDIN_EX = {"Interactive quiz (uses input)":"def\nwhere\n3"};
+
+const SQL_EXAMPLES = {
+"Explore the tables": "SELECT * FROM customers;\nSELECT * FROM products;\nSELECT * FROM orders LIMIT 5;",
+"Top products by units sold": "SELECT p.name, SUM(oi.qty) AS units\nFROM order_items oi JOIN products p ON p.id = oi.product_id\nGROUP BY p.id ORDER BY units DESC LIMIT 5;",
+"Monthly revenue with running total": "WITH m AS (\n  SELECT strftime('%Y-%m', o.order_date) AS month, SUM(oi.qty * p.price) AS revenue\n  FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id\n  WHERE o.status <> 'cancelled' GROUP BY month\n)\nSELECT month, ROUND(revenue, 2) AS revenue,\n       ROUND(SUM(revenue) OVER (ORDER BY month), 2) AS running_total\nFROM m;",
+"Org chart path": "WITH RECURSIVE chain(id, path, level) AS (\n  SELECT id, name, 0 FROM employees WHERE manager_id IS NULL\n  UNION ALL\n  SELECT e.id, c.path || ' > ' || e.name, c.level + 1\n  FROM employees e JOIN chain c ON e.manager_id = c.id\n)\nSELECT level, path FROM chain ORDER BY path;",
+"Build your own table": "CREATE TABLE IF NOT EXISTS habits (\n  id INTEGER PRIMARY KEY,\n  habit TEXT NOT NULL,\n  day TEXT DEFAULT (date('now')),\n  done INTEGER CHECK (done IN (0, 1))\n);\nINSERT INTO habits (habit, done) VALUES ('Practice SQL', 1), ('Practice Python', 1);\nSELECT * FROM habits;",
+};
+
+/* ---------- helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* Everything the learner owns lives under "pq-" keys: an in-memory copy, mirrored to localStorage, synced to the account and exported by Backup. */
+const mem = {};
+try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith("pq-")) mem[k] = localStorage.getItem(k); } } catch(e){}
+const raw = {
+  get(k){ return k in mem ? mem[k] : null; },
+  set(k, v, quiet){ if (mem[k] === v) return; mem[k] = v; try { localStorage.setItem(k, v); } catch(e){} if (!quiet) markDirty(); },
+  del(k, quiet){ delete mem[k]; try { localStorage.removeItem(k); } catch(e){} if (!quiet) markDirty(); },
+};
+const store = {
+  get(k, d){ const v = raw.get(k); if (v == null) return d; try { return JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ raw.set(k, JSON.stringify(v)); },
+  del(k){ raw.del(k); },
+};
+const SYNC_SKIP = new Set(["pq-updated"]);
+const userKeys = () => Object.keys(mem).filter(k => k.startsWith("pq-") && !SYNC_SKIP.has(k));
+/* Lesson text: paragraphs, "- " lists, "### " headings, and ~~~python / ~~~python stdin=a|b / ~~~sql / ~~~text fences.
+   python and sql blocks become runnable, editable examples (collected in EXAMPLES). */
+let EXAMPLES = [];
+function md(src, db){
+  const out = []; let para = [], list = [], code = null, lang = "", stdin = "";
+  const flushP = () => { if (para.length) out.push("<p>" + para.join(" ") + "</p>"); para = []; };
+  const flushL = () => { if (list.length) out.push("<ul>" + list.map(l => "<li>" + l + "</li>").join("") + "</ul>"); list = []; };
+  for (const line of src.split("\n")) {
+    const fence = line.trim().match(/^~~~\s*(\w*)(?:\s+stdin=(.*))?$/);
+    if (fence) {
+      if (code) { out.push(block(code.join("\n"), lang, stdin, db)); code = null; }
+      else { flushP(); flushL(); code = []; lang = fence[1] || "text"; stdin = fence[2] ? fence[2].split("|").join("\n") : ""; }
+    } else if (code) code.push(line);
+    else if (!line.trim()) { flushP(); flushL(); }
+    else if (line.startsWith("### ")) { flushP(); flushL(); out.push("<h3>" + line.slice(4) + "</h3>"); }
+    else if (line.startsWith("- ")) { flushP(); list.push(line.slice(2)); }
+    else para.push(line);
+  }
+  flushP(); flushL();
+  return out.join("");
+}
+function block(code, lang, stdin, db){
+  if (lang !== "python" && lang !== "sql") return "<pre><code>" + esc(code) + "</code></pre>";
+  const i = EXAMPLES.push({code, lang, stdin, db: db || "shop"}) - 1;
+  return `<div class="ex ex-${lang}" data-ex="${i}">
+    <div class="ex-head"><span class="ex-tag">${lang === "sql" ? "SQL example" : "Python example"}</span><span class="sp"></span>
+      <button class="btn mini" data-act="run">Run</button>${lang === "python" ? `<button class="btn mini primary" data-act="step">Step through</button>` : ""}
+      <button class="btn mini ghost" data-act="reset" title="Undo your edits to this example">Reset</button></div>
+    <pre><code contenteditable="plaintext-only" spellcheck="false" aria-label="Example code, editable">${esc(code)}</code></pre>
+    ${stdin ? `<p class="ex-note">Input lines given to <code>input()</code>: ${stdin.split("\n").map(s => `<code>${esc(s)}</code>`).join(" then ")}</p>` : ""}
+    <div class="ex-out"><p class="hint">Output appears here when the engine is ready.</p></div></div>`;
+}
+function tablesUsed(sql, seed){
+  return withDb(db => {
+    const tables = db.exec("SELECT name FROM sqlite_master WHERE type = 'table'")[0].values.map(r => r[0]);
+    const used = tables.filter(t => new RegExp("\\b" + t + "\\b", "i").test(sql));
+    if (!used.length) return "";
+    return `<details class="tables"><summary>Tables this query reads (${used.join(", ")})</summary>${used.map(t => `<p class="rows">${t}</p>` + resultTables(db.exec(`SELECT * FROM ${t}`))).join("")}</details>`;
+  }, seed);
+}
+function runExample(el){
+  const ex = EXAMPLES[el.dataset.ex], code = el.querySelector("code").textContent, outEl = el.querySelector(".ex-out");
+  if (ex.lang === "sql") {
+    if (!SQLLIB) return;
+    try { outEl.innerHTML = `<div class="ex-label">Result</div>` + withDb(db => resultTables(db.exec(code)), ex.db) + tablesUsed(code, ex.db); }
+    catch(e){ outEl.innerHTML = `<div class="ex-label">Result</div><pre class="err">${esc(e.message)}</pre>`; }
+  } else {
+    if (!pyReady) return;
+    const r = py(code, ex.stdin, clone(SEED_FS), "", true);
+    outEl.innerHTML = `<div class="ex-label">Output</div>` + pyOutput(r, SEED_FS);
+  }
+}
+function runAllExamples(){
+  document.querySelectorAll(".ex").forEach(el => {
+    const lang = EXAMPLES[el.dataset.ex].lang;
+    if (!el.dataset.ran && (lang === "sql" ? SQLLIB : pyReady)) { el.dataset.ran = "1"; runExample(el); }
+  });
+}
+let toastTimer;
+function toast(msg, sub){
+  const t = $("#toast"); t.innerHTML = esc(msg) + (sub ? "<small>" + esc(sub) + "</small>" : "");
+  t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ---------- progress ---------- */
+// what the rank counts: lessons here, missions and cases on the story page
+let RANKED = LESSONS, TOTAL_XP = 0;
+const RANKS = [["Zero",0],["Rookie",.05],["Apprentice",.15],["Coder",.3],["Builder",.5],["Engineer",.7],["Architect",.85],["Hero",1]];
+const prog = store.get("pq-progress", {done:{}, last:null});
+const xpNow = () => RANKED.reduce((s, l) => s + (prog.done[l.id] ? l.xp : 0), 0);
+const rankOf = xp => RANKS.filter(r => xp >= Math.round(r[1] * TOTAL_XP)).pop()[0];
+function renderRank(){
+  TOTAL_XP = RANKED.reduce((s, l) => s + l.xp, 0);
+  const xp = xpNow();
+  $("#rankName").textContent = rankOf(xp);
+  $("#xpText").textContent = `${xp} / ${TOTAL_XP} XP`;
+  $("#xpBar").style.width = (100 * xp / TOTAL_XP).toFixed(1) + "%";
+  $("#ladder").innerHTML = RANKS.map(([n, f]) => `<li class="${xp >= Math.round(f * TOTAL_XP) ? "got" : ""}">${n}<span>${Math.round(f * TOTAL_XP)} XP</span></li>`).join("");
+}
+
+/* ---------- engines ---------- */
+let SQLLIB = null, pyReady = false, pyMode = "lesson", handles = [], namedDbs = {}, labDb = null;
+function loadScript(src){
+  if (window.PQ_OFFLINE) return Promise.resolve(); // offline copy: libraries are inlined
+  return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("Could not load " + src)); document.head.appendChild(s); });
+}
+const SQL_SEEDS = {shop: SEED_SQL};
+function freshDb(seed){ const db = new SQLLIB.Database(); db.exec(SQL_SEEDS[seed || "shop"]); return db; }
+// The SQL engine has a fixed memory budget: every temporary database must be closed after use.
+function withDb(fn, seed){ const db = freshDb(seed); try { return fn(db); } finally { db.close(); } }
+function releaseHandles(){
+  const keep = new Set([labDb, ...(pyMode === "lab" ? Object.values(namedDbs) : [])]);
+  for (const db of new Set(handles)) if (!keep.has(db)) try { db.close(); } catch(e){}
+  handles = [];
+  if (pyMode !== "lab") namedDbs = {};
+}
+window.pqSqlOpen = name => {
+  if (!SQLLIB) return -1;
+  let db;
+  if (name === "shop.db") db = pyMode === "lab" ? labDb : freshDb();
+  else if (name === ":memory:" || !name) db = new SQLLIB.Database();
+  else db = namedDbs[name] || (namedDbs[name] = new SQLLIB.Database());
+  handles.push(db); return handles.length - 1;
+};
+window.pqSqlExec = (h, sql, pj) => {
+  const db = handles[h];
+  try {
+    const p = JSON.parse(pj);
+    const res = db.exec(sql, Array.isArray(p) && !p.length ? undefined : p);
+    const changes = db.getRowsModified();
+    const last = res[res.length - 1] || {columns:[], values:[]};
+    const lastrowid = db.exec("SELECT last_insert_rowid()")[0].values[0][0];
+    return JSON.stringify({columns:last.columns, rows:last.values, changes, lastrowid});
+  } catch(e){ return JSON.stringify({error:e.message}); }
+};
+window.pqSqlScript = (h, sql) => { try { handles[h].exec(sql); return "{}"; } catch(e){ return JSON.stringify({error:e.message}); } };
+
+function py(code, stdin, fs, test, echo, mode){
+  pyMode = mode || "lesson"; handles = []; if (pyMode === "lesson") namedDbs = {};
+  // ponytail: runs on the page thread, an infinite loop freezes the tab; move Brython to a Worker if that bites
+  let r;
+  try { r = JSON.parse(window.pyRun(code, stdin || "", JSON.stringify(fs), test || "", !!echo)); }
+  finally { if (pyMode === "lab" && labDb) saveLabDb(); releaseHandles(); }
+  return r;
+}
+
+const engineMsg = () => { $("#engineStatus").textContent = `Python engine: ${pyReady ? "ready" : "loading"}. SQL engine: ${SQLLIB ? "ready" : "loading"}.`; };
+const sqlLoaded = loadScript("https://cdn.jsdelivr.net/npm/sql.js@1.12.0/dist/sql-asm.js")
+  .then(() => initSqlJs()).then(SQL => { SQLLIB = SQL; labDb = loadLabDb(); engineMsg(); renderSchema(); onEngines(); })
+  .catch(e => { $("#engineStatus").textContent = "SQL engine failed to load: " + e.message; });
+const pyLoaded = loadScript("https://cdn.jsdelivr.net/npm/brython@3.13.2/brython.min.js")
+  .then(() => loadScript("https://cdn.jsdelivr.net/npm/brython@3.13.2/brython_stdlib.js"))
+  .then(() => new Promise(res => { window.pqPyReady = res; brython({debug:1, indexedDB:false, ids:["runner"]}); }))
+  .then(() => { pyReady = true; engineMsg(); onEngines(); })
+  .catch(e => { $("#engineStatus").textContent = "Python engine failed to load: " + e.message; });
+
+function onEngines(){
+  for (const id of ["lRun","lCheck","lStep"]) $("#" + id).disabled = !engineFor(current);
+  $("#pyRunBtn").disabled = $("#pyStepBtn").disabled = !pyReady; $("#sqlRunBtn").disabled = !SQLLIB;
+  runAllExamples();
+}
+const engineFor = l => l && (l.track === "sql" ? !!SQLLIB : pyReady);
+
+/* ---------- lab database persistence ---------- */
+function loadLabDb(){
+  try {
+    const b64 = raw.get("pq-labdb");
+    if (b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new SQLLIB.Database(u); }
+  } catch(e){}
+  return freshDb();
+}
+function saveLabDb(){
+  try {
+    const u = labDb.export(); let s = "";
+    for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+    const b64 = btoa(s);
+    if (b64 !== raw.get("pq-labdb")) raw.set("pq-labdb", b64);
+  } catch(e){}
+}
+
+/* ---------- account sync and backups ---------- */
+let acct = null, syncTimer = null, syncing = Promise.resolve(), syncReady = false;
+const syncEl = () => $("#syncStatus");
+function setSync(text, title){ const el = syncEl(); if (el) { el.textContent = text; el.title = title || ""; } }
+function markDirty(){
+  // startup writes (editors filling in) must not look newer than the account copy
+  if (!syncReady) return;
+  raw.set("pq-updated", String(Date.now()), true);
+  if (!acct) return;
+  setSync("Saving to your account...");
+  clearTimeout(syncTimer); syncTimer = setTimeout(pushAccount, 1500);
+}
+function snapshot(){
+  const keys = {}; for (const k of userKeys()) keys[k] = mem[k];
+  return keys;
+}
+function pushAccount(){
+  if (!acct) return;
+  const keys = snapshot(), db64 = keys["pq-labdb"] || ""; delete keys["pq-labdb"];
+  const updatedAt = Number(raw.get("pq-updated")) || Date.now();
+  // one write at a time per document, chained
+  syncing = syncing.then(async () => {
+    try {
+      await acct.state.set({keys, updatedAt});
+      if (db64 !== acct.lastDb) { await acct.labdb.set({b64:db64, updatedAt}); acct.lastDb = db64; }
+      setSync(...acct.ok);
+    } catch(e) {
+      setSync(e && e.code === "invalid_argument" ? "Too big to sync, use Backup" : "Not synced, saved in this browser",
+              e && e.message ? e.message : "");
+    }
+  });
+}
+function applyKeys(keys){
+  for (const k of userKeys()) if (!(k in keys)) raw.del(k, true);
+  for (const [k, v] of Object.entries(keys)) if (k.startsWith("pq-") && typeof v === "string") raw.set(k, v, true);
+}
+function reloadState(){
+  Object.assign(prog, {done:{}, last:null}, store.get("pq-progress", {}));
+  prog.done = prog.done || {};
+  userFs = store.get("pq-fs", null) || clone(SEED_FS);
+  pyEd.setValue(store.get("pq-pylab", null) ?? PY_EXAMPLES["Sales report from CSV"]);
+  sqlEd.setValue(store.get("pq-sqllab", null) ?? SQL_EXAMPLES["Explore the tables"]);
+  if (SQLLIB) { if (labDb) labDb.close(); labDb = loadLabDb(); renderSchema(); }
+  renderRank(); openFile(null);
+  openLesson(prog.last || LESSONS[0].id);
+  if (typeof storyReload === "function") storyReload();
+}
+async function connectAccount(){
+  try { await connectInner(); } finally { syncReady = true; }
+}
+async function connectInner(){
+  const use = window.claude && window.claude.use;
+  if (!use && window.PQ_GITHUB) return connectGithub();
+  if (!use) { setSync("Saved in this browser only", "Use Backup to keep a copy you control."); return; }
+  const [db, user] = await Promise.all([use("db"), use("user")]);
+  const uid = user ? await user.id() : null;
+  if (!db || !uid) { setSync("Saved in this browser only", "Sign in to claude.ai to sync your progress. Backup works either way."); return; }
+  const base = "data/users/" + uid;
+  await attach({state: db.doc(base + "/state"), labdb: db.doc(base + "/labdb"), lastDb: null,
+    ok: ["Saved to your account", "Progress, drafts, files and your SQL Lab database sync to your claude.ai account."]});
+}
+// a = {state, labdb, ok}: two documents with get() -> {exists, data()} and set(obj); the newer side wins, finished lessons merge
+async function attach(a){
+  try {
+    const [s, d] = await Promise.all([a.state.get(), a.labdb.get()]);
+    const local = Number(raw.get("pq-updated")) || 0;
+    if (s.exists) {
+      const remote = s.data(), rKeys = Object.assign({}, remote.keys || {});
+      if (d.exists && d.data().b64) rKeys["pq-labdb"] = d.data().b64;
+      a.lastDb = d.exists ? d.data().b64 : null;
+      const localDone = (store.get("pq-progress", {}).done) || {};
+      if ((remote.updatedAt || 0) > local) applyKeys(rKeys);
+      // completed lessons are never lost: merge both sides
+      const p = store.get("pq-progress", {done:{}, last:null});
+      let remoteDone = {}; try { remoteDone = JSON.parse(rKeys["pq-progress"] || "{}").done || {}; } catch(e){}
+      p.done = Object.assign({}, p.done, remoteDone, localDone);
+      raw.set("pq-progress", JSON.stringify(p), true);
+      reloadState();
+    }
+    acct = a;
+    pushAccount();
+  } catch(e) {
+    setSync("Saved in this browser only", e && e.message ? e.message : "");
+  }
+}
+
+/* GitHub Pages copy: the same two documents live in a secret gist in the learner's own GitHub account.
+   The token is a fine-grained token with only "Gists: read and write"; it stays in this browser (not in Backup). */
+const GH_API = "https://api.github.com", GH_KEY = "pqgh-token", GIST_NAME = "PySQL Quest save";
+const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch(e){} };
+async function gh(token, path, opts = {}){
+  const r = await fetch(GH_API + path, {...opts, cache: "no-store", headers: {Authorization: "Bearer " + token, Accept: "application/vnd.github+json"}});
+  if (!r.ok) { const e = new Error(r.status === 401 ? "GitHub refused this token." : r.status === 403 || r.status === 404 ? "This token cannot use gists. Give it Gists: Read and write." : "GitHub answered " + r.status + "."); e.status = r.status; throw e; }
+  return r.json();
+}
+async function gistAccount(token){
+  const mine = await gh(token, "/gists?per_page=100");
+  const found = mine.find(g => g.description === GIST_NAME);
+  const g = found ? await gh(token, "/gists/" + found.id)
+    : await gh(token, "/gists", {method: "POST", body: JSON.stringify({description: GIST_NAME, public: false, files: {"state.json": {content: "{}"}, "labdb.json": {content: "{}"}}})});
+  const doc = name => ({
+    async get(){
+      const f = g.files[name]; let d = {};
+      // GitHub cuts file content above 1 MB in API answers; the raw copy is complete
+      try { d = JSON.parse((f && (f.truncated ? await (await fetch(f.raw_url, {cache: "no-store"})).text() : f.content)) || "{}"); } catch(e){}
+      return {exists: Object.keys(d).length > 0, data: () => d};
+    },
+    set(d){ return gh(token, "/gists/" + g.id, {method: "PATCH", body: JSON.stringify({files: {[name]: {content: JSON.stringify(d)}}})}); },
+  });
+  return {state: doc("state.json"), labdb: doc("labdb.json"), lastDb: null};
+}
+function githubGate(allow){
+  return new Promise(resolve => {
+    const box = document.createElement("div");
+    box.className = "gh-gate";
+    box.innerHTML = `<form class="gh-card"><span class="logo">${$(".brand .logo").innerHTML}</span><h2>Sign in with GitHub</h2>
+      <p>Your progress saves to a secret gist in your own GitHub account, so it follows you to every browser and device.</p>
+      <ol><li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a>. Under <b>Account permissions</b>, set <b>Gists</b> to <b>Read and write</b>. Nothing else is needed.</li>
+      <li>Paste it below. It is kept in this browser only.</li></ol>
+      <input class="gh-tok" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..." aria-label="GitHub token" required>
+      <button class="btn primary">Sign in</button><p class="gh-err" role="alert"></p></form>`;
+    document.body.appendChild(box);
+    const err = $(".gh-err", box);
+    $("form", box).onsubmit = async e => {
+      e.preventDefault();
+      const token = $(".gh-tok", box).value.trim(); err.textContent = "Checking...";
+      try {
+        const login = (await gh(token, "/user")).login;
+        if (allow && !allow.includes(login)) { err.textContent = `This copy is private. ${login} is not allowed in.`; return; }
+        lsSet(GH_KEY, token); box.remove(); resolve({token, login});
+      } catch(x){ err.textContent = x.message; }
+    };
+  });
+}
+async function connectGithub(){
+  const allow = window.PQ_GITHUB.allow;
+  let token = lsGet(GH_KEY), login = null;
+  if (token) {
+    try { login = (await gh(token, "/user")).login; }
+    catch(e){ if (e.status !== 401) { setSync("Saved in this browser only", "GitHub is out of reach: " + e.message); return; } token = null; }
+    if (allow && !allow.includes(login)) token = null;
+  }
+  if (!token) ({token, login} = await githubGate(allow));
+  // signing out also clears this browser's copy, so the next person starts clean
+  $("#ghOut").hidden = false;
+  $("#ghOut").onclick = () => { lsSet(GH_KEY, null); for (const k of userKeys().concat("pq-updated")) raw.del(k, true); location.reload(); };
+  setSync("Connecting to GitHub...");
+  try {
+    const a = await gistAccount(token);
+    a.ok = [`Saved to GitHub (${login})`, "Progress, drafts, files and your SQL Lab database sync to a secret gist in your GitHub account."];
+    await attach(a);
+  } catch(e){ setSync("Saved in this browser only", e && e.message ? e.message : ""); }
+}
+
+const backupText = () => JSON.stringify({app:"pysql-quest", version:1, saved:new Date().toISOString(), keys:snapshot()});
+function restoreFrom(text){
+  let b;
+  try { b = JSON.parse(text); } catch(e){ return "This is not a PySQL Quest backup: it is not valid JSON."; }
+  if (!b || b.app !== "pysql-quest" || typeof b.keys !== "object") return "This is not a PySQL Quest backup file.";
+  applyKeys(b.keys);
+  markDirty(); reloadState();
+  return "";
+}
+
+/* ---------- result rendering ---------- */
+function resultTables(results){
+  if (!results.length) return `<p class="hint">Done. No rows returned (statements that change data return nothing).</p>`;
+  return results.map(r => {
+    const shown = r.values.slice(0, 500);
+    return `<div class="tbl-wrap"><table class="res"><thead><tr>${r.columns.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${
+      shown.map(row => `<tr>${row.map(v => v === null ? `<td class="null">NULL</td>` : `<td>${esc(v)}</td>`).join("")}</tr>`).join("")
+    }</tbody></table></div><p class="rows">${r.values.length} row${r.values.length === 1 ? "" : "s"}${r.values.length > 500 ? ", first 500 shown" : ""}</p>`;
+  }).join("");
+}
+function pyOutput(r, before){
+  let h = r.out ? `<pre>${esc(r.out)}</pre>` : "";
+  if (r.err) h += `<pre class="err">${esc(r.err)}</pre>`;
+  if (!h) h = `<p class="hint">The program ran without printing anything.</p>`;
+  if (before) {
+    const changed = Object.keys(r.fs).filter(k => before[k] !== r.fs[k]);
+    const gone = Object.keys(before).filter(k => !(k in r.fs));
+    for (const k of changed) h += `<details class="fileout"><summary>${k in before ? "Updated" : "Created"} ${esc(k)}</summary><pre>${esc(r.fs[k].slice(0, 4000))}</pre></details>`;
+    if (gone.length) h += `<p class="hint">Removed or moved: ${gone.map(esc).join(", ")}</p>`;
+  }
+  return h;
+}
+
+/* ---------- checking ---------- */
+const normOut = s => s.replace(/\r/g, "").split("\n").map(l => l.trimEnd()).join("\n").trim();
+function checkPython(l, code){
+  for (const [inp, exp] of (l.io || [])) {
+    const r = py(code, inp, clone(SEED_FS), "", false);
+    if (r.err) return {ok:false, msg:r.err};
+    if (normOut(r.out) !== normOut(exp)) return {ok:false, msg:`With input:\n${inp}\n\nExpected output:\n${exp}\n\nYour output:\n${r.out || "(nothing)"}`};
+  }
+  if (l.test) {
+    const r = py(code, l.stdin || "", clone(SEED_FS), l.test, false);
+    if (r.err) return {ok:false, msg:r.err};
+    if (r.test !== "pass") return {ok:false, msg:r.test};
+  }
+  return {ok:true};
+}
+const lastOf = res => res.length ? res[res.length - 1] : {columns:[], values:[]};
+const normRows = (r, ordered) => { const rows = r.values.map(row => JSON.stringify(row.map(v => typeof v === "number" ? Math.round(v * 100) / 100 : v))); return ordered ? rows : rows.sort(); };
+function checkSql(l, code){
+  const a = freshDb(), b = freshDb();
+  try { return compareSql(l, code, a, b); } finally { a.close(); b.close(); }
+}
+function compareSql(l, code, a, b){
+  let ra;
+  try { ra = a.exec(code); } catch(e){ return {ok:false, msg:"Your SQL raised an error:\n" + e.message}; }
+  const rb = b.exec(l.solution);
+  const pairs = [];
+  if (l.verify) {
+    for (const v of l.verify) {
+      let x; try { x = lastOf(a.exec(v)); } catch(e){ return {ok:false, msg:"Inspecting your database failed:\n" + e.message}; }
+      pairs.push([x, lastOf(b.exec(v))]);
+    }
+  } else pairs.push([lastOf(ra), lastOf(rb)]);
+  for (const [x, y] of pairs) {
+    if (x.columns.length !== y.columns.length) return {ok:false, msg:`Expected ${y.columns.length} column(s), got ${x.columns.length}.`, expected:y};
+    const xr = normRows(x, l.ordered), yr = normRows(y, l.ordered);
+    if (xr.length !== yr.length) return {ok:false, msg:`Expected ${yr.length} row(s), got ${xr.length}.`, expected:y};
+    const i = xr.findIndex((v, k) => v !== yr[k]);
+    if (i >= 0) return {ok:false, msg:l.ordered ? `Row ${i + 1} differs (order matters here).` : `Some rows differ.`, expected:y};
+  }
+  return {ok:true};
+}
+
+/* ---------- editors ---------- */
+const cmBase = {lineNumbers:true, indentUnit:4, tabSize:4, matchBrackets:true, viewportMargin:Infinity,
+  extraKeys:{Tab: cm => cm.somethingSelected() ? cm.indentSelection("add") : cm.replaceSelection("    ")}};
+const lEd = CodeMirror($("#lEditor"), {...cmBase, mode:"python"});
+const pyEd = CodeMirror($("#pyEditor"), {...cmBase, mode:"python"});
+const sqlEd = CodeMirror($("#sqlEditor"), {...cmBase, mode:"text/x-sqlite"});
+lEd.setOption("extraKeys", {...cmBase.extraKeys, "Ctrl-Enter": () => runLesson(), "Cmd-Enter": () => runLesson()});
+pyEd.setOption("extraKeys", {...cmBase.extraKeys, "Ctrl-Enter": () => runPyLab(), "Cmd-Enter": () => runPyLab()});
+sqlEd.setOption("extraKeys", {...cmBase.extraKeys, "Ctrl-Enter": () => runSqlLab(), "Cmd-Enter": () => runSqlLab()});
+
+/* ---------- learn view ---------- */
+let current = null;
+function renderMap(){
+  $("#map").innerHTML = TRACKS.map(t => {
+    const ls = LESSONS.filter(l => l.track === t.id);
+    const done = ls.filter(l => prog.done[l.id]).length;
+    let mod = "", h = `<div class="track ${t.cls}"><div class="track-h">${t.name}<span>${done}/${ls.length}</span></div>`;
+    for (const l of ls) {
+      if (l.mod !== mod) { mod = l.mod; h += `<div class="mod">${esc(mod)}</div>`; }
+      h += `<button class="lbtn ${prog.done[l.id] ? "done" : ""}" data-id="${l.id}" aria-current="${current && current.id === l.id}"><span class="dot"></span>${esc(l.title)}${l.boss ? `<span class="boss">BOSS</span>` : ""}</button>`;
+    }
+    return h + "</div>";
+  }).join("");
+}
+$("#map").addEventListener("click", e => { const b = e.target.closest(".lbtn"); if (b) { openLesson(b.dataset.id); if (innerWidth < 900) $("#mapD").open = false; $("#lessonRoot").scrollIntoView({behavior:"smooth"}); } });
+
+function openLesson(id){
+  const l = LESSONS.find(x => x.id === id) || LESSONS[0];
+  current = l; prog.last = l.id; store.set("pq-progress", prog);
+  const t = TRACKS.find(t => t.id === l.track);
+  const idx = LESSONS.filter(x => x.track === l.track).indexOf(l) + 1;
+  $("#lessonRoot").className = "lesson " + t.cls;
+  $("#reading").innerHTML = `
+    <div class="eyebrow">${t.name} / ${esc(l.mod)} / Lesson ${idx}</div>
+    <h1>${esc(l.title)}</h1>
+    <div class="meta"><span class="chip">+${l.xp} XP</span>${l.boss ? `<span class="chip">Boss challenge</span>` : ""}${prog.done[l.id] ? `<span class="chip" style="--tsoft:var(--ok-soft);--tc:var(--ok)">Completed</span>` : ""}</div>
+    <p class="ex-tip">Every example below runs for real: its output is shown underneath. You can edit an example and press Run${l.track === "sql" ? "" : ", or press Step through to watch it run one line at a time with every variable's value"}.</p>
+    <div class="prose">${md(l.body)}</div>
+    <div class="task"><h3>Your mission</h3><div class="prose">${md(l.task)}</div></div>
+    <div class="helpers"><button class="btn" id="hintBtn">Show hint</button><button class="btn ghost" id="solBtn">Show solution</button></div>
+    <div class="reveal" id="reveal"></div>`;
+  $("#hintBtn").onclick = () => { $("#reveal").innerHTML = `<p><b>Hint:</b> ${esc(l.hint)}</p>`; };
+  $("#solBtn").onclick = () => {
+    $("#reveal").innerHTML = `<pre>${esc(l.solution)}</pre><div class="helpers"><button class="btn" id="useSol">Copy into editor</button></div>`;
+    $("#useSol").onclick = () => lEd.setValue(l.solution);
+  };
+  lEd.setOption("mode", l.track === "sql" ? "text/x-sqlite" : "python");
+  lEd.setValue(store.get("pq-draft-" + l.id, null) ?? l.starter);
+  lEd.clearHistory();
+  $("#lStdinBox").hidden = l.stdin === undefined;
+  $("#lStdin").value = l.stdin || "";
+  $("#lOut").innerHTML = `<p class="hint">${l.track === "sql" ? "Run shows your query results. Check answer compares them with the expected result." : "Run your code with the Run button or Ctrl+Enter. Check answer grades it."}</p>`;
+  $("#lVerdict").hidden = true;
+  $("#lStep").hidden = l.track === "sql";
+  renderMap(); onEngines();
+  setTimeout(() => lEd.refresh(), 0);
+}
+let draftTimer;
+lEd.on("change", () => { clearTimeout(draftTimer); draftTimer = setTimeout(() => current && store.set("pq-draft-" + current.id, lEd.getValue()), 400); });
+
+function runLesson(){
+  const l = current; if (!engineFor(l)) return;
+  const code = lEd.getValue();
+  if (l.track === "sql") {
+    try { $("#lOut").innerHTML = withDb(db => resultTables(db.exec(code))); }
+    catch(e){ $("#lOut").innerHTML = `<pre class="err">${esc(e.message)}</pre>`; }
+  } else {
+    const fs = clone(SEED_FS);
+    const r = py(code, $("#lStdin").value, fs, "", true);
+    $("#lOut").innerHTML = pyOutput(r, SEED_FS);
+  }
+}
+function checkLesson(){
+  const l = current; if (!engineFor(l)) return;
+  const btn = $("#lCheck"); btn.disabled = true; btn.textContent = "Checking...";
+  setTimeout(() => {
+    const res = l.track === "sql" ? checkSql(l, lEd.getValue()) : checkPython(l, lEd.getValue());
+    btn.disabled = false; btn.textContent = "Check answer";
+    const v = $("#lVerdict"); v.hidden = false;
+    if (res.ok) {
+      const before = rankOf(xpNow()), first = !prog.done[l.id];
+      prog.done[l.id] = true; store.set("pq-progress", prog);
+      const after = rankOf(xpNow());
+      const next = LESSONS[LESSONS.indexOf(l) + 1];
+      v.className = "verdict ok";
+      v.innerHTML = `<b>${first ? `Correct. +${l.xp} XP` : "Correct again"}</b>${next ? `<span class="sp" style="flex:1"></span><button class="btn go" id="nextBtn">Next: ${esc(next.title)}</button>` : `<span>You finished every lesson.</span>`}`;
+      if (next) $("#nextBtn").onclick = () => { openLesson(next.id); $("#lessonRoot").scrollIntoView({behavior:"smooth"}); };
+      renderRank(); renderMap();
+      if (before !== after) toast(`Rank up: ${after}`, `${xpNow()} XP earned`);
+      if (l.track === "sql") runLesson();
+    } else {
+      v.className = "verdict bad";
+      v.innerHTML = `<b>Not yet</b><pre>${esc(res.msg)}</pre>${res.expected ? `<div style="width:100%"><p class="rows">Expected result:</p>${resultTables([res.expected])}</div>` : ""}`;
+    }
+  }, 20);
+}
+$("#lRun").onclick = runLesson;
+$("#lCheck").onclick = checkLesson;
+$("#lStep").onclick = () => { if (pyReady) openStepper(lEd.getValue(), $("#lStdin").value, clone(SEED_FS), "lesson"); };
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"), el = b && b.closest(".ex"); if (!el) return;
+  const ex = EXAMPLES[el.dataset.ex];
+  if (b.dataset.act === "run") runExample(el);
+  else if (b.dataset.act === "reset") { el.querySelector("code").textContent = ex.code; runExample(el); }
+  else if (b.dataset.act === "step" && pyReady) openStepper(el.querySelector("code").textContent, ex.stdin, clone(SEED_FS), "lesson");
+});
+
+/* ---------- step through ---------- */
+let ST = null;
+function openStepper(code, stdin, fs, mode){
+  pyMode = mode; handles = []; if (mode === "lesson") namedDbs = {};
+  let r;
+  try { r = JSON.parse(window.pyStep(code, stdin || "", JSON.stringify(fs))); } finally { releaseHandles(); }
+  // call depth of each step, from the per-call ids
+  const stack = [];
+  for (const s of r.steps) { const k = stack.lastIndexOf(s.fid); if (k === -1) stack.push(s.fid); else stack.length = k + 1; s.depth = stack.length; }
+  ST = {lines: code.split("\n"), r, i: 0};
+  $("#stRange").max = r.steps.length - 1;
+  $("#stepper").hidden = false;
+  document.body.style.overflow = "hidden";
+  renderStep();
+  $("#stNext").focus();
+}
+function closeStepper(){ $("#stepper").hidden = true; document.body.style.overflow = ""; ST = null; }
+function varTable(now, before){
+  const names = Object.keys(now);
+  if (!names.length) return `<p class="hint">No variables yet.</p>`;
+  return `<table class="res vars"><thead><tr><th>Name</th><th>Type</th><th>Value</th></tr></thead><tbody>${names.map(n => {
+    const [type, val] = now[n], old = before && before[n];
+    const cls = before && !old ? "new" : old && old[1] !== val ? "changed" : "";
+    return `<tr class="${cls}"><td>${esc(n)}${cls ? `<span class="tag">${cls === "new" ? "new" : "changed"}</span>` : ""}</td><td>${esc(type)}</td><td class="val">${esc(val)}</td></tr>`;
+  }).join("")}</tbody></table>`;
+}
+function renderStep(){
+  const {lines, r, i} = ST, s = r.steps[i], prev = r.steps[i - 1];
+  const ran = prev && !prev.end ? prev.line : 0, next = s.end ? 0 : s.line;
+  $("#stCount").textContent = `Step ${i + 1} of ${r.steps.length}`;
+  $("#stRange").value = i;
+  $("#stCode").innerHTML = lines.map((t, k) => {
+    const n = k + 1, cls = n === next ? "next" : n === ran ? "ran" : "";
+    return `<div class="ln ${cls}"><span class="no">${n}</span><span class="mark">${n === next ? "next" : n === ran ? "ran" : ""}</span><code>${esc(t) || " "}</code></div>`;
+  }).join("");
+  const nl = $("#stCode .next") || $("#stCode .ran"); if (nl) nl.scrollIntoView({block:"nearest"});
+  // What happened since the last step: compare with the last step of the same call (fid)
+  let base = null;
+  for (let j = i - 1; j >= 0; j--) if (r.steps[j].fid === s.fid && !r.steps[j].end) { base = r.steps[j]; break; }
+  const entering = prev && !prev.end && s.depth > prev.depth;
+  const leaving = prev && s.depth < prev.depth;
+  const changes = [];
+  if (base && !entering) for (const [k, [, v]] of Object.entries(s.vars)) {
+    const o = base.vars[k];
+    if (!o) changes.push(`<b>${esc(k)}</b> was created with the value <code>${esc(v)}</code>`);
+    else if (o[1] !== v) changes.push(`<b>${esc(k)}</b> changed from <code>${esc(o[1])}</code> to <code>${esc(v)}</code>`);
+  }
+  const printed = prev ? r.out.slice(prev.out, s.out) : "";
+  if (printed) changes.push(`it printed <code>${esc(printed.replace(/\n$/, "")).replace(/\n/g, "<br>")}</code>`);
+  const what = changes.length ? ": " + changes.join("; ") : ", with no visible change";
+  const ret = s.ret ? ` and gave back (returned) <code>${esc(s.ret[1])}</code>` : "";
+  let say;
+  if (i === 0) say = s.end ? "There is nothing to run." : `Python starts at the top and runs one line at a time. The highlighted line ${next} is the next one to run.`;
+  else if (s.end && r.err) say = `Line ${ran} stopped the program with an error: <b>${esc(r.err)}</b>`;
+  else if (s.end && r.truncated) say = `Stopped after ${i} steps to keep things readable. These are the values at that point.`;
+  else if (entering) {
+    const params = Object.entries(s.vars).map(([k, [, v]]) => `<b>${esc(k)}</b> = <code>${esc(v)}</code>`);
+    say = `Line ${ran} calls <b>${esc(s.fn)}</b>, so Python jumps into that function.${params.length ? " Its parameters receive the values passed in: " + params.join(", ") + "." : ""} The function has its own variables, shown below.`;
+  } else if (leaving) {
+    say = `<b>${esc(prev.fn)}</b> finished${ret}. Python goes back to line ${base ? base.line : ran}, which can now complete${what}.`;
+  } else if (s.end) say = `The program has finished. Line ${ran} ran${what}. These are the final values.`;
+  else say = `Line ${ran} ran${what}.`;
+  if (!s.end) say += ` Next: line ${next}.`;
+  $("#stSay").innerHTML = say;
+  $("#stScope").textContent = s.fn === "<module>" ? "Variables" : `Variables inside ${s.fn}` + (s.depth > 2 ? ` (call ${s.depth - 1} levels deep)` : "");
+  $("#stVars").innerHTML = varTable(s.vars, base && !entering ? base.vars : null);
+  $("#stGlobWrap").hidden = !s.globals;
+  if (s.globals) $("#stGlob").innerHTML = varTable(s.globals, null);
+  $("#stOut").textContent = r.out.slice(0, s.out) || "(nothing printed yet)";
+  $("#stPrev").disabled = $("#stFirst").disabled = i === 0;
+  $("#stNext").disabled = $("#stLast").disabled = i === r.steps.length - 1;
+}
+const goStep = i => { if (!ST) return; ST.i = Math.max(0, Math.min(ST.r.steps.length - 1, i)); renderStep(); };
+$("#stFirst").onclick = () => goStep(0);
+$("#stPrev").onclick = () => goStep(ST.i - 1);
+$("#stNext").onclick = () => goStep(ST.i + 1);
+$("#stLast").onclick = () => goStep(ST.r.steps.length - 1);
+$("#stRange").oninput = e => goStep(+e.target.value);
+$("#stClose").onclick = closeStepper;
+$("#stepper").addEventListener("click", e => { if (e.target.id === "stepper") closeStepper(); });
+document.addEventListener("keydown", e => {
+  if (!ST) return;
+  if (e.key === "Escape") closeStepper();
+  else if (e.key === "ArrowRight" && e.target.type !== "range") { e.preventDefault(); goStep(ST.i + 1); }
+  else if (e.key === "ArrowLeft" && e.target.type !== "range") { e.preventDefault(); goStep(ST.i - 1); }
+});
+$("#lReset").onclick = () => { lEd.setValue(current.starter); store.del("pq-draft-" + current.id); };
+
+/* ---------- files ---------- */
+let userFs = store.get("pq-fs", null) || clone(SEED_FS);
+let curFile = null, delArmed = false;
+const saveFs = () => store.set("pq-fs", userFs);
+function renderFiles(){
+  const names = Object.keys(userFs).sort();
+  $("#fList").innerHTML = names.map(n => `<li><button data-f="${esc(n)}" aria-current="${n === curFile}">${esc(n)}</button></li>`).join("") || `<li class="status">No files. Create one or reset.</li>`;
+  $("#pyFiles").innerHTML = names.map(n => `<li><button data-f="${esc(n)}">${esc(n)}</button></li>`).join("");
+}
+function openFile(n){
+  curFile = n in userFs ? n : null; delArmed = false; $("#fDelete").textContent = "Delete";
+  $("#fTitle").textContent = curFile || "No file selected";
+  $("#fEdit").value = curFile ? userFs[curFile] : ""; $("#fEdit").disabled = !curFile; $("#fStatus").textContent = "";
+  renderFiles();
+}
+$("#fList").addEventListener("click", e => { const b = e.target.closest("button[data-f]"); if (b) openFile(b.dataset.f); });
+$("#pyFiles").addEventListener("click", e => { const b = e.target.closest("button[data-f]"); if (b) { show("files"); openFile(b.dataset.f); } });
+let fTimer;
+$("#fEdit").addEventListener("input", () => { if (!curFile) return; userFs[curFile] = $("#fEdit").value; $("#fStatus").textContent = "Saving..."; clearTimeout(fTimer); fTimer = setTimeout(() => { saveFs(); $("#fStatus").textContent = "Saved"; }, 400); });
+$("#fCreate").onclick = () => {
+  const n = $("#fNew").value.trim().replace(/\\/g, "/").replace(/^\.?\/+/, "");
+  if (!n) { $("#fNew").focus(); return; }
+  if (!(n in userFs)) userFs[n] = "";
+  saveFs(); $("#fNew").value = ""; openFile(n);
+};
+$("#fUpload").onchange = e => {
+  for (const f of e.target.files) { const r = new FileReader(); r.onload = () => { userFs[f.name] = String(r.result); saveFs(); openFile(f.name); }; r.readAsText(f); }
+  e.target.value = "";
+};
+$("#fDelete").onclick = () => {
+  if (!curFile) return;
+  if (!delArmed) { delArmed = true; $("#fDelete").textContent = "Click again to delete"; return; }
+  delete userFs[curFile]; saveFs(); openFile(null);
+};
+let resetArmed = false;
+$("#fResetAll").onclick = () => {
+  if (!resetArmed) { resetArmed = true; $("#fResetAll").textContent = "Click again to reset"; setTimeout(() => { resetArmed = false; $("#fResetAll").textContent = "Reset all files"; }, 4000); return; }
+  userFs = clone(SEED_FS); saveFs(); resetArmed = false; $("#fResetAll").textContent = "Reset all files"; openFile(null); toast("Files reset to the samples");
+};
+$("#fCopy").onclick = () => {
+  const ta = $("#fEdit");
+  navigator.clipboard.writeText(ta.value).then(() => { $("#fStatus").textContent = "Copied"; }, () => { ta.select(); $("#fStatus").textContent = "Selected, press Ctrl+C"; });
+};
+
+/* ---------- python lab ---------- */
+$("#pyEx").innerHTML = Object.keys(PY_EXAMPLES).map(k => `<option>${esc(k)}</option>`).join("");
+pyEd.setValue(store.get("pq-pylab", null) ?? PY_EXAMPLES["Sales report from CSV"]);
+let pyTimer; pyEd.on("change", () => { clearTimeout(pyTimer); pyTimer = setTimeout(() => store.set("pq-pylab", pyEd.getValue()), 400); });
+$("#pyLoad").onclick = () => { const k = $("#pyEx").value; pyEd.setValue(PY_EXAMPLES[k]); $("#pyStdin").value = PY_STDIN_EX[k] || ""; };
+function runPyLab(){
+  if (!pyReady) return;
+  $("#pyStatus").textContent = "Running...";
+  setTimeout(() => {
+    const before = clone(userFs), t0 = performance.now();
+    const r = py(pyEd.getValue(), $("#pyStdin").value, userFs, "", true, "lab");
+    userFs = r.fs; saveFs(); renderFiles(); renderSchema();
+    $("#pyOut").innerHTML = pyOutput(r, before);
+    $("#pyStatus").textContent = `${r.err ? "Stopped with an error" : "Finished"} in ${Math.round(performance.now() - t0)} ms`;
+  }, 20);
+}
+$("#pyRunBtn").onclick = runPyLab;
+$("#pyStepBtn").onclick = () => { if (pyReady) openStepper(pyEd.getValue(), $("#pyStdin").value, clone(userFs), "lesson"); };
+$("#pyClear").onclick = () => { $("#pyOut").innerHTML = `<p class="hint">Output appears here.</p>`; };
+
+/* ---------- sql lab ---------- */
+$("#sqlEx").innerHTML = Object.keys(SQL_EXAMPLES).map(k => `<option>${esc(k)}</option>`).join("");
+sqlEd.setValue(store.get("pq-sqllab", null) ?? SQL_EXAMPLES["Explore the tables"]);
+let sqTimer; sqlEd.on("change", () => { clearTimeout(sqTimer); sqTimer = setTimeout(() => store.set("pq-sqllab", sqlEd.getValue()), 400); });
+$("#sqlLoad").onclick = () => sqlEd.setValue(SQL_EXAMPLES[$("#sqlEx").value]);
+function renderSchema(){
+  if (!labDb) return;
+  try {
+    const tables = labDb.exec("SELECT name, type FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY type, name")[0];
+    $("#schema").innerHTML = (tables ? tables.values : []).map(([n, type]) => {
+      const cols = labDb.exec(`SELECT name, type FROM pragma_table_info('${n.replace(/'/g, "''")}')`)[0];
+      return `<div class="schema-t"><button data-t="${esc(n)}">${esc(n)}</button>${type === "view" ? ` <span class="status">view</span>` : ""}<ul>${(cols ? cols.values : []).map(([c, t]) => `<li>${esc(c)} <span>${esc(t)}</span></li>`).join("")}</ul></div>`;
+    }).join("") || `<p class="status">No tables.</p>`;
+  } catch(e){ $("#schema").textContent = e.message; }
+}
+$("#schema").addEventListener("click", e => { const b = e.target.closest("button[data-t]"); if (b) { sqlEd.setValue(`SELECT * FROM "${b.dataset.t}" LIMIT 50;`); runSqlLab(); } });
+function runSqlLab(){
+  if (!labDb) return;
+  const t0 = performance.now();
+  try {
+    const res = labDb.exec(sqlEd.getValue());
+    $("#sqlOut").innerHTML = resultTables(res);
+    $("#sqlStatus").textContent = `Ran in ${Math.round(performance.now() - t0)} ms, ${labDb.getRowsModified()} row(s) changed by the last statement`;
+  } catch(e){ $("#sqlOut").innerHTML = `<pre class="err">${esc(e.message)}</pre>`; $("#sqlStatus").textContent = "Error"; }
+  saveLabDb(); renderSchema();
+}
+$("#sqlRunBtn").onclick = runSqlLab;
+let dbArmed = false;
+$("#sqlReset").onclick = () => {
+  if (!dbArmed) { dbArmed = true; $("#sqlReset").textContent = "Click again to reset"; setTimeout(() => { dbArmed = false; $("#sqlReset").textContent = "Reset database"; }, 4000); return; }
+  labDb.close(); labDb = freshDb(); saveLabDb(); renderSchema(); dbArmed = false; $("#sqlReset").textContent = "Reset database"; toast("Database reset to the sample shop");
+};
+
+/* ---------- views ---------- */
+const VIEWS = [...document.querySelectorAll("nav.tabs button")].map(b => b.dataset.view);
+function show(v){
+  if (!VIEWS.includes(v)) v = VIEWS[0];
+  for (const x of VIEWS) $("#view-" + x).hidden = x !== v;
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.view === v));
+  try { history.replaceState(null, "", "#" + v); } catch(e){}
+  setTimeout(() => [lEd, pyEd, sqlEd].forEach(e => e.refresh()), 0);
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => show(b.dataset.view));
+
+/* ---------- self test: every solution must pass its own check ---------- */
+// every lesson example must run, print something, and step through to the same output
+window.__selfTestExamples = () => {
+  const problems = []; let count = 0;
+  for (const l of LESSONS) {
+    const from = EXAMPLES.length; md(l.body);
+    EXAMPLES.slice(from).forEach((ex, k) => {
+      count++;
+      if (ex.lang === "sql") {
+        try { if (!withDb(db => db.exec(ex.code)).length) problems.push([l.id, k, "no result table"]); }
+        catch(e){ problems.push([l.id, k, "sql: " + e.message]); }
+        return;
+      }
+      const r = py(ex.code, ex.stdin, clone(SEED_FS), "", true);
+      if (r.err) return problems.push([l.id, k, "run: " + String(r.err).slice(-250)]);
+      if (!r.out.trim()) problems.push([l.id, k, "printed nothing"]);
+      pyMode = "lesson"; handles = [];
+      let s; try { s = JSON.parse(window.pyStep(ex.code, ex.stdin, JSON.stringify(clone(SEED_FS)))); } finally { releaseHandles(); }
+      // examples using random or memory addresses print different text on every run
+      const varies = s.out !== r.out && py(ex.code, ex.stdin, clone(SEED_FS), "", true).out !== r.out;
+      if (s.err || s.truncated || (s.out !== r.out && !varies)) problems.push([l.id, k, "step: " + (s.err || (s.truncated ? "too many steps" : "output differs"))]);
+      else if (s.steps.length < 2) problems.push([l.id, k, "step: no lines recorded"]);
+    });
+  }
+  return {count, problems};
+};
+window.__selfTest = () =>LESSONS.map(l => ({id:l.id, ...(l.track === "sql" ? checkSql(l, l.solution) : checkPython(l, l.solution))})).filter(r => !r.ok);
+
+/* ---------- backup and restore ---------- */
+function backupMsg(t){ $("#bkStatus").textContent = t; }
+$("#bkDownload").onclick = async () => {
+  const text = backupText(), name = `pysql-quest-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+  if (dl) {
+    try { await dl.save({filename:name, data:text}); backupMsg("Backup saved as " + name); }
+    catch(e){ backupMsg(e && e.code === "declined" ? "Download cancelled." : "Download is not available here, use Copy backup instead."); }
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type:"application/json"})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  backupMsg("Backup saved as " + name);
+};
+$("#bkCopy").onclick = () => {
+  const text = backupText();
+  navigator.clipboard.writeText(text).then(() => backupMsg("Backup copied. Paste it into a text file and keep it safe."),
+    () => { $("#bkPaste").value = text; $("#bkPaste").select(); backupMsg("Backup selected below, press Ctrl+C."); });
+};
+$("#bkFile").onchange = e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { const err = restoreFrom(String(r.result)); backupMsg(err || "Restored from " + f.name); if (!err) toast("Backup restored"); };
+  r.readAsText(f);
+};
+$("#bkRestore").onclick = () => {
+  const t = $("#bkPaste").value.trim(); if (!t) { $("#bkPaste").focus(); return; }
+  const err = restoreFrom(t); backupMsg(err || "Restored from the pasted backup"); if (!err) { $("#bkPaste").value = ""; toast("Backup restored"); }
+};
+
+/*STORY-JS*/
+/* ---------- boot ---------- */
+if (innerWidth < 900) $("#mapD").open = false;
+renderRank(); renderFiles();
+openLesson(prog.last || LESSONS[0].id);
+show(location.hash.slice(1));
+onEngines();
+$("#syncStatus").onclick = () => show("files");
+connectAccount();
+</script>

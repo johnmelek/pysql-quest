@@ -1,0 +1,330 @@
+[
+  {
+    "id": "t-sql-customer-list",
+    "district": "sql",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Who are our customers?",
+    "covers": ["sql-select"],
+    "brief": "I started on Monday and nobody gave me the customer list. It is all in the company database. Can you build me a machine that pulls the names and cities?",
+    "skill": {
+      "title": "SELECT reads columns from a table",
+      "card": "A database keeps data in <b>tables</b>. <code>SELECT</code> picks the columns you want, <code>FROM</code> names the table.",
+      "example": "SELECT name, price FROM products;"
+    },
+    "task": "Return the <code>name</code> and <code>city</code> of every row in <code>customers</code>.",
+    "starter": "-- write your query here\n",
+    "solution": "SELECT name, city FROM customers;",
+    "hint": "SELECT name, city FROM customers;",
+    "par": 1,
+    "machine": {"name": "Contact Lister", "icon": "list"}
+  },
+  {
+    "id": "t-sql-lyon-leads",
+    "district": "sql",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Only the Lyon customers",
+    "covers": ["sql-where"],
+    "brief": "Great list. I am visiting Lyon on Thursday. I only need the customers there, with their email so I can write to them first.",
+    "skill": {
+      "title": "WHERE keeps only the rows you want",
+      "card": "<code>WHERE</code> comes after <code>FROM</code> and keeps rows whose condition is true. Text goes between single quotes.",
+      "example": "SELECT name, stock FROM products WHERE category = 'Furniture';"
+    },
+    "task": "Return <code>name</code> and <code>email</code> of the customers whose <code>city</code> is <code>Lyon</code>.",
+    "starter": "SELECT name, email FROM customers;",
+    "solution": "SELECT name, email FROM customers WHERE city = 'Lyon';",
+    "hint": "Add WHERE city = 'Lyon' before the semicolon.",
+    "par": 1,
+    "machine": {"name": "Lead Filter", "icon": "filter"}
+  },
+  {
+    "id": "t-sql-recent-orders",
+    "district": "sql",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "The five latest orders",
+    "covers": [
+      "sql-order"
+    ],
+    "brief": "Every Monday the team asks me what came in last. I do not want the whole order book, just the five most recent orders, newest on top.",
+    "skill": {
+      "title": "ORDER BY sorts, LIMIT cuts",
+      "card": "Rows come back in no promised order. <code>ORDER BY col</code> sorts them, add <code>DESC</code> for biggest first. <code>LIMIT n</code> keeps the first n rows, and <code>SELECT DISTINCT</code> shows each value once.",
+      "example": "SELECT name, price FROM products ORDER BY price DESC LIMIT 3;"
+    },
+    "task": "Return <code>id</code>, <code>customer_id</code>, <code>ordered</code> and <code>status</code> of the 5 most recent orders, newest first (sort on <code>ordered</code>).",
+    "starter": "SELECT id, customer_id, ordered, status FROM orders;",
+    "solution": "SELECT id, customer_id, ordered, status FROM orders ORDER BY ordered DESC LIMIT 5;",
+    "hint": "ORDER BY ordered DESC, then LIMIT 5.",
+    "par": 1,
+    "machine": {
+      "name": "Latest Feed",
+      "icon": "clock"
+    },
+    "ordered": true
+  },
+  {
+    "id": "t-sql-open-q1-orders",
+    "district": "sql",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "First quarter orders not paid yet",
+    "covers": [
+      "sql-in"
+    ],
+    "brief": "I am closing the first quarter. I need every order placed between January 1st and March 31st that is still pending or shipped, so not paid. My auditor arrives at ten.",
+    "skill": {
+      "title": "IN, BETWEEN, LIKE and IS NULL",
+      "card": "<code>IN ('a', 'b')</code> matches one value of a list, <code>BETWEEN x AND y</code> an inclusive range (dates stored as <code>'YYYY-MM-DD'</code> work too), <code>LIKE 'C%'</code> a text pattern. A missing value is <code>NULL</code>: test it with <code>IS NULL</code>, never <code>= NULL</code>.",
+      "example": "SELECT name, city FROM customers WHERE city IN ('Lille', 'Nantes') AND email IS NULL;"
+    },
+    "task": "Return <code>id</code>, <code>customer_id</code>, <code>ordered</code> and <code>status</code> of orders whose <code>ordered</code> date is between <code>2026-01-01</code> and <code>2026-03-31</code> and whose <code>status</code> is <code>pending</code> or <code>shipped</code>.",
+    "starter": "SELECT id, customer_id, ordered, status FROM orders WHERE status = 'pending';",
+    "solution": "SELECT id, customer_id, ordered, status FROM orders\nWHERE ordered BETWEEN '2026-01-01' AND '2026-03-31'\n  AND status IN ('pending', 'shipped');",
+    "hint": "ordered BETWEEN '2026-01-01' AND '2026-03-31' AND status IN ('pending', 'shipped')",
+    "par": 3,
+    "machine": {
+      "name": "Quarter Sieve",
+      "icon": "filter"
+    }
+  },
+  {
+    "id": "t-sql-recent-orders-v2",
+    "district": "sql",
+    "type": "update",
+    "of": "t-sql-recent-orders",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Only what is still pending",
+    "covers": [
+      "sql-order",
+      "sql-where"
+    ],
+    "brief": "Small change on the Monday list. The team only cares about orders still pending, and they want the oldest first so nothing waits too long. Give me all of them, not just five.",
+    "task": "Return <code>id</code>, <code>customer_id</code>, <code>ordered</code> and <code>status</code> of every order whose <code>status</code> is <code>pending</code>, oldest <code>ordered</code> date first.",
+    "starter": "",
+    "solution": "SELECT id, customer_id, ordered, status FROM orders WHERE status = 'pending' ORDER BY ordered;",
+    "hint": "Swap DESC LIMIT 5 for a WHERE on status and a plain ORDER BY ordered.",
+    "par": 1,
+    "ordered": true
+  },
+  {
+    "id": "t-sql-stock-levels",
+    "district": "sql",
+    "client": "Theo Simon, Head of Warehouse",
+    "title": "Stock level labels",
+    "covers": [
+      "sql-case"
+    ],
+    "brief": "My pickers read raw numbers all day and miss the empty shelves. I want a word next to every product instead. Services have no stock at all, label them too.",
+    "skill": {
+      "title": "CASE labels rows, COALESCE fills gaps",
+      "card": "<code>CASE WHEN cond THEN a WHEN cond2 THEN b ELSE c END AS name</code> makes a computed column: the first true branch wins. <code>COALESCE(a, b)</code> gives the first value that is not NULL, handy for defaults.",
+      "example": "SELECT name, COALESCE(email, 'no email') AS contact, CASE WHEN tier = 'standard' THEN 'no' ELSE 'yes' END AS vip FROM customers;"
+    },
+    "task": "Return <code>name</code>, <code>stock</code> and <code>stock_level</code> for every product. <code>stock_level</code> is <code>'service'</code> when stock is NULL, <code>'sold out'</code> when it is 0, <code>'reorder'</code> below 10, otherwise <code>'ok'</code>.",
+    "starter": "SELECT name, stock FROM products;",
+    "solution": "SELECT name, stock,\n       CASE WHEN stock IS NULL THEN 'service'\n            WHEN stock = 0 THEN 'sold out'\n            WHEN stock < 10 THEN 'reorder'\n            ELSE 'ok' END AS stock_level\nFROM products;",
+    "hint": "Test IS NULL first: CASE WHEN stock IS NULL THEN 'service' WHEN stock = 0 THEN ...",
+    "par": 6,
+    "machine": {
+      "name": "Shelf Labeler",
+      "icon": "list"
+    }
+  },
+  {
+    "id": "t-sql-payroll-total",
+    "district": "sql",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "Payroll in one line",
+    "covers": [
+      "sql-agg"
+    ],
+    "brief": "The bank wants a payroll summary for our credit line. One line is enough: how many people, what we pay in total each month, and the average, lowest and highest salary.",
+    "skill": {
+      "title": "Aggregates squash rows into one value",
+      "card": "<code>COUNT(*)</code> counts rows, <code>COUNT(col)</code> only the non NULL values. <code>SUM</code>, <code>AVG</code>, <code>MIN</code> and <code>MAX</code> work on a column, and <code>ROUND(x, 2)</code> keeps two decimals.",
+      "example": "SELECT COUNT(*), SUM(stock), ROUND(AVG(price), 2) FROM products;"
+    },
+    "task": "In one row return the number of employees, the sum of <code>salary</code>, the average salary rounded to 2 decimals, the lowest and the highest salary, in that order.",
+    "starter": "SELECT salary FROM employees;",
+    "solution": "SELECT COUNT(*), SUM(salary), ROUND(AVG(salary), 2), MIN(salary), MAX(salary) FROM employees;",
+    "hint": "SELECT COUNT(*), SUM(salary), ROUND(AVG(salary), 2), MIN(salary), MAX(salary) FROM employees;",
+    "par": 1,
+    "machine": {
+      "name": "Payroll Totalizer",
+      "icon": "calc"
+    }
+  },
+  {
+    "id": "t-sql-stock-levels-v2",
+    "district": "sql",
+    "type": "update",
+    "of": "t-sql-stock-levels",
+    "client": "Theo Simon, Head of Warehouse",
+    "title": "Labels for the physical shelves only",
+    "covers": [
+      "sql-case",
+      "sql-in"
+    ],
+    "brief": "The labels work. Now the shelf printer: it only does Hardware and Furniture, and it needs the category printed too. Services can go, they never sit on a shelf.",
+    "task": "Same <code>stock_level</code> rules, but return <code>name</code>, <code>category</code>, <code>stock</code> and <code>stock_level</code>, only for products whose <code>category</code> is <code>Hardware</code> or <code>Furniture</code>.",
+    "starter": "",
+    "solution": "SELECT name, category, stock,\n       CASE WHEN stock IS NULL THEN 'service'\n            WHEN stock = 0 THEN 'sold out'\n            WHEN stock < 10 THEN 'reorder'\n            ELSE 'ok' END AS stock_level\nFROM products\nWHERE category IN ('Hardware', 'Furniture');",
+    "hint": "Add category to the SELECT and WHERE category IN ('Hardware', 'Furniture') after FROM.",
+    "par": 7
+  },
+  {
+    "id": "t-sql-ticket-subjects",
+    "district": "sql",
+    "client": "Omar Moreau, Head of Support",
+    "title": "What do customers call about?",
+    "covers": [
+      "sql-group"
+    ],
+    "brief": "I am rewriting our help pages and want to start with what hurts most. Count the tickets per subject, and only show the subjects with 4 tickets or more, the biggest first.",
+    "skill": {
+      "title": "GROUP BY counts per group, HAVING filters groups",
+      "card": "<code>GROUP BY col</code> runs the aggregate once per value of <code>col</code>. <code>WHERE</code> filters rows before grouping, <code>HAVING</code> filters the groups after.",
+      "example": "SELECT status, COUNT(*) AS n FROM orders WHERE status <> 'cancelled' GROUP BY status HAVING COUNT(*) > 5;"
+    },
+    "task": "Return <code>subject</code> and <code>n</code> (number of tickets) for each subject that has at least 4 tickets, highest <code>n</code> first, then by <code>subject</code>.",
+    "starter": "SELECT subject, COUNT(*) AS n FROM tickets;",
+    "solution": "SELECT subject, COUNT(*) AS n\nFROM tickets\nGROUP BY subject\nHAVING COUNT(*) >= 4\nORDER BY n DESC, subject;",
+    "hint": "GROUP BY subject HAVING COUNT(*) >= 4 ORDER BY n DESC, subject",
+    "par": 5,
+    "machine": {
+      "name": "Topic Counter",
+      "icon": "chart"
+    },
+    "ordered": true
+  },
+  {
+    "id": "t-sql-payroll-by-dept",
+    "district": "sql",
+    "type": "update",
+    "of": "t-sql-payroll-total",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "Payroll per department",
+    "covers": [
+      "sql-group"
+    ],
+    "brief": "The bank liked the summary, and now the board wants it per department. Same idea, one line per department. People without a department show up on their own line, that is fine.",
+    "task": "Return <code>dept_id</code>, <code>headcount</code> (number of employees) and <code>payroll</code> (sum of salary) for each <code>dept_id</code>, ordered by <code>dept_id</code>.",
+    "starter": "",
+    "solution": "SELECT dept_id, COUNT(*) AS headcount, SUM(salary) AS payroll\nFROM employees\nGROUP BY dept_id\nORDER BY dept_id;",
+    "hint": "GROUP BY dept_id, and ORDER BY dept_id.",
+    "par": 4,
+    "ordered": true
+  },
+  {
+    "id": "t-sql-pending-list",
+    "district": "sql",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Pending orders with real names",
+    "covers": [
+      "sql-join"
+    ],
+    "brief": "The pending list is useful but the team cannot read customer ids. Put the customer name next to each pending order so they can pick up the phone.",
+    "skill": {
+      "title": "JOIN stitches tables back together",
+      "card": "Tables point at each other with ids. <code>JOIN other ON other.id = t.other_id</code> glues each row to its match. Short aliases (<code>orders o</code>) keep it readable. An inner join drops rows with no match.",
+      "example": "SELECT o.id, c.name, o.status FROM orders o JOIN customers c ON c.id = o.customer_id LIMIT 3;"
+    },
+    "task": "Return the order <code>id</code>, the customer <code>name</code> and the <code>ordered</code> date of every order whose <code>status</code> is <code>pending</code>.",
+    "starter": "SELECT o.id, o.customer_id, o.ordered\nFROM orders o\nWHERE o.status = 'pending';",
+    "solution": "SELECT o.id, c.name, o.ordered\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nWHERE o.status = 'pending';",
+    "hint": "JOIN customers c ON c.id = o.customer_id, then select c.name.",
+    "par": 4,
+    "machine": {
+      "name": "Name Matcher",
+      "icon": "search"
+    }
+  },
+  {
+    "id": "t-sql-silent-customers",
+    "district": "sql",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Customers who never ordered",
+    "covers": [
+      "sql-left"
+    ],
+    "brief": "Some customers signed up and then went quiet. I want to call them this week with an offer. Who has never placed a single order?",
+    "skill": {
+      "title": "LEFT JOIN keeps the rows without a match",
+      "card": "A <code>LEFT JOIN</code> keeps every row of the left table. When nothing matches, the right side columns are NULL, so <code>WHERE right.id IS NULL</code> finds what has no partner.",
+      "example": "SELECT p.name, oi.id FROM products p LEFT JOIN order_items oi ON oi.product_id = p.id LIMIT 5;"
+    },
+    "task": "Return the <code>name</code>, <code>city</code> and <code>email</code> of customers who have no order at all.",
+    "starter": "SELECT c.name, c.city, c.email\nFROM customers c\nJOIN orders o ON o.customer_id = c.id;",
+    "solution": "SELECT c.name, c.city, c.email\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.id IS NULL;",
+    "hint": "LEFT JOIN orders, then keep WHERE o.id IS NULL.",
+    "par": 4,
+    "machine": {
+      "name": "Quiet Finder",
+      "icon": "search"
+    }
+  },
+  {
+    "id": "t-sql-top-customers",
+    "district": "sql",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Top five customers",
+    "covers": [
+      "sql-multi"
+    ],
+    "brief": "The CEO asked me who our best customers are and I said \"the usual ones\". Not good enough. Give me the five biggest by revenue, cancelled orders do not count.",
+    "skill": {
+      "title": "Joins chain across many tables",
+      "card": "To go from a customer to what they bought, walk the links: customers, orders, order_items. Each <code>JOIN</code> adds one hop, then <code>GROUP BY</code> turns the lines into totals.",
+      "example": "SELECT c.name, oi.qty, oi.unit_price FROM customers c JOIN orders o ON o.customer_id = c.id JOIN order_items oi ON oi.order_id = o.id LIMIT 4;"
+    },
+    "task": "Return each customer <code>name</code> and <code>revenue</code> (sum of <code>qty * unit_price</code> from <code>order_items</code>, rounded to 2 decimals) for orders whose status is not <code>cancelled</code>. Highest revenue first, 5 rows.",
+    "starter": "SELECT c.name\nFROM customers c\nJOIN orders o ON o.customer_id = c.id;",
+    "solution": "SELECT c.name, ROUND(SUM(oi.qty * oi.unit_price), 2) AS revenue\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nJOIN order_items oi ON oi.order_id = o.id\nWHERE o.status <> 'cancelled'\nGROUP BY c.id\nORDER BY revenue DESC\nLIMIT 5;",
+    "hint": "customers, orders, order_items: two JOINs, then GROUP BY c.id ORDER BY revenue DESC LIMIT 5.",
+    "par": 8,
+    "machine": {
+      "name": "Revenue Ranker",
+      "icon": "chart"
+    },
+    "ordered": true
+  },
+  {
+    "id": "t-sql-unpaid-orders",
+    "district": "sql",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "Orders with no payment",
+    "covers": [
+      "sql-left",
+      "sql-multi"
+    ],
+    "brief": "Cash is tight this month. Find me every order that is not cancelled but has no payment recorded, with the customer name, so I can send reminders.",
+    "task": "Return the order <code>id</code>, the customer <code>name</code>, the <code>ordered</code> date and the <code>status</code> of orders that are not <code>cancelled</code> and have no row in <code>payments</code>, oldest first.",
+    "starter": "SELECT o.id, c.name, o.ordered, o.status\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nWHERE o.status <> 'cancelled'\nORDER BY o.ordered;",
+    "solution": "SELECT o.id, c.name, o.ordered, o.status\nFROM orders o\nJOIN customers c ON c.id = o.customer_id\nLEFT JOIN payments p ON p.order_id = o.id\nWHERE o.status <> 'cancelled' AND p.id IS NULL\nORDER BY o.ordered;",
+    "hint": "Add LEFT JOIN payments p ON p.order_id = o.id and keep p.id IS NULL.",
+    "par": 6,
+    "machine": {
+      "name": "Dunning Desk",
+      "icon": "mail"
+    },
+    "ordered": true
+  },
+  {
+    "id": "t-sql-top-customers-v2",
+    "district": "sql",
+    "type": "update",
+    "of": "t-sql-top-customers",
+    "client": "Nina Dubois, Head of Sales",
+    "title": "Revenue per tier instead",
+    "covers": [
+      "sql-multi",
+      "sql-group"
+    ],
+    "brief": "Change of plan from the CEO: she does not want names, she wants to know if our gold and platinum tiers are worth the discounts. Same revenue, but one line per tier, and all tiers.",
+    "task": "Return <code>tier</code>, <code>customers</code> (number of distinct customers who ordered) and <code>revenue</code> (rounded to 2 decimals, non cancelled orders) per customer tier, highest revenue first.",
+    "starter": "",
+    "solution": "SELECT c.tier, COUNT(DISTINCT c.id) AS customers, ROUND(SUM(oi.qty * oi.unit_price), 2) AS revenue\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nJOIN order_items oi ON oi.order_id = o.id\nWHERE o.status <> 'cancelled'\nGROUP BY c.tier\nORDER BY revenue DESC;",
+    "hint": "GROUP BY c.tier instead of c.id, drop the LIMIT, and count customers with COUNT(DISTINCT c.id).",
+    "par": 7,
+    "ordered": true
+  }
+]

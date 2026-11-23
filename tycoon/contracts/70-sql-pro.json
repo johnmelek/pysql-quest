@@ -1,0 +1,328 @@
+[
+  {
+    "id": "t-sql-org-chart",
+    "district": "sql",
+    "client": "Claire Durand, CEO",
+    "title": "Who reports to whom",
+    "covers": [
+      "sql-self"
+    ],
+    "brief": "We hired a lot this year and I keep getting asked who reports to whom. I want a plain list: each person and their manager. I have no manager, so leave mine empty.",
+    "skill": {
+      "title": "A table can join itself",
+      "card": "<code>manager_id</code> points at another row of the same table. Give the table two aliases and join them like two tables. A <code>LEFT JOIN</code> keeps the people without a manager.",
+      "example": "SELECT e.name, m.name AS boss FROM employees e JOIN employees m ON m.id = e.manager_id LIMIT 3;"
+    },
+    "task": "Return <code>employee</code> (the name) and <code>manager</code> (the manager name) for every employee. The CEO appears with a NULL <code>manager</code>.",
+    "starter": "SELECT e.name AS employee, e.manager_id AS manager\nFROM employees e;",
+    "solution": "SELECT e.name AS employee, m.name AS manager\nFROM employees e\nLEFT JOIN employees m ON m.id = e.manager_id;",
+    "hint": "Join employees to itself: LEFT JOIN employees m ON m.id = e.manager_id.",
+    "par": 3,
+    "machine": {
+      "name": "Org Mapper",
+      "icon": "list"
+    }
+  },
+  {
+    "id": "t-sql-pending-customers",
+    "district": "sql",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "Who owes us a decision?",
+    "covers": [
+      "sql-sub"
+    ],
+    "brief": "I want to email every customer who has an order still pending. One email per customer, not one per order, so no duplicates please.",
+    "skill": {
+      "title": "Subqueries: a query inside a query",
+      "card": "A query in parentheses can feed another: <code>WHERE x > (SELECT AVG(x) ...)</code> compares with one value, <code>WHERE id IN (SELECT ...)</code> tests membership, <code>EXISTS (SELECT 1 ...)</code> checks that a match exists.",
+      "example": "SELECT name, salary FROM employees WHERE salary > (SELECT AVG(salary) FROM employees);"
+    },
+    "task": "Return the <code>name</code> and <code>email</code> of customers who have at least one order with <code>status</code> <code>pending</code>. Each customer once. Use a subquery.",
+    "starter": "SELECT name, email FROM customers;",
+    "solution": "SELECT name, email FROM customers\nWHERE id IN (SELECT customer_id FROM orders WHERE status = 'pending');",
+    "hint": "WHERE id IN (SELECT customer_id FROM orders WHERE status = 'pending')",
+    "par": 2,
+    "machine": {
+      "name": "Reminder List",
+      "icon": "mail"
+    }
+  },
+  {
+    "id": "t-sql-org-chart-v2",
+    "district": "sql",
+    "type": "update",
+    "of": "t-sql-org-chart",
+    "client": "Claire Durand, CEO",
+    "title": "Add the department",
+    "covers": [
+      "sql-self",
+      "sql-left"
+    ],
+    "brief": "The list went around and everyone loved it. One more thing: put the department name on each line. Some people have no department, like me and our consultant, keep us in.",
+    "task": "Return <code>employee</code>, <code>department</code> (the department <code>name</code>) and <code>manager</code> for every employee. Missing departments and managers stay NULL.",
+    "starter": "",
+    "solution": "SELECT e.name AS employee, d.name AS department, m.name AS manager\nFROM employees e\nLEFT JOIN departments d ON d.id = e.dept_id\nLEFT JOIN employees m ON m.id = e.manager_id;",
+    "hint": "One more LEFT JOIN departments d ON d.id = e.dept_id, and d.name AS department between the two columns.",
+    "par": 4
+  },
+  {
+    "id": "t-sql-monthly-revenue",
+    "district": "sql",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "Revenue by month",
+    "covers": [
+      "sql-cte"
+    ],
+    "brief": "The board pack needs a revenue line per month. I keep rebuilding it by hand in a spreadsheet. Cancelled orders do not count, obviously.",
+    "skill": {
+      "title": "WITH names a step",
+      "card": "<code>WITH name AS (SELECT ...)</code> builds a temporary table you query right after, so a long report reads in steps. <code>strftime('%Y-%m', date)</code> gives the month, <code>julianday(a) - julianday(b)</code> a gap in days.",
+      "example": "WITH paid AS (SELECT order_id, SUM(amount) AS total FROM payments GROUP BY order_id) SELECT * FROM paid WHERE total > 1000;"
+    },
+    "task": "With a CTE, return <code>month</code> (<code>YYYY-MM</code> from <code>ordered</code>) and <code>revenue</code> (sum of <code>qty * unit_price</code>, rounded to 2 decimals) for orders that are not cancelled, ordered by month.",
+    "starter": "WITH lines AS (\n    SELECT o.ordered, oi.qty * oi.unit_price AS amount\n    FROM orders o\n    JOIN order_items oi ON oi.order_id = o.id\n)\nSELECT ordered, amount FROM lines;",
+    "solution": "WITH lines AS (\n    SELECT strftime('%Y-%m', o.ordered) AS month, oi.qty * oi.unit_price AS amount\n    FROM orders o\n    JOIN order_items oi ON oi.order_id = o.id\n    WHERE o.status <> 'cancelled'\n)\nSELECT month, ROUND(SUM(amount), 2) AS revenue FROM lines GROUP BY month ORDER BY month;",
+    "hint": "In the CTE use strftime('%Y-%m', o.ordered) AS month, then GROUP BY month outside.",
+    "par": 7,
+    "machine": {
+      "name": "Month Roller",
+      "icon": "chart"
+    },
+    "ordered": true
+  },
+  {
+    "id": "t-sql-salary-bands",
+    "district": "sql",
+    "client": "Claire Durand, CEO",
+    "title": "Salary rank inside each department",
+    "covers": [
+      "sql-window"
+    ],
+    "brief": "Pay review is coming. I want to see every person with their rank inside their own department and the department average next to it, without losing the individual lines.",
+    "skill": {
+      "title": "Window functions keep every row",
+      "card": "<code>fn() OVER (PARTITION BY g ORDER BY x)</code> computes across related rows without collapsing them like GROUP BY. <code>RANK()</code>, <code>ROW_NUMBER()</code>, <code>LAG(col)</code> and any aggregate work as window functions.",
+      "example": "SELECT name, category, price, RANK() OVER (PARTITION BY category ORDER BY price DESC) AS r FROM products;"
+    },
+    "task": "Return <code>name</code>, <code>dept_id</code>, <code>salary</code>, <code>rank_in_dept</code> (RANK by salary, highest = 1, within the same <code>dept_id</code>) and <code>dept_avg</code> (average salary of the department, rounded to 2 decimals). Skip employees with no <code>dept_id</code>.",
+    "starter": "SELECT name, dept_id, salary\nFROM employees\nWHERE dept_id IS NOT NULL;",
+    "solution": "SELECT name, dept_id, salary,\n       RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rank_in_dept,\n       ROUND(AVG(salary) OVER (PARTITION BY dept_id), 2) AS dept_avg\nFROM employees\nWHERE dept_id IS NOT NULL;",
+    "hint": "RANK() OVER (PARTITION BY dept_id ORDER BY salary DESC), and AVG(salary) OVER (PARTITION BY dept_id).",
+    "par": 5,
+    "machine": {
+      "name": "Pay Ranker",
+      "icon": "chart"
+    }
+  },
+  {
+    "id": "t-sql-monthly-revenue-v2",
+    "district": "sql",
+    "type": "update",
+    "of": "t-sql-monthly-revenue",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "Add the order count and a running total",
+    "covers": [
+      "sql-cte",
+      "sql-window"
+    ],
+    "brief": "The board liked the monthly line. They now want to see how many orders made each month, and the revenue so far in the year, so they can see the curve.",
+    "task": "Return <code>month</code>, <code>orders</code> (number of distinct non cancelled orders that month), <code>revenue</code> (rounded to 2 decimals) and <code>running</code> (revenue of that month and all earlier months, rounded to 2 decimals), ordered by month.",
+    "starter": "",
+    "solution": "WITH lines AS (\n    SELECT strftime('%Y-%m', o.ordered) AS month, o.id AS order_id, oi.qty * oi.unit_price AS amount\n    FROM orders o\n    JOIN order_items oi ON oi.order_id = o.id\n    WHERE o.status <> 'cancelled'\n), months AS (\n    SELECT month, COUNT(DISTINCT order_id) AS orders, SUM(amount) AS revenue FROM lines GROUP BY month\n)\nSELECT month, orders, ROUND(revenue, 2) AS revenue,\n       ROUND(SUM(revenue) OVER (ORDER BY month), 2) AS running\nFROM months ORDER BY month;",
+    "hint": "Keep o.id in the first CTE, group in a second CTE, then SUM(revenue) OVER (ORDER BY month) for the running total.",
+    "par": 11,
+    "ordered": true
+  },
+  {
+    "id": "t-sql-reporting-lines",
+    "district": "sql",
+    "client": "Sara Michel, Head of IT",
+    "title": "Reporting lines for the directory",
+    "covers": [
+      "sql-rec"
+    ],
+    "brief": "I am building the staff directory in our intranet. For each person I need their depth in the org chart and their full chain of command as one text, like a breadcrumb.",
+    "skill": {
+      "title": "Recursive CTEs walk trees",
+      "card": "A <code>WITH RECURSIVE</code> query has an anchor (the starting rows), <code>UNION ALL</code>, then a step that reads the rows found so far. It repeats until the step finds nothing new: perfect for org charts.",
+      "example": "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 5) SELECT x FROM n;"
+    },
+    "task": "Return <code>name</code>, <code>level</code> (CEO = 0, direct reports 1, and so on) and <code>path</code>: the names from the CEO down to the person, joined by <code>' > '</code>, for example <code>Claire Durand > Nina Dubois > Yanis Bernard</code>. Order by <code>path</code>.",
+    "starter": "WITH RECURSIVE chain(id, name, level, path) AS (\n    SELECT id, name, 0, name FROM employees WHERE manager_id IS NULL\n)\nSELECT name, level, path FROM chain ORDER BY path;",
+    "solution": "WITH RECURSIVE chain(id, name, level, path) AS (\n    SELECT id, name, 0, name FROM employees WHERE manager_id IS NULL\n    UNION ALL\n    SELECT e.id, e.name, c.level + 1, c.path || ' > ' || e.name\n    FROM employees e JOIN chain c ON e.manager_id = c.id\n)\nSELECT name, level, path FROM chain ORDER BY path;",
+    "hint": "Recursive step: join employees e on e.manager_id = c.id, level c.level + 1, path c.path || ' > ' || e.name.",
+    "par": 7,
+    "machine": {
+      "name": "Tree Climber",
+      "icon": "list"
+    },
+    "ordered": true
+  },
+  {
+    "id": "t-sql-restock",
+    "district": "sql",
+    "client": "Theo Simon, Head of Warehouse",
+    "title": "Book in the delivery",
+    "covers": [
+      "sql-dml"
+    ],
+    "brief": "The truck just left. Three things for the system: we now sell a desk lamp, eight standing desks came in, and printer ink is discontinued so drop it from the catalogue. Its old order lines were archived this morning.",
+    "skill": {
+      "title": "INSERT, UPDATE, DELETE change data",
+      "card": "<code>INSERT INTO t (cols) VALUES (...)</code> adds a row, <code>UPDATE t SET col = ... WHERE ...</code> changes rows, <code>DELETE FROM t WHERE ...</code> removes them. Without <code>WHERE</code> they hit every row, so run the matching SELECT first.",
+      "example": "SELECT name, stock FROM products WHERE name = 'Standing Desk';"
+    },
+    "task": "Three statements. Insert the product <code>Desk Lamp</code> (category <code>Furniture</code>, price <code>35.0</code>, stock <code>40</code>). Add 8 to the <code>stock</code> of <code>Standing Desk</code>. Delete the product named <code>Printer Ink</code>.",
+    "starter": "-- 1. insert the lamp\n\n-- 2. add the desks\n\n-- 3. remove the ink\n",
+    "solution": "INSERT INTO products (name, category, price, stock) VALUES ('Desk Lamp', 'Furniture', 35.0, 40);\nUPDATE products SET stock = stock + 8 WHERE name = 'Standing Desk';\nDELETE FROM products WHERE name = 'Printer Ink';",
+    "hint": "UPDATE products SET stock = stock + 8 WHERE name = 'Standing Desk'; never forget the WHERE.",
+    "par": 3,
+    "machine": {
+      "name": "Stock Booker",
+      "icon": "db"
+    },
+    "setup": "DELETE FROM order_items WHERE product_id = 7;",
+    "verify": [
+      "SELECT name, category, price, stock FROM products ORDER BY name"
+    ]
+  },
+  {
+    "id": "t-sql-suppliers",
+    "district": "sql",
+    "client": "Theo Simon, Head of Warehouse",
+    "title": "A proper supplier table",
+    "covers": [
+      "sql-create"
+    ],
+    "brief": "Our suppliers live in a spreadsheet that someone overwrote last month. I want them in the database, with rules so nobody can type a rating of 12 or a supplier twice.",
+    "skill": {
+      "title": "CREATE TABLE with rules",
+      "card": "Each column gets a type and optional constraints: <code>PRIMARY KEY</code>, <code>NOT NULL</code>, <code>UNIQUE</code>, <code>DEFAULT</code>, <code>CHECK (...)</code> and <code>REFERENCES other(id)</code>. The database then refuses bad writes from every app.",
+      "example": "SELECT name, type, \"notnull\", pk FROM pragma_table_info('products');"
+    },
+    "task": "Create <code>suppliers</code> with <code>id INTEGER PRIMARY KEY</code>, <code>name TEXT NOT NULL UNIQUE</code>, <code>city TEXT</code>, <code>rating INTEGER</code> with a CHECK between 1 and 5, and <code>product_id INTEGER</code> referencing <code>products(id)</code>. Then insert two suppliers: <code>Bureau Plus</code>, Lyon, rating 4, product 2; <code>Tech Grossiste</code>, Paris, rating 5, product 1.",
+    "starter": "CREATE TABLE suppliers (\n    id INTEGER PRIMARY KEY,\n    name TEXT\n);\n",
+    "solution": "CREATE TABLE suppliers (\n    id INTEGER PRIMARY KEY,\n    name TEXT NOT NULL UNIQUE,\n    city TEXT,\n    rating INTEGER CHECK (rating BETWEEN 1 AND 5),\n    product_id INTEGER REFERENCES products(id)\n);\nINSERT INTO suppliers (name, city, rating, product_id) VALUES ('Bureau Plus', 'Lyon', 4, 2), ('Tech Grossiste', 'Paris', 5, 1);",
+    "hint": "Use exactly those types: the checker compares column names, types, NOT NULL and the primary key.",
+    "par": 8,
+    "machine": {
+      "name": "Supplier Vault",
+      "icon": "shield"
+    },
+    "verify": [
+      "SELECT name, type, \"notnull\", pk FROM pragma_table_info('suppliers') ORDER BY cid",
+      "SELECT name, city, rating, product_id FROM suppliers ORDER BY name"
+    ]
+  },
+  {
+    "id": "t-sql-revenue-view",
+    "district": "sql",
+    "client": "Sara Michel, Head of IT",
+    "title": "A revenue view for the dashboard",
+    "covers": [
+      "sql-view"
+    ],
+    "brief": "Our dashboard tool should not hold your joins in its config. Give me a view with revenue per sales rep that I can simply SELECT from, and an index so the order lookups by rep stay fast.",
+    "skill": {
+      "title": "Views save queries, indexes speed them up",
+      "card": "<code>CREATE VIEW name AS SELECT ...</code> stores a query under a name: it reads like a table and is always up to date. <code>CREATE INDEX idx ON t(col)</code> makes filters and joins on that column fast.",
+      "example": "CREATE INDEX idx_products_price ON products(price);\nCREATE VIEW big_products AS SELECT name, price FROM products WHERE price > 300;\nSELECT * FROM big_products;"
+    },
+    "task": "Create a view <code>rep_revenue</code> with columns <code>rep</code> (employee name) and <code>revenue</code> (sum of <code>qty * unit_price</code>, non cancelled orders, rounded to 2 decimals), one row per rep. Then create an index <code>idx_orders_rep</code> on <code>orders(rep_id)</code>.",
+    "starter": "CREATE VIEW rep_revenue AS\nSELECT e.name AS rep\nFROM employees e;\n",
+    "solution": "CREATE VIEW rep_revenue AS\nSELECT e.name AS rep, ROUND(SUM(oi.qty * oi.unit_price), 2) AS revenue\nFROM employees e\nJOIN orders o ON o.rep_id = e.id\nJOIN order_items oi ON oi.order_id = o.id\nWHERE o.status <> 'cancelled'\nGROUP BY e.id;\nCREATE INDEX idx_orders_rep ON orders(rep_id);",
+    "hint": "CREATE VIEW rep_revenue AS SELECT ... GROUP BY e.id; then CREATE INDEX idx_orders_rep ON orders(rep_id);",
+    "par": 8,
+    "machine": {
+      "name": "Dashboard Feed",
+      "icon": "db"
+    },
+    "verify": [
+      "SELECT rep, revenue FROM rep_revenue",
+      "SELECT name, tbl_name FROM sqlite_master WHERE type = 'index' AND name = 'idx_orders_rep'"
+    ]
+  },
+  {
+    "id": "t-sql-stock-alerts",
+    "district": "sql",
+    "client": "Theo Simon, Head of Warehouse",
+    "title": "Low stock alarm",
+    "covers": [
+      "sql-trigger"
+    ],
+    "brief": "We ran out of whiteboards twice because nobody noticed. Whatever app changes the stock, I want the database itself to write an alert the moment a product drops under 5 units.",
+    "skill": {
+      "title": "Triggers react to changes",
+      "card": "<code>CREATE TRIGGER t AFTER UPDATE OF col ON table WHEN cond BEGIN ... END;</code> runs SQL by itself each time the table changes. Inside, <code>OLD</code> is the row before and <code>NEW</code> the row after.",
+      "example": "CREATE TABLE log (msg TEXT);\nCREATE TRIGGER note_price AFTER UPDATE OF price ON products\nBEGIN\n  INSERT INTO log VALUES ('New price for ' || NEW.name);\nEND;\nUPDATE products SET price = 55 WHERE id = 5;\nSELECT * FROM log;"
+    },
+    "task": "Create <code>stock_alerts(product_id INTEGER, stock INTEGER, raised_at TEXT DEFAULT CURRENT_TIMESTAMP)</code> and a trigger <code>low_stock</code> that inserts <code>product_id</code> and the new <code>stock</code> whenever a product's <code>stock</code> is updated to a value below 5 that was 5 or more before. The checker will change some stock and read the alerts.",
+    "starter": "CREATE TABLE stock_alerts (product_id INTEGER, stock INTEGER, raised_at TEXT DEFAULT CURRENT_TIMESTAMP);\n\nCREATE TRIGGER low_stock\n",
+    "solution": "CREATE TABLE stock_alerts (product_id INTEGER, stock INTEGER, raised_at TEXT DEFAULT CURRENT_TIMESTAMP);\nCREATE TRIGGER low_stock AFTER UPDATE OF stock ON products\nWHEN NEW.stock < 5 AND OLD.stock >= 5\nBEGIN\n    INSERT INTO stock_alerts (product_id, stock) VALUES (NEW.id, NEW.stock);\nEND;",
+    "hint": "AFTER UPDATE OF stock ON products WHEN NEW.stock < 5 AND OLD.stock >= 5 BEGIN INSERT ... END;",
+    "par": 6,
+    "machine": {
+      "name": "Stock Siren",
+      "icon": "shield"
+    },
+    "verify": [
+      "UPDATE products SET stock = 3 WHERE name = 'Standing Desk';\nUPDATE products SET stock = 2 WHERE name = 'Whiteboard';\nUPDATE products SET stock = 50 WHERE name = 'Headset';\nUPDATE products SET stock = 1 WHERE name = 'Standing Desk';\nSELECT product_id, stock FROM stock_alerts"
+    ]
+  },
+  {
+    "id": "t-sql-price-update",
+    "district": "sql",
+    "client": "Ines Laurent, Head of Finance",
+    "title": "A price change you can undo",
+    "covers": [
+      "sql-tx"
+    ],
+    "brief": "Last year an intern wiped the payments table and we spent a week rebuilding it. This time we test first: run the cleanup, look, undo it. Then the real job: services go up 5 percent, and that one stays.",
+    "skill": {
+      "title": "Transactions: all or nothing",
+      "card": "<code>BEGIN</code> opens a transaction. <code>COMMIT</code> makes every change since then permanent, <code>ROLLBACK</code> undoes them all. Wrap anything risky or anything that must happen together.",
+      "example": "SELECT COUNT(*) FROM payments;"
+    },
+    "task": "In one script: start a transaction, delete every row of <code>payments</code>, then <code>ROLLBACK</code>. Then in a second transaction raise the <code>price</code> of every <code>Services</code> product by 5 percent, rounded to 2 decimals, and <code>COMMIT</code>.",
+    "starter": "BEGIN;\nDELETE FROM payments;\n-- undo it\n",
+    "solution": "BEGIN;\nDELETE FROM payments;\nROLLBACK;\nBEGIN;\nUPDATE products SET price = ROUND(price * 1.05, 2) WHERE category = 'Services';\nCOMMIT;",
+    "hint": "BEGIN; DELETE ...; ROLLBACK; then BEGIN; UPDATE products SET price = ROUND(price * 1.05, 2) WHERE category = 'Services'; COMMIT;",
+    "par": 6,
+    "machine": {
+      "name": "Safe Switch",
+      "icon": "shield"
+    },
+    "verify": [
+      "SELECT COUNT(*), ROUND(SUM(amount), 2) FROM payments",
+      "SELECT id, price FROM products ORDER BY id"
+    ]
+  },
+  {
+    "id": "t-sql-rep-scorecard",
+    "district": "sql",
+    "client": "Claire Durand, CEO",
+    "title": "The sales rep scorecard",
+    "covers": [
+      "sql-boss",
+      "sql-cte",
+      "sql-window",
+      "sql-left"
+    ],
+    "brief": "Board meeting on Friday. I want one table per sales rep: how many orders they closed, the revenue, how much of it is still unpaid, and their rank. Cancelled orders do not count anywhere. This is the report I will show, so make it right.",
+    "skill": {
+      "title": "Big reports are small steps",
+      "card": "Build the report in CTE steps: first one row per order, then one row per person, then rank with a window function. Each step is a query you can run and check alone.",
+      "example": "WITH ranked AS (SELECT name, dept_id, salary, ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rn FROM employees) SELECT dept_id, name, salary FROM ranked WHERE rn = 1;"
+    },
+    "task": "Return one row per rep who has orders: <code>rep</code> (name), <code>orders</code> (number of non cancelled orders), <code>revenue</code> (sum of <code>qty * unit_price</code>, rounded to 2 decimals), <code>unpaid</code> (revenue of their non cancelled orders that have no payment, rounded to 2 decimals, 0 when none) and <code>sales_rank</code> (RANK by revenue, highest = 1). Order by <code>sales_rank</code>.",
+    "starter": "WITH order_totals AS (\n    SELECT o.id, o.rep_id, SUM(oi.qty * oi.unit_price) AS total\n    FROM orders o\n    JOIN order_items oi ON oi.order_id = o.id\n    GROUP BY o.id\n)\nSELECT * FROM order_totals;",
+    "solution": "WITH order_totals AS (\n    SELECT o.id, o.rep_id, SUM(oi.qty * oi.unit_price) AS total,\n           NOT EXISTS (SELECT 1 FROM payments p WHERE p.order_id = o.id) AS is_unpaid\n    FROM orders o\n    JOIN order_items oi ON oi.order_id = o.id\n    WHERE o.status <> 'cancelled'\n    GROUP BY o.id\n), reps AS (\n    SELECT e.name AS rep, COUNT(*) AS orders, SUM(t.total) AS revenue,\n           SUM(CASE WHEN t.is_unpaid THEN t.total ELSE 0 END) AS unpaid\n    FROM order_totals t\n    JOIN employees e ON e.id = t.rep_id\n    GROUP BY e.id\n)\nSELECT rep, orders, ROUND(revenue, 2) AS revenue, ROUND(unpaid, 2) AS unpaid,\n       RANK() OVER (ORDER BY revenue DESC) AS sales_rank\nFROM reps\nORDER BY sales_rank;",
+    "hint": "CTE 1: one row per non cancelled order with its total and NOT EXISTS (payment) as a flag. CTE 2: group per rep, SUM(CASE WHEN flag THEN total ELSE 0 END). Then RANK() OVER (ORDER BY revenue DESC).",
+    "par": 18,
+    "machine": {
+      "name": "Board Report",
+      "icon": "chart"
+    },
+    "ordered": true
+  }
+]

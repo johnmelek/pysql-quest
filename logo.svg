@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="PySQL Quest">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B2338"/><stop offset="1" stop-color="#0D1220"/></linearGradient>
+    <linearGradient id="py" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD866"/><stop offset="1" stop-color="#F2A93B"/></linearGradient>
+    <linearGradient id="sq" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FD1C5"/><stop offset="1" stop-color="#2B8FD6"/></linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <!-- the Q: Python half on top, SQL half below -->
+  <path d="M60 124 A64 64 0 0 1 188 124" fill="none" stroke="url(#py)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M188 124 A64 64 0 0 1 60 124" fill="none" stroke="url(#sq)" stroke-width="22" stroke-linecap="round"/>
+  <!-- the tail of the Q, and a star where the climb ends: zero to hero -->
+  <path d="M160 160 L198 198" stroke="url(#sq)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M206 30 Q210 50 226 54 Q210 58 206 78 Q202 58 186 54 Q202 50 206 30 Z" fill="url(#py)"/>
+  <!-- inside: a prompt and a table row, code meets data -->
+  <path d="M96 108 L114 124 L96 140" fill="none" stroke="#E8ECF5" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="122" y="134" width="34" height="10" rx="5" fill="#E8ECF5"/>
+</svg>

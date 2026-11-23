@@ -1,0 +1,8 @@
+vendor/
+.claude/
+__pycache__/
+# claude.ai artifact builds and self-contained offline copies: rebuilt by node build.js
+/index.html
+/story.html
+/tycoon.html
+*-offline.html

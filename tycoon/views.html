@@ -1,0 +1,61 @@
+  <!-- FACTORY: the floor where every script you write runs as a machine; orders come in on the right -->
+  <section class="view" id="view-factory">
+    <div class="ty-hud">
+      <div class="ty-coins" title="Coins"><i class="coin-ico"></i><b id="tyCoins">0</b><small id="tyRate">+0 / s</small></div>
+      <div class="ty-stat" title="Days in a row with the daily drill done"><small>Streak</small><b id="tyStreak">0</b></div>
+      <div class="ty-stat" title="Machines running"><small>Machines</small><b id="tyMachines">0</b></div>
+      <span class="sp"></span>
+      <button class="btn mini ghost" id="tyMute" aria-pressed="false">Sound on</button>
+    </div>
+    <div class="ty-main">
+      <div class="floor-wrap" id="floorWrap"><canvas id="floor" aria-label="Factory floor: click a machine to upgrade it or open its code"></canvas><div class="floor-tip" id="floorTip" hidden></div></div>
+      <aside class="ty-side">
+        <h2>Orders</h2>
+        <div id="tyOrders"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- WORK BENCH: one order at a time, client message, skill card, editor -->
+  <div class="work" id="work" hidden role="dialog" aria-modal="true" aria-labelledby="wTitle">
+    <div class="w-card">
+      <div class="w-head">
+        <span class="w-av" id="wAv"></span>
+        <div class="w-who"><small id="wClient"></small><h2 id="wTitle"></h2></div>
+        <span class="sp"></span>
+        <span class="w-timer" id="wTimer" title="Time on this order">0:00</span>
+        <button class="btn" id="wClose">Back to floor</button>
+      </div>
+      <div class="w-body">
+        <div class="w-left">
+          <div class="chat" id="wChat"></div>
+          <div class="skill" id="wSkill"></div>
+          <div class="w-task"><h3>The job</h3><div class="prose" id="wTask"></div></div>
+          <div class="helpers"><button class="btn mini" id="wHint">Hint</button><button class="btn mini ghost" id="wSol">Solution</button></div>
+          <div class="reveal" id="wReveal"></div>
+        </div>
+        <div class="w-right">
+          <div class="bench-bar">
+            <button class="btn primary" id="wRun" title="Ctrl+Enter">Run</button>
+            <button class="btn" id="wStep">Step through</button>
+            <button class="btn go" id="wSubmit">Ship it</button>
+            <span class="sp"></span>
+            <select class="sel" id="wCase" aria-label="Sample data to run on"></select>
+            <button class="btn mini ghost" id="wReset">Reset</button>
+          </div>
+          <div id="wEditor"></div>
+          <p class="ex-note" id="wStdin" hidden></p>
+          <div class="out" id="wOut"></div>
+          <div class="verdict" id="wVerdict" hidden></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true" aria-labelledby="smTitle">
+    <div class="sm-card">
+      <div class="sm-head"><h2 id="smTitle"></h2><span class="sp"></span><button class="btn" id="smClose">Close</button></div>
+      <div class="sm-body" id="smBody"></div>
+    </div>
+  </div>
+

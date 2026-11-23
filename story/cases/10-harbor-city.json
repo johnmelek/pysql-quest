@@ -1,0 +1,732 @@
+[
+ {
+  "id": "case-1",
+  "title": "The Harbor Market Break-in",
+  "covers": [
+   "sql-select",
+   "sql-where",
+   "sql-order",
+   "sql-in"
+  ],
+  "story": "Your first morning in the Harbor City Police data unit. Captain Ruth Okoye drops a thin file on your desk: someone emptied the Harbor Market cash box in the night of 2 to 3 October. No fingerprints, no arrest. \"The records saw everything\", she says. \"Make them talk.\"",
+  "suspects": [
+   {
+    "name": "Rosa Vidal",
+    "note": "night guard, badge B-101, drives the red hatchback HC-2290, says she was on her rounds all night"
+   },
+   {
+    "name": "Ines Kowal",
+    "note": "cashier, lost her badge B-117 on 29 September, now uses temporary badge B-130, says she was asleep at home"
+   },
+   {
+    "name": "Marco Bellini",
+    "note": "Fresh Line Foods delivery driver, delivers to the market every morning, drives the white van HC-7348, says he was home in Old Town"
+   },
+   {
+    "name": "Dmitri Sato",
+    "note": "stock clerk fired on 5 September, old badge B-109, drives the grey HC-5512, says he was at the Anchor Bar"
+   },
+   {
+    "name": "Lena Park",
+    "note": "market owner, badge B-100, drives the black sedan HC-7041, says she was at a dinner on Hilltop"
+   }
+  ],
+  "culprit": "Marco Bellini",
+  "closing": "Ines's badge vanished during Marco's morning delivery on 29 September. That badge opened the rear door at 02:06, while the guard was at the front door. Marco's white van HC-7348 passed the Dock Street camera at 01:58 and 02:19, around the badge use, and it is the only light colored vehicle on the road that matches the witness's plate.",
+  "xp_accuse": 40,
+  "steps": [
+   {
+    "title": "Read the incident register",
+    "covers": [
+     "sql-select"
+    ],
+    "xp": 10,
+    "brief": "Harbor City keeps its records in a <b>database</b>: a set of tables. A <b>table</b> is a grid, like one sheet of a spreadsheet. Each <b>row</b> is one thing (one person, one phone call). Each <b>column</b> is one piece of information about it (a name, a time). SQL is the language you use to ask the database questions. A question is called a <b>query</b>, and its answer, the <b>result</b>, is a new temporary table.\n\n### SELECT and FROM: show everything\n\n~~~sql\nSELECT * FROM districts;\n~~~\n\n- SELECT: \"show me these columns\". Every question starts with it.\n- <code>*</code>: the star means \"every column\", in the order the table stores them.\n- FROM districts: the table to read.\n- ;: the semicolon ends the statement, like a full stop.\n\nThe result has 6 rows, the six districts of Harbor City, and 3 columns: <code>id</code> (a unique number for each row), <code>name</code> and <code>precinct</code>.\n\n### Picking only some columns\n\nList the columns you want, separated by commas. Their order in SELECT is their order in the result.\n\n~~~sql\nSELECT name, job FROM people;\n~~~\n\nYou still get every row of <code>people</code> (95 of them), but only 2 columns. Asking for a column that does not exist gives an error such as \"no such column\".\n\n### Calculating a new column with AS\n\nA column can be a calculation, done for every row. <code>+ - * /</code> work like on a calculator (here <code>*</code> means \"times\"). AS gives the column a readable name, called an alias. AS also renames an ordinary column.\n\n~~~sql\n-- how old is each car in 2025?\nSELECT plate, make, year, 2025 - year AS age_years\nFROM vehicles;\n~~~\n\n### Writing style\n\nSQL keywords are not case sensitive: <code>select</code> works like <code>SELECT</code>. Capitals for keywords and lower case for names make queries easy to read. Line breaks and extra spaces do not matter, so split long queries over several lines. Two dashes <code>--</code> start a comment: the rest of that line is ignored.",
+    "ask": "Show the id, the reported_at time, the place and the description of every incident, with the description renamed as <code>details</code>.",
+    "starter": "SELECT\nFROM incidents;",
+    "solution": "SELECT id, reported_at, place, description AS details FROM incidents;",
+    "ordered": false,
+    "hint": "List four columns after SELECT and put AS details right after description.",
+    "clue": "Incident 3: at 02:14 on 3 October the Harbor Market alarm went off. The rear loading door was opened with a badge, and the cash box (4860.00) is gone. A witness saw a light colored van, plate starting HC-7. Incident 2, four days earlier: cashier Ines Kowal reported her badge B-117 missing after the morning delivery rush."
+   },
+   {
+    "title": "Who opened the doors that night?",
+    "covers": [
+     "sql-where"
+    ],
+    "xp": 10,
+    "brief": "WHERE keeps only the rows that pass a test. It comes after FROM.\n\n~~~sql\nSELECT name, salary FROM employees WHERE salary > 90000;\n~~~\n\nThe comparison signs are <code>=</code> (equal), <code>&lt;&gt;</code> or <code>!=</code> (not equal), <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code>.\n\n### Text values need quotes\n\nText goes between single quotes. The comparison is exact: <code>'Market rear'</code> does not match <code>'market rear'</code>. In these records, times are text like <code>'2025-10-03 02:06'</code>. Because they are written from the biggest part (year) to the smallest (minute), comparing them as text also compares them in time.\n\n~~~sql\nSELECT name, kind FROM businesses WHERE kind <> 'contractor';\n~~~\n\n### AND, OR and NOT\n\n- AND: both tests must be true.\n- OR: at least one test must be true.\n- NOT: turns a test around, as in <code>WHERE NOT kind = 'bar'</code>.\n\n~~~sql\nSELECT card_no, fill_date, liters FROM fleet_fuel\nWHERE station = 'Pier 9 Fuel' AND liters >= 90;\n~~~\n\n### Parentheses when mixing AND and OR\n\nAND is done before OR, so use parentheses to say what you mean. Without them, the query below would keep every sedan of any color.\n\n~~~sql\nSELECT plate, color, kind FROM vehicles\nWHERE (color = 'white' OR color = 'silver') AND kind = 'sedan';\n~~~\n\nA common mistake is <code>color = 'white' OR 'silver'</code>: each side of OR must be a full test.",
+    "ask": "Show the badge_no, door, direction and scanned_at of every scan at the <code>Market front</code> or <code>Market rear</code> door from 01:00 (included) to 03:00 (excluded) on 2025-10-03.",
+    "starter": "SELECT badge_no, door, direction, scanned_at\nFROM badge_scans\nWHERE ",
+    "solution": "SELECT badge_no, door, direction, scanned_at\nFROM badge_scans\nWHERE (door = 'Market front' OR door = 'Market rear')\n  AND scanned_at >= '2025-10-03 01:00'\n  AND scanned_at < '2025-10-03 03:00';",
+    "ordered": false,
+    "hint": "Put the two doors in parentheses with OR, then add the two time tests with AND.",
+    "clue": "The lost badge B-117 opened the rear door at 02:06 and left at 02:17. At 02:09 the guard's badge B-101 was at the front door, on the other side of the building. Whoever had Ines Kowal's lost badge did this. Dmitri Sato's old badge B-109 was never used."
+   },
+   {
+    "title": "The camera on Dock Street",
+    "covers": [
+     "sql-order"
+    ],
+    "xp": 15,
+    "brief": "### ORDER BY: sort the result\n\nWithout ORDER BY, rows come back in no promised order. ORDER BY sorts them.\n\n~~~sql\nSELECT name, salary FROM employees ORDER BY salary;\n~~~\n\n### ASC and DESC\n\nASC (smallest first, the default) and DESC (biggest first). Text sorts alphabetically, and ISO times sort in time order.\n\n~~~sql\nSELECT name, salary FROM employees ORDER BY salary DESC;\n~~~\n\n### Sorting by several columns\n\nThe second column only breaks ties in the first. DESC applies only to the column right before it: here kind goes A to Z, and inside each kind the newest year comes first.\n\n~~~sql\nSELECT kind, plate, year FROM vehicles ORDER BY kind, year DESC;\n~~~\n\n### LIMIT and OFFSET: keep only some rows\n\nLIMIT n keeps the first n rows after sorting. OFFSET skips rows first, so <code>LIMIT 3 OFFSET 3</code> gives rows 4 to 6 (the second \"page\"). Without ORDER BY, LIMIT gives some rows, not the right ones.\n\n~~~sql\nSELECT name, salary FROM employees ORDER BY salary DESC LIMIT 3;\n~~~\n\n~~~sql\nSELECT name, salary FROM employees ORDER BY salary DESC LIMIT 3 OFFSET 3;\n~~~\n\n### DISTINCT: each value once\n\n~~~sql\nSELECT DISTINCT camera FROM camera_sightings ORDER BY camera;\n~~~\n\nThe database works in this order: FROM, WHERE, SELECT, ORDER BY, LIMIT. Since SELECT runs before ORDER BY, you may sort by an alias made with AS.",
+    "ask": "Show seen_at, plate, color and kind for every sighting by the camera <code>Dock St North</code> from 01:30 (included) to 03:00 (excluded) on 2025-10-03, earliest first.",
+    "starter": "SELECT seen_at, plate, color, kind\nFROM camera_sightings\nWHERE camera = 'Dock St North'\n",
+    "solution": "SELECT seen_at, plate, color, kind\nFROM camera_sightings\nWHERE camera = 'Dock St North'\n  AND seen_at >= '2025-10-03 01:30' AND seen_at < '2025-10-03 03:00'\nORDER BY seen_at;",
+    "ordered": true,
+    "hint": "Filter on the camera and the times, then ORDER BY seen_at.",
+    "clue": "A white van, HC-7348, passed Dock Street at 01:58 and came back at 02:19: it wraps the 02:06 to 02:17 badge use. A black sedan, HC-7041 (Lena Park's car), passed at 02:25, after the thief had gone."
+   },
+   {
+    "title": "The witness's partial plate",
+    "covers": [
+     "sql-in"
+    ],
+    "xp": 15,
+    "brief": "### IN: one of a list\n\n<code>IN (a, b, c)</code> is a short way to write several = tests joined by OR. <code>NOT IN (...)</code> keeps the rest.\n\n~~~sql\nSELECT name, kind FROM businesses WHERE kind IN ('bar', 'cafe', 'nightclub');\n~~~\n\n### BETWEEN: a range, both ends included\n\n~~~sql\nSELECT plate, make, year FROM vehicles WHERE year BETWEEN 2015 AND 2018;\n~~~\n\nIt works on dates and times too, because ISO text sorts in time order:\n\n~~~sql\nSELECT reported_at, place FROM incidents\nWHERE reported_at BETWEEN '2025-10-01' AND '2025-10-15';\n~~~\n\n### LIKE: text patterns\n\nIn a LIKE pattern, <code>%</code> means \"any number of characters (even none)\" and <code>_</code> means \"exactly one character\". In SQLite, LIKE ignores the case of letters.\n\n~~~sql\nSELECT name FROM people WHERE name LIKE '%Kim';\n~~~\n\n~~~sql\nSELECT plate FROM vehicles WHERE plate LIKE 'HC-1_55';\n~~~\n\n### NULL: a missing value\n\nNULL means \"unknown\" or \"nothing recorded\". Nothing is ever equal to NULL, not even NULL, so <code>= NULL</code> never matches. Use IS NULL and IS NOT NULL.\n\n~~~sql\nSELECT name, phone FROM people WHERE phone IS NULL;\n~~~\n\nIn <code>vehicles</code>, <code>deregistered_on</code> is NULL for cars still on the road.",
+    "ask": "Show plate, make, kind, color and owner_id of every vehicle still on the road (deregistered_on IS NULL) whose plate matches <code>'HC-7_4%'</code> (HC-7, any one character, then a 4) and whose color is white, cream or silver.",
+    "starter": "SELECT plate, make, kind, color, owner_id\nFROM vehicles\nWHERE ",
+    "solution": "SELECT plate, make, kind, color, owner_id\nFROM vehicles\nWHERE plate LIKE 'HC-7_4%'\n  AND color IN ('white', 'cream', 'silver')\n  AND deregistered_on IS NULL;",
+    "ordered": false,
+    "hint": "Combine LIKE, IN and IS NULL with AND.",
+    "clue": "Only two light colored vehicles on the road match the witness: the white van HC-7348 (owner 3, Marco Bellini) and a silver sedan, HC-7548, that no camera saw that night. Lena Park's HC-7041 matches the plate but is black."
+   }
+  ]
+ },
+ {
+  "id": "case-2",
+  "title": "The Fuel Card Leak",
+  "covers": [
+   "sql-case",
+   "sql-agg",
+   "sql-group"
+  ],
+  "story": "The attendant at Pier 9 Fuel has had enough. Three times this month, a man came after dark, filled jerrycans in the back of a tow truck and paid with a City Public Works fuel card. City fuel is paid by the taxpayer. The fleet log in <code>fleet_fuel</code> records every fill-up: card, station, date, time, liters and the plate the driver typed in.",
+  "suspects": [
+   {
+    "name": "Owen Hart",
+    "note": "road crew foreman, card FC-01, drives truck RC-12, says he never fills up at night"
+   },
+   {
+    "name": "Priya Nair",
+    "note": "parks officer, card FC-02, drives pickup PK-3, admits she sometimes forgets to type the plate"
+   },
+   {
+    "name": "Sam Okafor",
+    "note": "sweeper driver, card FC-03, sweeper SW-1, works the night route"
+   },
+   {
+    "name": "Victor Lund",
+    "note": "garage mechanic, card FC-04, tow truck TT-2, says the night fills were for broken-down city cars"
+   }
+  ],
+  "culprit": "Victor Lund",
+  "closing": "The night fill-ups with no plate are all on FC-04. Pier 9's largest fill-ups (88, 96.5 and 91 liters) are bigger than any city tank, and grouping the no-plate fill-ups by card leaves FC-04 alone above 100 liters. The night attendant saw a tow truck: Victor Lund's TT-2.",
+  "xp_accuse": 40,
+  "steps": [
+   {
+    "title": "Night shift at Pier 9",
+    "covers": [
+     "sql-case"
+    ],
+    "xp": 20,
+    "brief": "### CASE: if, then, else\n\nCASE builds a column whose value depends on a test, row by row.\n\n~~~sql\nSELECT name, salary,\n       CASE WHEN salary >= 90000 THEN 'high'\n            WHEN salary >= 40000 THEN 'middle'\n            ELSE 'low'\n       END AS band\nFROM employees;\n~~~\n\n- CASE ... END: the whole block is one column. Name it with AS.\n- WHEN test THEN value: tried from top to bottom. The first true test wins.\n- ELSE value: used when no test is true.\n\n### Order of the WHEN lines matters\n\nA salary of 96000 is also >= 40000. It gets 'high' only because that line comes first. Put the strictest test first.\n\n### CASE on text values\n\n~~~sql\nSELECT name, kind,\n       CASE WHEN kind IN ('bar', 'cafe', 'nightclub') THEN 'night life' ELSE 'other' END AS sector\nFROM businesses;\n~~~\n\n### No ELSE means NULL\n\nWithout ELSE, rows that match no test get NULL.\n\n~~~sql\nSELECT plate, year, CASE WHEN year < 2010 THEN 'old car' END AS note FROM vehicles;\n~~~\n\n### COALESCE: the first value that is not NULL\n\n<code>COALESCE(a, b, ...)</code> returns its first argument that is not NULL. It is the usual way to show a placeholder instead of an empty cell.\n\n~~~sql\nSELECT name, COALESCE(job, 'no job on file') AS job FROM people;\n~~~",
+    "ask": "For every fill-up at <code>Pier 9 Fuel</code>, show card_no, fill_date, fill_time, liters, a column <code>shift</code> that says 'night' when fill_time is before '06:00' or from '22:00', otherwise 'day', and the plate shown as 'NOT ENTERED' when it is NULL.",
+    "starter": "SELECT card_no, fill_date, fill_time, liters,\n       CASE\n       END AS shift\nFROM fleet_fuel\nWHERE station = 'Pier 9 Fuel';",
+    "solution": "SELECT card_no, fill_date, fill_time, liters,\n       CASE WHEN fill_time < '06:00' OR fill_time >= '22:00' THEN 'night' ELSE 'day' END AS shift,\n       COALESCE(plate, 'NOT ENTERED') AS plate\nFROM fleet_fuel\nWHERE station = 'Pier 9 Fuel';",
+    "ordered": false,
+    "hint": "CASE WHEN fill_time < '06:00' OR fill_time >= '22:00' THEN 'night' ELSE 'day' END, and COALESCE(plate, 'NOT ENTERED').",
+    "clue": "Three night fill-ups with no plate entered, all on card FC-04 (6, 16 and 24 October). Sam Okafor's FC-03 also fills at night, but always with the sweeper's plate SW-1: his route is a night route. Priya Nair's FC-02 forgot the plate once, in daylight."
+   },
+   {
+    "title": "How much fuel went through Pier 9?",
+    "covers": [
+     "sql-agg"
+    ],
+    "xp": 20,
+    "brief": "Aggregate functions squeeze many rows into one answer.\n\n### COUNT: how many rows\n\n~~~sql\nSELECT COUNT(*) FROM phone_calls;\n~~~\n\n### COUNT(column) and COUNT(DISTINCT column)\n\n<code>COUNT(*)</code> counts rows. <code>COUNT(column)</code> counts only the rows where that column is not NULL. <code>COUNT(DISTINCT column)</code> counts the different values.\n\n~~~sql\nSELECT COUNT(*) AS people, COUNT(phone) AS with_phone, COUNT(DISTINCT district_id) AS districts\nFROM people;\n~~~\n\n### SUM, AVG, MIN and MAX\n\n~~~sql\nSELECT SUM(amount) AS total, AVG(amount) AS average, MIN(amount) AS smallest, MAX(amount) AS biggest\nFROM card_payments;\n~~~\n\nMIN and MAX also work on text and dates: <code>MIN(paid_at)</code> is the earliest payment.\n\n### ROUND: tidy decimals\n\n<code>ROUND(value, digits)</code>. Without digits it rounds to a whole number. Write <code>ROUND(AVG(amount), 2)</code>, not <code>ROUND(AVG(amount, 2))</code>.\n\n~~~sql\nSELECT ROUND(AVG(amount), 2) AS avg_payment, ROUND(AVG(amount)) AS avg_whole FROM card_payments;\n~~~\n\n### Aggregates after WHERE\n\nWHERE runs first, then the aggregate sees only the rows that are left. You cannot put an aggregate inside WHERE (<code>WHERE COUNT(*) &gt; 2</code> is an error), and you cannot mix an aggregate with a plain column like <code>SELECT card_no, MAX(liters)</code> and expect the matching row.\n\n~~~sql\nSELECT COUNT(*) AS fills, SUM(liters) AS liters FROM fleet_fuel WHERE card_no = 'FC-03';\n~~~",
+    "ask": "In one row, for the fill-ups at <code>Pier 9 Fuel</code>: the number of fill-ups, the number with a plate entered, the number of different cards, the total liters rounded to 1 decimal and the biggest single fill-up.",
+    "starter": "SELECT\nFROM fleet_fuel\nWHERE station = 'Pier 9 Fuel';",
+    "solution": "SELECT COUNT(*) AS fills, COUNT(plate) AS with_plate, COUNT(DISTINCT card_no) AS cards,\n       ROUND(SUM(liters), 1) AS liters, MAX(liters) AS biggest\nFROM fleet_fuel\nWHERE station = 'Pier 9 Fuel';",
+    "ordered": false,
+    "hint": "COUNT(*), COUNT(plate), COUNT(DISTINCT card_no), ROUND(SUM(liters), 1), MAX(liters).",
+    "clue": "Twelve fill-ups by five cards, four of them with no plate. The biggest single fill-up is 96.5 liters, yet no city vehicle has a tank bigger than 80 liters. That fuel went into jerrycans."
+   },
+   {
+    "title": "Which card carries the jerrycans?",
+    "covers": [
+     "sql-group"
+    ],
+    "xp": 25,
+    "brief": "### GROUP BY: one result row per group\n\nGROUP BY puts rows with the same value together, and each aggregate is computed per group.\n\n~~~sql\nSELECT station, COUNT(*) AS fills, SUM(liters) AS liters\nFROM fleet_fuel\nGROUP BY station\nORDER BY liters DESC;\n~~~\n\n### The golden rule\n\nEvery column in SELECT must be either in GROUP BY or inside an aggregate. <code>SELECT station, card_no, COUNT(*) ... GROUP BY station</code> would show one random card per station.\n\n### Grouping by a column with NULL\n\nAll NULLs form one group of their own:\n\n~~~sql\nSELECT plate, COUNT(*) AS fills FROM fleet_fuel GROUP BY plate;\n~~~\n\n### HAVING: filter the groups\n\nWHERE filters rows before grouping. HAVING filters groups after grouping, so it can use aggregates.\n\n~~~sql\nSELECT card_no, COUNT(*) AS fills FROM fleet_fuel GROUP BY card_no HAVING COUNT(*) >= 6;\n~~~\n\n### WHERE and HAVING together\n\n~~~sql\nSELECT card_no, COUNT(*) AS night_fills\nFROM fleet_fuel\nWHERE fill_time >= '22:00' OR fill_time < '06:00'\nGROUP BY card_no\nHAVING COUNT(*) >= 2;\n~~~\n\nThe order is FROM, WHERE, GROUP BY, HAVING, SELECT, ORDER BY, LIMIT.",
+    "ask": "Considering only fill-ups with no plate entered, show card_no, the number of fill-ups and the total liters per card, keeping only cards with more than 100 liters in total.",
+    "starter": "SELECT card_no, COUNT(*) AS fills, SUM(liters) AS liters\nFROM fleet_fuel\n",
+    "solution": "SELECT card_no, COUNT(*) AS fills, SUM(liters) AS liters\nFROM fleet_fuel\nWHERE plate IS NULL\nGROUP BY card_no\nHAVING SUM(liters) > 100;",
+    "ordered": false,
+    "hint": "WHERE plate IS NULL, GROUP BY card_no, HAVING SUM(liters) > 100.",
+    "clue": "Only FC-04 is left: 275.5 liters bought with no plate, in three night visits, every one bigger than any city tank. Priya's and Owen's single forgotten plates are small daytime fill-ups."
+   }
+  ]
+ },
+ {
+  "id": "case-3",
+  "title": "Fire at Pier 4",
+  "covers": [
+   "sql-join",
+   "sql-left",
+   "sql-multi",
+   "sql-self"
+  ],
+  "story": "At 23:40 on 12 October, Warehouse B of Blue Gull Logistics went up in flames. The fire marshal found gasoline by the north wall and a red fuel can with a Keel & Co price tag. A stock audit was due the next morning, and the warehouse had just been insured for more. The door log says someone walked in shortly before the fire.",
+  "suspects": [
+   {
+    "name": "Felix Grant",
+    "note": "owner of Blue Gull, raised the insurance a month ago, says he was at home all evening"
+   },
+   {
+    "name": "Nora Quinn",
+    "note": "warehouse manager, in charge of the stock audit, says she went to the cinema and then home"
+   },
+   {
+    "name": "Hugo Diaz",
+    "note": "night keeper, says he left for his break at 23:12 and saw the smoke when he came back"
+   },
+   {
+    "name": "Ivan Petrov",
+    "note": "forklift driver who left on 30 September, says he handed his badge to his manager and spent the night at the Anchor Bar"
+   },
+   {
+    "name": "Tess Moreau",
+    "note": "owner of rival Red Anchor Shipping, says she was at the opera"
+   }
+  ],
+  "culprit": "Nora Quinn",
+  "closing": "Ivan's badge opened the door at 23:21, but Ivan was paying at the Anchor Bar across town. Returned badges went to the manager, and Ivan's manager was Nora. Nora has no alibi after 23:00, and she bought a 34.90 item at Keel & Co the day before, the exact price on the fuel can. Felix has no alibi either, but no badge and no purchase tie him to the fire.",
+  "xp_accuse": 50,
+  "steps": [
+   {
+    "title": "Who came through the warehouse door?",
+    "covers": [
+     "sql-join"
+    ],
+    "xp": 25,
+    "brief": "### Why data is split across tables\n\n<code>badge_scans</code> stores a <code>person_id</code>, not a name. The name lives once, in <code>people</code>. Storing it once avoids spelling it ten different ways. A JOIN puts the two back together.\n\n### JOIN ... ON\n\n~~~sql\nSELECT badge_scans.scanned_at, badge_scans.door, people.name\nFROM badge_scans\nJOIN people ON people.id = badge_scans.person_id;\n~~~\n\n- JOIN people: bring in a second table.\n- ON people.id = badge_scans.person_id: how a row of one matches a row of the other.\n- <code>table.column</code>: says which table a column comes from. It is needed when both tables have a column with that name (both have <code>id</code>).\n\n### Aliases for tables\n\nGive each table a short alias (with or without AS) and use it everywhere:\n\n~~~sql\nSELECT v.plate, v.color, p.name AS owner\nFROM vehicles AS v\nJOIN people AS p ON p.id = v.owner_id;\n~~~\n\n### Joining and filtering\n\nWHERE can test columns of either table:\n\n~~~sql\nSELECT v.plate, p.name FROM vehicles v JOIN people p ON p.id = v.owner_id WHERE v.color = 'grey';\n~~~\n\n### Joining a link table\n\n<code>employees</code> links a person to a business. Join it to <code>businesses</code> to see where people work:\n\n~~~sql\nSELECT e.name, e.title, b.name AS business\nFROM employees e\nJOIN businesses b ON b.id = e.business_id\nWHERE b.kind = 'contractor';\n~~~\n\n### What an inner join drops\n\nJOIN (also called INNER JOIN) keeps only rows that find a match. City vehicles have no owner_id (NULL), so they vanish from the owner list above. The next step shows how to keep them.",
+    "ask": "Show the person's name, the badge_no, the direction and scanned_at for every scan at the door <code>Blue Gull warehouse</code> from 20:00 on 2025-10-12 up to midnight (before '2025-10-13').",
+    "starter": "SELECT p.name, b.badge_no, b.direction, b.scanned_at\nFROM badge_scans b\n",
+    "solution": "SELECT p.name, b.badge_no, b.direction, b.scanned_at\nFROM badge_scans b\nJOIN people p ON p.id = b.person_id\nWHERE b.door = 'Blue Gull warehouse'\n  AND b.scanned_at >= '2025-10-12 20:00' AND b.scanned_at < '2025-10-13';",
+    "ordered": false,
+    "hint": "JOIN people p ON p.id = b.person_id, then filter the door and the times.",
+    "clue": "Hugo Diaz came in at 21:58 and went out at 23:12. Then Ivan Petrov's badge G-07 entered at 23:21 and left at 23:33, seven minutes before the fire. Ivan left the company on 30 September: his badge should be dead."
+   },
+   {
+    "title": "Alibis that paid by card",
+    "covers": [
+     "sql-left"
+    ],
+    "xp": 25,
+    "brief": "### LEFT JOIN keeps every row of the left table\n\nA LEFT JOIN keeps every row of the table written before it, even with no match. The columns of the right table are then NULL.\n\n~~~sql\nSELECT p.name, v.plate\nFROM people p\nLEFT JOIN vehicles v ON v.owner_id = p.id;\n~~~\n\nPeople without a car still appear, with plate NULL.\n\n### Counting with a LEFT JOIN\n\nCount a column of the right table to get 0 for rows with no match. <code>COUNT(*)</code> would give 1, because the row itself exists.\n\n~~~sql\nSELECT p.name, COUNT(v.plate) AS cars\nFROM people p\nLEFT JOIN vehicles v ON v.owner_id = p.id\nGROUP BY p.id\nORDER BY cars DESC;\n~~~\n\n### Finding rows with no match\n\nKeep only the rows where the right table's id is NULL: these had no match. Here: people who never made a card payment.\n\n~~~sql\nSELECT p.name\nFROM people p\nLEFT JOIN card_payments cp ON cp.person_id = p.id\nWHERE cp.id IS NULL;\n~~~\n\nTest the right table's id, which is only NULL when nothing matched, and always with IS NULL, never <code>= NULL</code>.\n\n### ON versus WHERE\n\nA condition in ON decides which right rows may match, and every left row is still kept. The same condition in WHERE runs after the join and throws away the NULL rows, turning the LEFT JOIN back into an inner join. Put tests on the right table in ON when you want to keep everyone.\n\n### Several LEFT JOINs\n\nYou can chain them. A second LEFT JOIN on a NULL row simply gives NULL again. Also note the other mistake: <code>FROM card_payments LEFT JOIN people</code> keeps every payment, not every person. The table you want in full goes on the left.",
+    "ask": "For each of the five suspects ('Felix Grant', 'Nora Quinn', 'Hugo Diaz', 'Ivan Petrov', 'Tess Moreau'), show their name, the paid_at and amount of any card payment made between '2025-10-12 23:00' and '2025-10-12 23:59', and the name of the business as <code>place</code>. Suspects without such a payment must still appear, with NULLs.",
+    "starter": "SELECT p.name, cp.paid_at, cp.amount, b.name AS place\nFROM people p\n",
+    "solution": "SELECT p.name, cp.paid_at, cp.amount, b.name AS place\nFROM people p\nLEFT JOIN card_payments cp\n       ON cp.person_id = p.id\n      AND cp.paid_at BETWEEN '2025-10-12 23:00' AND '2025-10-12 23:59'\nLEFT JOIN businesses b ON b.id = cp.business_id\nWHERE p.name IN ('Felix Grant', 'Nora Quinn', 'Hugo Diaz', 'Ivan Petrov', 'Tess Moreau');",
+    "ordered": false,
+    "hint": "Put the time test in the ON of the payments join, not in WHERE, or the suspects without payments disappear.",
+    "clue": "Ivan Petrov paid at the Anchor Bar in Old Town at 23:25, four minutes after his badge opened the warehouse at Pier 4: someone else carried it. Hugo Diaz paid at the Night Owl Cafe at 23:22 and Tess Moreau at the Harbor Opera at 23:05. Felix Grant and Nora Quinn have no payment at all in that hour."
+   },
+   {
+    "title": "The fuel can from Keel & Co",
+    "covers": [
+     "sql-multi"
+    ],
+    "xp": 30,
+    "brief": "### Following the path\n\nTo link a payment to a person and to a shop, join one table after another. Each JOIN adds a table, with its own ON.\n\n~~~sql\nSELECT p.name, b.name AS shop, cp.paid_at, cp.amount\nFROM card_payments cp\nJOIN people p ON p.id = cp.person_id\nJOIN businesses b ON b.id = cp.business_id\nWHERE p.name = 'Tess Moreau';\n~~~\n\n### Calculations across tables\n\nColumns from any joined table can be combined. Here, each employee's salary next to the district of the business:\n\n~~~sql\nSELECT e.name, b.name AS business, d.name AS district, e.salary / 12 AS monthly\nFROM employees e\nJOIN businesses b ON b.id = e.business_id\nJOIN districts d ON d.id = b.district_id;\n~~~\n\n### From rows to totals with GROUP BY\n\n~~~sql\nSELECT d.name AS district, COUNT(*) AS payments, ROUND(SUM(cp.amount), 2) AS total\nFROM card_payments cp\nJOIN businesses b ON b.id = cp.business_id\nJOIN districts d ON d.id = b.district_id\nGROUP BY d.id\nORDER BY total DESC;\n~~~\n\n### Filtering before grouping, and choosing what to group by\n\nWHERE removes rows before the totals are made. Group by what the question says \"per\": per district above, per shop below. Grouping by the id (not the name) keeps two shops with the same name apart.\n\n~~~sql\nSELECT b.name AS shop, SUM(cp.amount) AS total\nFROM card_payments cp\nJOIN businesses b ON b.id = cp.business_id\nWHERE cp.paid_at >= '2025-10-01'\nGROUP BY b.id\nORDER BY total DESC\nLIMIT 3;\n~~~\n\nA common mistake is a wrong ON (for example <code>b.id = cp.person_id</code>): the query runs but matches nonsense.",
+    "ask": "Show the buyer's name, the shop name, paid_at and amount of every payment at <code>Keel & Co Hardware</code> between '2025-10-10' and '2025-10-13'.",
+    "starter": "SELECT p.name, b.name AS shop, cp.paid_at, cp.amount\nFROM card_payments cp\n",
+    "solution": "SELECT p.name, b.name AS shop, cp.paid_at, cp.amount\nFROM card_payments cp\nJOIN people p ON p.id = cp.person_id\nJOIN businesses b ON b.id = cp.business_id\nWHERE b.name = 'Keel & Co Hardware'\n  AND cp.paid_at BETWEEN '2025-10-10' AND '2025-10-13';",
+    "ordered": false,
+    "hint": "Join card_payments to people and to businesses, then filter the shop and the dates.",
+    "clue": "The fuel can's tag said 34.90. Nora Quinn paid exactly 34.90 at Keel & Co on 11 October at 16:42, the day before the fire. Owen Hart's 89.00 and Ivan's 8.20 do not match the tag."
+   },
+   {
+    "title": "Where do returned badges go?",
+    "covers": [
+     "sql-self"
+    ],
+    "xp": 30,
+    "brief": "### Two aliases, one table\n\nIn <code>employees</code>, <code>reports_to</code> holds the id of the person's manager, who is also a row of <code>employees</code>. To read both, join the table to itself with two aliases: e for the employee, m for the manager.\n\n~~~sql\nSELECT e.name, e.title, m.name AS manager\nFROM employees e\nJOIN employees m ON m.id = e.reports_to;\n~~~\n\n### Comparing a row with its manager\n\n~~~sql\nSELECT e.name, e.salary, m.name AS manager, m.salary - e.salary AS gap\nFROM employees e\nJOIN employees m ON m.id = e.reports_to\nORDER BY gap DESC;\n~~~\n\n### Counting direct reports\n\n~~~sql\nSELECT m.name AS manager, COUNT(*) AS direct_reports\nFROM employees e\nJOIN employees m ON m.id = e.reports_to\nGROUP BY m.id\nORDER BY direct_reports DESC;\n~~~\n\n### LEFT self join: keep everyone\n\nOwners and bosses have <code>reports_to</code> NULL, so an inner join drops them. A LEFT JOIN keeps them with a NULL manager.\n\n~~~sql\nSELECT e.name, m.name AS manager\nFROM employees e\nLEFT JOIN employees m ON m.id = e.reports_to\nWHERE e.business_id = 25;\n~~~\n\n### Pairs from the same table\n\nColleagues with the same manager: join on equal reports_to, and <code>a.id &lt; b.id</code> keeps each pair once and stops a person pairing with themselves.\n\n~~~sql\nSELECT a.name, b.name AS colleague\nFROM employees a\nJOIN employees b ON a.reports_to = b.reports_to AND a.id < b.id;\n~~~\n\nMixing up the direction (<code>e.id = m.reports_to</code>) lists each manager's reports the wrong way round.",
+    "ask": "For every employee of Blue Gull Logistics (business_id 3), show their name, title, left_on and their manager's name as <code>manager</code>. The owner must appear too, with a NULL manager.",
+    "starter": "SELECT e.name, e.title, e.left_on, m.name AS manager\nFROM employees e\n",
+    "solution": "SELECT e.name, e.title, e.left_on, m.name AS manager\nFROM employees e\nLEFT JOIN employees m ON m.id = e.reports_to\nWHERE e.business_id = 3;",
+    "ordered": false,
+    "hint": "LEFT JOIN employees m ON m.id = e.reports_to, and filter e.business_id = 3.",
+    "clue": "Ivan Petrov reported to Nora Quinn. Ivan says he handed his badge to his manager on his last day, and nobody switched it off. The only person holding G-07 was Nora."
+   }
+  ]
+ },
+ {
+  "id": "case-4",
+  "title": "The Ghost Contractor",
+  "covers": [
+   "sql-sub",
+   "sql-cte"
+  ],
+  "story": "The Harbor Port Authority's auditors are nervous. Since June, large invoices from a contractor called Seabright Marine Services have been paid, but nobody on the docks has ever seen a Seabright boat, worker or van. Somebody inside is paying a company that does not exist. The records: <code>invoices</code>, <code>businesses</code> and <code>employees</code>.",
+  "suspects": [
+   {
+    "name": "Gloria Watts",
+    "note": "finance director, signs off on the yearly budget, says she trusted her team"
+   },
+   {
+    "name": "Ray Kim",
+    "note": "procurement officer, chooses contractors, says Seabright won a fair tender"
+   },
+   {
+    "name": "Elena Duval",
+    "note": "accounts clerk, says she approved one invoice that was left on her desk marked urgent"
+   },
+   {
+    "name": "Bruno Faulk",
+    "note": "harbor master, head of the Authority, says he never looks at invoices"
+   }
+  ],
+  "culprit": "Ray Kim",
+  "closing": "Seabright has no staff, was registered just before its first invoice, and is paid in under a day while real contractors wait a month. Ray Kim signed four of its five invoices, worth 85350, and the company's address is his own home. Elena signed one small invoice while Ray was away, which is careless, not a crime.",
+  "xp_accuse": 50,
+  "steps": [
+   {
+    "title": "The biggest invoices",
+    "covers": [
+     "sql-sub"
+    ],
+    "xp": 30,
+    "brief": "A <b>subquery</b> is a query in parentheses inside another query. The inner one runs first and its answer is used by the outer one.\n\n### A subquery that returns one value\n\n~~~sql\nSELECT name, salary FROM employees\nWHERE salary > (SELECT AVG(salary) FROM employees);\n~~~\n\nYou cannot write <code>WHERE salary &gt; AVG(salary)</code>: aggregates are not allowed in WHERE. The subquery computes the average first.\n\n### A scalar subquery in SELECT\n\nA subquery that returns one value can also be a column:\n\n~~~sql\nSELECT name, salary, salary - (SELECT AVG(salary) FROM employees) AS vs_average\nFROM employees;\n~~~\n\nIt can even use the outer row. Here it looks up the business name for each employee (a <b>correlated</b> subquery, run once per row):\n\n~~~sql\nSELECT e.name, (SELECT b.name FROM businesses b WHERE b.id = e.business_id) AS business\nFROM employees e;\n~~~",
+    "ask": "Show the id, the contractor's name (looked up with a subquery in SELECT, as <code>contractor</code>) and the amount of every invoice above the average invoice amount.",
+    "starter": "SELECT i.id, i.amount\nFROM invoices i\nWHERE ",
+    "solution": "SELECT i.id,\n       (SELECT b.name FROM businesses b WHERE b.id = i.contractor_id) AS contractor,\n       i.amount\nFROM invoices i\nWHERE i.amount > (SELECT AVG(amount) FROM invoices);",
+    "ordered": false,
+    "hint": "WHERE i.amount > (SELECT AVG(amount) FROM invoices), and a second subquery in SELECT for the name.",
+    "clue": "Eight invoices are above the 13227.50 average. Four of them, from 18400 to 24300, come from Seabright Marine Services, a name nobody at the docks recognizes."
+   },
+   {
+    "title": "A contractor with no staff",
+    "covers": [
+     "sql-sub"
+    ],
+    "xp": 30,
+    "brief": "### IN with a subquery\n\nThe subquery can return a list for IN:\n\n~~~sql\nSELECT name FROM people\nWHERE id IN (SELECT person_id FROM card_payments WHERE business_id = 5);\n~~~\n\nCareful with <code>NOT IN (subquery)</code>: if the list contains a NULL, NOT IN matches nothing. NOT EXISTS is safer.\n\n### EXISTS: is there at least one matching row?\n\nEXISTS is true when its subquery returns at least one row. What the subquery selects does not matter, so people write <code>SELECT 1</code>. NOT EXISTS is true when it returns none. The subquery uses the outer row (here b.id).\n\n~~~sql\nSELECT b.name FROM businesses b\nWHERE NOT EXISTS (SELECT 1 FROM card_payments cp WHERE cp.business_id = b.id);\n~~~\n\n### Correlated comparison: above the average of its own group\n\n~~~sql\nSELECT name, business_id, salary FROM employees e\nWHERE salary > (SELECT AVG(salary) FROM employees e2 WHERE e2.business_id = e.business_id);\n~~~\n\nFor each employee, the subquery computes the average of their own business only.\n\n### A subquery in FROM\n\nA subquery can be a temporary table in FROM. Give it an alias.\n\n~~~sql\nSELECT business_id, avg_salary\nFROM (SELECT business_id, AVG(salary) AS avg_salary FROM employees GROUP BY business_id) AS t\nWHERE avg_salary > 60000;\n~~~",
+    "ask": "Show the name, address and registered_on of every business of kind <code>'contractor'</code> that has no employee at all on file (use NOT EXISTS).",
+    "starter": "SELECT name, address, registered_on\nFROM businesses b\nWHERE kind = 'contractor'\n",
+    "solution": "SELECT name, address, registered_on\nFROM businesses b\nWHERE kind = 'contractor'\n  AND NOT EXISTS (SELECT 1 FROM employees e WHERE e.business_id = b.id);",
+    "ordered": false,
+    "hint": "AND NOT EXISTS (SELECT 1 FROM employees e WHERE e.business_id = b.id).",
+    "clue": "Seabright Marine Services has no employees at all. It was registered on 2 May 2025, one month before its first invoice, at a private house: 14 Gannet Lane."
+   },
+   {
+    "title": "Who signed for Seabright?",
+    "covers": [
+     "sql-sub"
+    ],
+    "xp": 30,
+    "brief": "Subqueries can be nested: the innermost runs first. Here the innermost finds an id, the middle one finds the invoices of that business, and the outer one keeps the matching people.\n\n~~~sql\nSELECT name FROM people\nWHERE id IN (SELECT person_id FROM card_payments\n             WHERE business_id = (SELECT id FROM businesses WHERE name = 'Anchor Bar'));\n~~~\n\nWhen the inner query returns one value, use <code>=</code>. When it can return several, use IN.",
+    "ask": "Show the name and title of every employee who approved at least one invoice from <code>Seabright Marine Services</code>. Use IN with a subquery (you can find Seabright's id with another subquery).",
+    "starter": "SELECT name, title\nFROM employees\nWHERE id IN ()",
+    "solution": "SELECT name, title\nFROM employees\nWHERE id IN (SELECT approved_by FROM invoices\n             WHERE contractor_id = (SELECT id FROM businesses WHERE name = 'Seabright Marine Services'));",
+    "ordered": false,
+    "hint": "The middle subquery selects approved_by from invoices; the inner one finds Seabright's id.",
+    "clue": "Two people signed Seabright invoices: Ray Kim, the procurement officer, and Elena Duval, the accounts clerk. Gloria Watts and Bruno Faulk never did."
+   },
+   {
+    "title": "Paid before the ink was dry",
+    "covers": [
+     "sql-cte"
+    ],
+    "xp": 35,
+    "brief": "### WITH: name a step\n\nA common table expression (CTE) names a query with WITH, then the main query uses it like a table. It reads top to bottom, like a recipe.\n\n~~~sql\nWITH big AS (\n    SELECT contractor_id, amount FROM invoices WHERE amount > 15000\n)\nSELECT contractor_id, COUNT(*) AS big_invoices FROM big GROUP BY contractor_id;\n~~~\n\n### Dates with strftime, date and julianday\n\nDates here are text such as <code>'2025-06-03'</code>. <code>strftime(format, date)</code> pulls out parts: <code>%Y</code> is the year, <code>%m</code> the month, <code>%d</code> the day (<code>%M</code> is minutes, a classic mistake). <code>strftime('%Y-%m', date)</code> gives '2025-06', handy for monthly reports. <code>date('now')</code> is today, and <code>julianday(a) - julianday(b)</code> is the number of days between two dates.\n\n~~~sql\nSELECT issued_on, strftime('%Y', issued_on) AS year, strftime('%m', issued_on) AS month,\n       julianday(paid_on) - julianday(issued_on) AS days_to_pay, date('now') AS today\nFROM invoices;\n~~~\n\n### A CTE with a monthly grouping\n\n~~~sql\nWITH dated AS (\n    SELECT strftime('%Y-%m', issued_on) AS month, amount FROM invoices\n)\nSELECT month, COUNT(*) AS invoices, SUM(amount) AS total FROM dated GROUP BY month ORDER BY month;\n~~~\n\n### Several CTEs, and reusing one\n\nSeparate CTEs with commas, and write WITH only once. A later CTE can read an earlier one, and the main query can use any of them, even two at once.\n\n~~~sql\nWITH totals AS (\n    SELECT contractor_id, SUM(amount) AS total FROM invoices GROUP BY contractor_id\n),\naverage AS (\n    SELECT AVG(total) AS avg_total FROM totals\n)\nSELECT t.contractor_id, t.total FROM totals t, average a WHERE t.total > a.avg_total;\n~~~\n\nJoins work inside a CTE like anywhere else.",
+    "ask": "Using a CTE <code>paid</code> (approved_by, contractor_id and days = julianday(paid_on) - julianday(issued_on), for paid invoices) and a second CTE <code>speed</code> (count and average days per approver and contractor), show the approver's name, the contractor's name, the number of invoices and the average days rounded to 1 decimal, only where the average is under 10 days.",
+    "starter": "WITH paid AS (\n\n),\nspeed AS (\n\n)\nSELECT ",
+    "solution": "WITH paid AS (\n    SELECT approved_by, contractor_id, julianday(paid_on) - julianday(issued_on) AS days\n    FROM invoices\n    WHERE paid_on IS NOT NULL\n),\nspeed AS (\n    SELECT approved_by, contractor_id, COUNT(*) AS n, AVG(days) AS avg_days\n    FROM paid\n    GROUP BY approved_by, contractor_id\n)\nSELECT e.name AS approver, b.name AS contractor, s.n, ROUND(s.avg_days, 1) AS avg_days\nFROM speed s\nJOIN employees e ON e.id = s.approved_by\nJOIN businesses b ON b.id = s.contractor_id\nWHERE s.avg_days < 10;",
+    "ordered": false,
+    "hint": "paid filters paid_on IS NOT NULL; speed groups by approved_by and contractor_id; the main query joins employees and businesses.",
+    "clue": "Every real contractor waits a month to be paid. Seabright is paid within a day: four invoices signed by Ray Kim (0.5 days on average) and one small one by Elena Duval (1 day), signed while Ray was on holiday."
+   },
+   {
+    "title": "Who lives at 14 Gannet Lane?",
+    "covers": [
+     "sql-cte"
+    ],
+    "xp": 35,
+    "brief": "A CTE can also hold a single value or row that the main query compares against, which keeps the main query short and readable.\n\n~~~sql\nWITH market AS (SELECT address FROM businesses WHERE name = 'Harbor Market')\nSELECT b.name FROM businesses b JOIN market m ON m.address = b.address;\n~~~",
+    "ask": "Using a CTE <code>ghost</code> that holds Seabright Marine Services' address, show the name, job and address of every person who lives at that address.",
+    "starter": "WITH ghost AS (\n\n)\nSELECT ",
+    "solution": "WITH ghost AS (\n    SELECT address FROM businesses WHERE name = 'Seabright Marine Services'\n)\nSELECT p.name, p.job, p.address\nFROM people p\nJOIN ghost g ON g.address = p.address;",
+    "ordered": false,
+    "hint": "Join people to the CTE on the address.",
+    "clue": "Seabright Marine Services is registered at the home of Ray Kim and his wife Ana Kim."
+   }
+  ]
+ },
+ {
+  "id": "case-5",
+  "title": "The Money Trail",
+  "covers": [
+   "sql-window",
+   "sql-cte",
+   "sql-rec"
+  ],
+  "story": "Harbor Savings Bank raises an alert: dozens of cash deposits just under the 10000 limit, spread over several branches. Someone is washing a lot of dirty cash, maybe the money from the docks. The deposits go into ordinary looking companies, and companies can be owned by other companies, like nesting dolls. Find the hand at the top.",
+  "suspects": [
+   {
+    "name": "Mira Solberg",
+    "note": "owner of the Velvet Room nightclub, says her club takes cash and that is all"
+   },
+   {
+    "name": "Lucia Ferrante",
+    "note": "lawyer, registered agent of many companies, says she only files the papers"
+   },
+   {
+    "name": "Desmond Achebe",
+    "note": "car dealer, the biggest cash depositor in town, says every deposit is declared"
+   },
+   {
+    "name": "Conrad Vale",
+    "note": "city councilman, a client of Lucia Ferrante, says he has never heard of these companies"
+   }
+  ],
+  "culprit": "Mira Solberg",
+  "closing": "The under-the-limit deposits, often several a day in different branches, all go to Gull Wing Trading and Saltmarsh Imports. Walking the ownership chain up from them reaches Cobalt Trust and its owner, Mira Solberg; walking down from Cobalt Trust finds both companies. Desmond's deposits are large and declared, and Lucia only signs as agent.",
+  "xp_accuse": 60,
+  "steps": [
+   {
+    "title": "Deposits under the radar",
+    "covers": [
+     "sql-window"
+    ],
+    "xp": 40,
+    "brief": "Banks must report any cash deposit of 10000 or more. Launderers split cash into deposits just under it. Window functions help you see such patterns.\n\n### OVER: an aggregate that keeps the rows\n\nA normal aggregate squeezes rows into one. Add OVER (...) and every row stays, with the aggregate written next to it.\n\n~~~sql\nSELECT name, business_id, salary, AVG(salary) OVER () AS overall_avg\nFROM employees;\n~~~\n\n<code>OVER ()</code> with nothing inside: the window is the whole result.\n\n### PARTITION BY: one window per group\n\n~~~sql\nSELECT name, business_id, salary,\n       ROUND(AVG(salary) OVER (PARTITION BY business_id)) AS business_avg,\n       COUNT(*) OVER (PARTITION BY business_id) AS staff\nFROM employees;\n~~~\n\nLike GROUP BY, but nothing is squeezed: each row sees its own group's numbers.\n\n### RANK with ORDER BY inside the window\n\n~~~sql\nSELECT name, business_id, salary,\n       RANK() OVER (PARTITION BY business_id ORDER BY salary DESC) AS rank_in_business\nFROM employees;\n~~~\n\n### Ties: ROW_NUMBER, RANK and DENSE_RANK\n\nROW_NUMBER numbers rows 1, 2, 3 even when they tie. RANK gives ties the same rank and then skips (1, 1, 3). DENSE_RANK gives ties the same rank without gaps (1, 1, 2).\n\n~~~sql\nSELECT name, salary,\n       ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num,\n       RANK() OVER (ORDER BY salary DESC) AS rnk,\n       DENSE_RANK() OVER (ORDER BY salary DESC) AS dense\nFROM employees;\n~~~\n\n### Running totals\n\nWith ORDER BY inside OVER, the aggregate becomes cumulative: each row sees the rows from the start up to itself.\n\n~~~sql\nSELECT deposit_date, amount, SUM(amount) OVER (ORDER BY deposit_date, deposit_time) AS running_total\nFROM deposits\nWHERE business_id = 21;\n~~~\n\n### When window functions run\n\nThey run after WHERE, GROUP BY and HAVING, just before ORDER BY. So you cannot filter on them in WHERE (you will see how with a CTE). The function always comes with OVER: <code>RANK()</code> alone is an error.",
+    "ask": "For every deposit between 9000 and 9999, show the business name, deposit_date, amount and <code>running_total</code>: the running sum of those deposits per business, in order of deposit_date then deposit_time.",
+    "starter": "SELECT b.name, d.deposit_date, d.amount,\n       SUM(d.amount) OVER () AS running_total\nFROM deposits d\nJOIN businesses b ON b.id = d.business_id\n",
+    "solution": "SELECT b.name, d.deposit_date, d.amount,\n       SUM(d.amount) OVER (PARTITION BY d.business_id ORDER BY d.deposit_date, d.deposit_time) AS running_total\nFROM deposits d\nJOIN businesses b ON b.id = d.business_id\nWHERE d.amount BETWEEN 9000 AND 9999;",
+    "ordered": false,
+    "hint": "SUM(d.amount) OVER (PARTITION BY d.business_id ORDER BY d.deposit_date, d.deposit_time).",
+    "clue": "Gull Wing Trading made 7 deposits between 9400 and 9950 in October, 68150 in total. Saltmarsh Imports made 6, 58400 in total. The Anchor Bar's single 9200 is a busy Friday, nothing more."
+   },
+   {
+    "title": "Same day, different branches",
+    "covers": [
+     "sql-window",
+     "sql-cte"
+    ],
+    "xp": 40,
+    "brief": "You cannot write <code>WHERE COUNT(*) OVER (...) &gt;= 2</code>, because WHERE runs before the window. Compute the window in a CTE first, then filter outside it.\n\n~~~sql\nWITH ranked AS (\n    SELECT business_id, amount,\n           RANK() OVER (PARTITION BY business_id ORDER BY amount DESC) AS rnk\n    FROM deposits\n)\nSELECT business_id, amount FROM ranked WHERE rnk = 1;\n~~~\n\nPARTITION BY can take several columns: <code>PARTITION BY business_id, deposit_date</code> makes one window per business per day.",
+    "ask": "Using a CTE that adds <code>same_day</code> = COUNT(*) OVER (PARTITION BY business_id, deposit_date) to every deposit, show the business name, deposit_date, branch and amount of deposits made on a day when the same business deposited at least twice.",
+    "starter": "WITH d AS (\n\n)\nSELECT ",
+    "solution": "WITH d AS (\n    SELECT business_id, deposit_date, branch, amount,\n           COUNT(*) OVER (PARTITION BY business_id, deposit_date) AS same_day\n    FROM deposits\n)\nSELECT b.name, d.deposit_date, d.branch, d.amount\nFROM d\nJOIN businesses b ON b.id = d.business_id\nWHERE d.same_day >= 2;",
+    "ordered": false,
+    "hint": "Filter WHERE d.same_day >= 2 outside the CTE.",
+    "clue": "Only Gull Wing Trading and Saltmarsh Imports split cash on the same day across different branches (2, 3, 9 and 15 October). That is textbook structuring."
+   },
+   {
+    "title": "Who owns Gull Wing Trading?",
+    "covers": [
+     "sql-rec"
+    ],
+    "xp": 45,
+    "brief": "### UNION ALL: stacking results\n\nUNION ALL puts the rows of one query under the rows of another. Both must have the same number of columns. The column names come from the first query. UNION without ALL also removes duplicate rows.\n\n~~~sql\nSELECT name, 'business' AS kind FROM businesses WHERE district_id = 6\nUNION ALL\nSELECT name, 'person' FROM people WHERE job = 'lawyer';\n~~~\n\n### WITH RECURSIVE: counting from 1 to 5\n\nA recursive CTE has an <b>anchor</b> (the starting rows), UNION ALL, and a <b>step</b> that reads the rows found in the previous round. It repeats until the step finds nothing new. The WHERE in the step is what makes it stop.\n\n~~~sql\nWITH RECURSIVE n(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x + 1 FROM n WHERE x < 5\n)\nSELECT x FROM n;\n~~~\n\n### Walking a hierarchy upwards\n\n<code>businesses.owner_business_id</code> says which company owns a company. Start at one company, then each round joins the owner of the row found before. Here from an employee up through their managers:\n\n~~~sql\nWITH RECURSIVE bosses(id, name, reports_to, step) AS (\n    SELECT id, name, reports_to, 0 FROM employees WHERE name = 'Dana Wu'\n    UNION ALL\n    SELECT e.id, e.name, e.reports_to, b.step + 1\n    FROM employees e JOIN bosses b ON e.id = b.reports_to\n)\nSELECT name, step FROM bosses;\n~~~\n\n### Generating a series of dates\n\n~~~sql\nWITH RECURSIVE days(d) AS (\n    SELECT '2025-10-01'\n    UNION ALL\n    SELECT date(d, '+1 day') FROM days WHERE d < '2025-10-07'\n)\nSELECT d FROM days;\n~~~\n\nForgetting the stop condition makes the query run forever.",
+    "ask": "Walk the ownership chain up from <code>Gull Wing Trading</code> with WITH RECURSIVE (columns id, name, owner_business_id, owner_person_id, level, starting at level 0). Show level, the company name and the name of the person who owns it as <code>owner</code> (NULL when a company owns it).",
+    "starter": "WITH RECURSIVE chain(id, name, owner_business_id, owner_person_id, level) AS (\n\n)\nSELECT ",
+    "solution": "WITH RECURSIVE chain(id, name, owner_business_id, owner_person_id, level) AS (\n    SELECT id, name, owner_business_id, owner_person_id, 0\n    FROM businesses WHERE name = 'Gull Wing Trading'\n    UNION ALL\n    SELECT b.id, b.name, b.owner_business_id, b.owner_person_id, c.level + 1\n    FROM businesses b JOIN chain c ON b.id = c.owner_business_id\n)\nSELECT c.level, c.name, p.name AS owner\nFROM chain c\nLEFT JOIN people p ON p.id = c.owner_person_id;",
+    "ordered": false,
+    "hint": "Step: JOIN chain c ON b.id = c.owner_business_id. Then LEFT JOIN people for the owner name.",
+    "clue": "Gull Wing Trading is owned by Northpoint Holdings, which is owned by Cobalt Trust, which belongs to a person: Mira Solberg."
+   },
+   {
+    "title": "Everything under Cobalt Trust",
+    "covers": [
+     "sql-rec"
+    ],
+    "xp": 45,
+    "brief": "### Walking downwards\n\nTo go from the top down, start the anchor at the top row and swap the join: find the rows whose owner is a row found in the previous round. Each round goes one level deeper. The anchor may also select several rows at once, for example every top manager with <code>reports_to IS NULL</code>.\n\n~~~sql\nWITH RECURSIVE team(id, name, level) AS (\n    SELECT id, name, 0 FROM employees WHERE reports_to IS NULL AND business_id = 25\n    UNION ALL\n    SELECT e.id, e.name, t.level + 1 FROM employees e JOIN team t ON e.reports_to = t.id\n)\nSELECT name, level FROM team ORDER BY level;\n~~~",
+    "ask": "Walk down from <code>Cobalt Trust</code> (level 0) through every company it owns, directly or not. For each company show its name, level, its number of cash deposits and their total (0 when none: use COALESCE).",
+    "starter": "WITH RECURSIVE tree(id, name, level) AS (\n\n)\nSELECT ",
+    "solution": "WITH RECURSIVE tree(id, name, level) AS (\n    SELECT id, name, 0 FROM businesses WHERE name = 'Cobalt Trust'\n    UNION ALL\n    SELECT b.id, b.name, t.level + 1 FROM businesses b JOIN tree t ON b.owner_business_id = t.id\n)\nSELECT t.name, t.level, COUNT(d.id) AS deposits, COALESCE(SUM(d.amount), 0) AS cash\nFROM tree t\nLEFT JOIN deposits d ON d.business_id = t.id\nGROUP BY t.id;",
+    "ordered": false,
+    "hint": "Step: JOIN tree t ON b.owner_business_id = t.id. Then LEFT JOIN deposits and GROUP BY t.id.",
+    "clue": "Both structuring companies, Gull Wing Trading and Saltmarsh Imports, sit under Cobalt Trust, together with Northpoint Holdings and Harborline Couriers. Every under-the-limit deposit ends up in Mira Solberg's trust."
+   }
+  ]
+ },
+ {
+  "id": "case-6",
+  "title": "The Marlowe Jewelry Robbery",
+  "covers": [
+   "sql-dml",
+   "sql-create"
+  ],
+  "story": "At 21:30 on 19 October, a masked man took two trays of rings from Marlowe Jewelers as it closed, and drove off in a grey car. This time the records themselves are dirty: a clerk mistyped a plate, and someone planted fake door scans. Clean the records, then lock the evidence in properly.",
+  "suspects": [
+   {
+    "name": "Julian Marlowe",
+    "note": "owner, the shop is insured, says he was alone at the counter"
+   },
+   {
+    "name": "Pia Lindqvist",
+    "note": "shop assistant, left at 21:00, says she saw the robber from the bus stop"
+   },
+   {
+    "name": "Oscar Reyes",
+    "note": "courier who delivered at 21:00 on a motorbike, says he was gone by 21:10"
+   },
+   {
+    "name": "Karl Hoffman",
+    "note": "Marlowe's accountant, drives the grey Golf HC-1055, sprained his left ankle last week, says he worked late at his Harbor Tower office"
+   },
+   {
+    "name": "Bea Santos",
+    "note": "former assistant fired in June, drives the grey Peugeot HC-1065, says she was at home on Willow Way"
+   }
+  ],
+  "culprit": "Karl Hoffman",
+  "closing": "The witnesses describe a limping man in a grey hatchback heading to Harbor Tower. Fixing the typo puts Karl's HC-1055 on Marlowe St at 21:33 and in the Harbor Tower garage at 21:41. Removing the scans he typed in himself shows he left the office at 18:05 and only came back at 21:44. The ring tray was in his trunk.",
+  "xp_accuse": 60,
+  "steps": [
+   {
+    "title": "Log the new witness statements",
+    "covers": [
+     "sql-dml"
+    ],
+    "xp": 30,
+    "brief": "So far you only read data. Now you change it.\n\n### INSERT: add a row\n\n~~~sql\nINSERT INTO witness_statements (incident_id, witness, said_at, statement)\nVALUES (8, 'Night Owl waiter', '2025-10-28 08:00', 'Nobody came in after 21:00.');\nSELECT * FROM witness_statements WHERE incident_id = 8;\n~~~\n\n- INSERT INTO table (columns): the columns you fill, in the order of the values.\n- VALUES (...): one value per column. Text in quotes.\n- <code>id</code> is not listed: an <code>INTEGER PRIMARY KEY</code> column fills itself with the next number. Columns you leave out get NULL (or their default).\n\n### INSERT several rows at once\n\nSeparate the rows with commas:\n\n~~~sql\nINSERT INTO accounts (owner, balance) VALUES ('Fire victims fund', 0), ('Witness travel', 250);\nSELECT * FROM accounts;\n~~~\n\n### UPDATE: change existing rows\n\n~~~sql\nUPDATE incidents SET status = 'closed', officer = 'Amos Reed' WHERE id = 5;\nSELECT id, status, officer FROM incidents WHERE id = 5;\n~~~\n\nSET can use the old value: <code>SET balance = ROUND(balance * 1.02, 2)</code>. Without WHERE, every row changes.\n\n### DELETE: remove rows\n\n~~~sql\nDELETE FROM incidents WHERE kind = 'noise complaint';\nSELECT kind, COUNT(*) AS n FROM incidents GROUP BY kind;\n~~~\n\nIt is <code>DELETE FROM</code>, never <code>DELETE * FROM</code>. Without WHERE, the table is emptied.\n\n### Always look before you change\n\nRun a SELECT with the same WHERE first. If it shows exactly the rows you mean, swap SELECT for UPDATE or DELETE.",
+    "ask": "Insert two statements for incident 8 in one INSERT: witness <code>Pia Lindqvist</code>, said_at <code>2025-10-28 09:00</code>, statement <code>The robber limped on his left leg.</code>; and witness <code>Tara Holm</code>, said_at <code>2025-10-28 09:30</code>, statement <code>A grey hatchback sped north toward Harbor Tower at 21:33.</code>",
+    "starter": "INSERT INTO witness_statements (incident_id, witness, said_at, statement)\nVALUES ",
+    "solution": "INSERT INTO witness_statements (incident_id, witness, said_at, statement)\nVALUES (8, 'Pia Lindqvist', '2025-10-28 09:00', 'The robber limped on his left leg.'),\n       (8, 'Tara Holm', '2025-10-28 09:30', 'A grey hatchback sped north toward Harbor Tower at 21:33.');",
+    "ordered": false,
+    "hint": "Two rows of four values after VALUES, separated by a comma.",
+    "clue": "The robber limped on his left leg and drove a grey hatchback toward Harbor Tower. Karl Hoffman sprained his left ankle last week and works in Harbor Tower. Bea Santos also drives a grey hatchback.",
+    "verify": [
+     "SELECT incident_id, witness, said_at, statement FROM witness_statements WHERE incident_id = 8",
+     "SELECT COUNT(*) FROM witness_statements"
+    ]
+   },
+   {
+    "title": "Fix the camera typo",
+    "covers": [
+     "sql-dml"
+    ],
+    "xp": 30,
+    "brief": "UPDATE changes values in the rows that pass WHERE. Check those rows first with a SELECT:\n\n~~~sql\nSELECT id, camera, seen_at, plate FROM camera_sightings WHERE plate LIKE 'HC-1%';\n~~~\n\nThen change only them:\n\n~~~sql\nUPDATE vehicles SET color = 'dark grey' WHERE plate = 'HC-1065';\nSELECT plate, color FROM vehicles WHERE plate = 'HC-1065';\n~~~\n\nA common mistake is <code>SET plate * 2</code> or forgetting the <code>=</code>: SET always reads column = new value. Several columns: <code>SET a = 1, b = 2</code>.",
+    "ask": "The Marlowe St camera clerk typed the letter O instead of a zero: change every plate <code>HC-1O55</code> (letter O) in camera_sightings to <code>HC-1055</code>.",
+    "starter": "UPDATE camera_sightings\n",
+    "solution": "UPDATE camera_sightings SET plate = 'HC-1055' WHERE plate = 'HC-1O55';",
+    "ordered": false,
+    "hint": "SET plate = 'HC-1055' WHERE plate = 'HC-1O55' (the second character of the wrong one is the letter O).",
+    "clue": "With the typo fixed, HC-1055 appears twice: on Marlowe St at 21:33, three minutes after the robbery, and in the Harbor Tower garage at 21:41. HC-1055 is Karl Hoffman's grey Golf. Bea Santos's HC-1065 was on Willow Way at 21:36.",
+    "verify": [
+     "SELECT camera, seen_at, plate FROM camera_sightings WHERE plate = 'HC-1055'",
+     "SELECT plate, COUNT(*) FROM camera_sightings GROUP BY plate"
+    ]
+   },
+   {
+    "title": "Remove the planted alibi",
+    "covers": [
+     "sql-dml"
+    ],
+    "xp": 30,
+    "brief": "DELETE removes the rows that pass WHERE. Look first:\n\n~~~sql\nSELECT id, badge_no, door, scanned_at, source, entered_by FROM badge_scans WHERE source = 'manual';\n~~~\n\nFront desks can type a scan by hand when someone forgot their badge. Each manual scan records who typed it in <code>entered_by</code>. Then delete exactly those rows, with the same WHERE:\n\n~~~sql\nDELETE FROM badge_scans WHERE entered_by = 'desk.anne';\nSELECT COUNT(*) AS manual_left FROM badge_scans WHERE source = 'manual';\n~~~",
+    "ask": "Karl Hoffman's alibi is two manual scans he typed in himself. Delete every badge scan whose entered_by is <code>k.hoffman</code>, and only those.",
+    "starter": "DELETE FROM badge_scans\n",
+    "solution": "DELETE FROM badge_scans WHERE entered_by = 'k.hoffman';",
+    "ordered": false,
+    "hint": "WHERE entered_by = 'k.hoffman'.",
+    "clue": "Without the fake rows, Karl's real 19 October is: in at 08:50, out at 18:05, then back into the Harbor Tower garage at 21:44, eleven minutes after the robbery. He was never in his office between 20:55 and 22:40.",
+    "verify": [
+     "SELECT door, direction, scanned_at, source FROM badge_scans WHERE person_id = 26 AND scanned_at LIKE '2025-10-19%'",
+     "SELECT COUNT(*) FROM badge_scans"
+    ]
+   },
+   {
+    "title": "An evidence table that refuses mistakes",
+    "covers": [
+     "sql-create"
+    ],
+    "xp": 35,
+    "brief": "### CREATE TABLE: columns and types\n\n~~~sql\nCREATE TABLE informants (\n    id INTEGER PRIMARY KEY,\n    codename TEXT NOT NULL UNIQUE,\n    district TEXT DEFAULT 'Harbor Front',\n    trust INTEGER CHECK (trust BETWEEN 1 AND 5),\n    paid REAL NOT NULL CHECK (paid >= 0),\n    handler_id INTEGER REFERENCES employees(id)\n);\nINSERT INTO informants (codename, trust, paid, handler_id) VALUES ('Gull', 4, 200, 30);\nINSERT INTO informants (codename, district, paid) VALUES ('Wick', 'Old Town', 0);\nSELECT * FROM informants;\n~~~\n\n- Types: INTEGER (whole numbers), REAL (decimals), TEXT.\n- PRIMARY KEY: unique id for each row; INTEGER PRIMARY KEY fills itself.\n- NOT NULL: a value is required. UNIQUE: no two rows may share it.\n- DEFAULT value: used when the INSERT leaves the column out ('Harbor Front' for Gull).\n- CHECK (condition): every row must pass the test.\n- REFERENCES table(id): a foreign key, the column points to a row of another table.\n\n### Checking the structure\n\n~~~sql\nCREATE TABLE tips (id INTEGER PRIMARY KEY, text TEXT NOT NULL, score INTEGER);\nSELECT name, type, \"notnull\", pk FROM pragma_table_info('tips');\n~~~\n\n### What a constraint violation looks like, and INSERT OR IGNORE\n\nA row that breaks a rule is refused with an error such as \"UNIQUE constraint failed\" or \"CHECK constraint failed\", and the statement stops. <code>INSERT OR IGNORE</code> silently skips the bad rows and keeps the good ones, a handy way to watch the rules work:\n\n~~~sql\nCREATE TABLE codes (id INTEGER PRIMARY KEY, code TEXT NOT NULL UNIQUE, level INTEGER CHECK (level BETWEEN 1 AND 3));\nINSERT OR IGNORE INTO codes (code, level) VALUES ('A', 1), ('A', 2), (NULL, 1), ('B', 9), ('C', 3);\nSELECT * FROM codes;\n~~~\n\nOnly A (level 1) and C survive.\n\n### About foreign keys in SQLite\n\nSQLite only enforces REFERENCES after <code>PRAGMA foreign_keys = ON;</code> on the connection. Most other databases always enforce it. Constraints combine on one column: <code>INTEGER NOT NULL REFERENCES incidents(id)</code>.",
+    "ask": "Create <code>case_evidence</code> with: <code>id INTEGER PRIMARY KEY</code>, <code>incident_id INTEGER NOT NULL</code> referencing incidents(id), <code>tag TEXT NOT NULL UNIQUE</code>, <code>item TEXT NOT NULL</code>, <code>weight_g REAL</code> with CHECK (weight_g &gt; 0), <code>status TEXT NOT NULL DEFAULT 'logged'</code>. Then insert, for incident 8 and leaving status to its default: tag <code>M-01</code>, item <code>Ring tray from the trunk of HC-1055</code>, 410.5 g; tag <code>M-02</code>, item <code>Grey hoodie from the same trunk</code>, 620 g.",
+    "starter": "CREATE TABLE case_evidence (\n\n);\n",
+    "solution": "CREATE TABLE case_evidence (\n    id INTEGER PRIMARY KEY,\n    incident_id INTEGER NOT NULL REFERENCES incidents(id),\n    tag TEXT NOT NULL UNIQUE,\n    item TEXT NOT NULL,\n    weight_g REAL CHECK (weight_g > 0),\n    status TEXT NOT NULL DEFAULT 'logged'\n);\nINSERT INTO case_evidence (incident_id, tag, item, weight_g)\nVALUES (8, 'M-01', 'Ring tray from the trunk of HC-1055', 410.5),\n       (8, 'M-02', 'Grey hoodie from the same trunk', 620);",
+    "ordered": false,
+    "hint": "Write the six columns with exactly those types and constraints, then one INSERT with two rows.",
+    "clue": "The search of HC-1055 turned up one of Marlowe's ring trays and a grey hoodie. Both are now logged in a table that refuses a duplicate tag, a missing item or an impossible weight.",
+    "verify": [
+     "SELECT name, type, \"notnull\", pk, dflt_value FROM pragma_table_info('case_evidence')",
+     "SELECT id, incident_id, tag, item, weight_g, status FROM case_evidence",
+     "INSERT OR IGNORE INTO case_evidence (incident_id, tag, item, weight_g) VALUES (8, 'M-01', 'duplicate tag', 5), (8, 'M-03', 'bad weight', -2), (8, 'M-04', NULL, 1), (NULL, 'M-05', 'no incident', 1), (8, 'M-06', 'good row', 3);\nSELECT tag, item FROM case_evidence ORDER BY id"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "case-7",
+  "title": "The Missing Fuel Can",
+  "covers": [
+   "sql-view",
+   "sql-trigger",
+   "sql-tx"
+  ],
+  "story": "On 27 October at 08:05, evidence clerk Dana Wu opened locker L-4: empty. The red fuel can from the Blue Gull fire, the key exhibit against Nora Quinn, is gone, yet the records say it is still there, last touched by Sergeant Amos Reed. The thief is inside the building. Internal Affairs gives you the badge log and a copy of the evidence terminal's journal.",
+  "suspects": [
+   {
+    "name": "Amos Reed",
+    "note": "sergeant, his login a.reed is the last on the fuel can record, says he only checked a glove at 19:00"
+   },
+   {
+    "name": "Carla Voss",
+    "note": "lieutenant, lead officer on the Blue Gull fire, says she only dropped off a report"
+   },
+   {
+    "name": "Dana Wu",
+    "note": "evidence clerk, found the locker empty, says she was off duty that night"
+   },
+   {
+    "name": "Pete Novak",
+    "note": "night cleaner with an evidence room badge, says he only emptied the bins"
+   }
+  ],
+  "culprit": "Carla Voss",
+  "closing": "Only three people entered the evidence room that night. The trigger's log shows c.voss taking the can OUT at 23:50, and a forged a.reed entry putting it back on paper at 23:56, when Amos had been gone for hours and Carla was the only one inside. Her car was filmed outside at 23:40 and 00:03, and the can was found in its trunk.",
+  "xp_accuse": 60,
+  "steps": [
+   {
+    "title": "A view of the evidence room door",
+    "covers": [
+     "sql-view"
+    ],
+    "xp": 35,
+    "brief": "### CREATE VIEW: save a query\n\nA view is a saved query with a name. You then read it like a table. It stores no data of its own.\n\n~~~sql\nCREATE VIEW open_incidents AS\nSELECT id, reported_at, place, officer FROM incidents WHERE status = 'open';\nSELECT * FROM open_incidents;\n~~~\n\n### A view over joins and grouping\n\n~~~sql\nCREATE VIEW officer_load AS\nSELECT i.officer, COUNT(*) AS cases, MAX(i.reported_at) AS latest\nFROM incidents i\nWHERE i.officer IS NOT NULL\nGROUP BY i.officer;\nSELECT * FROM officer_load ORDER BY cases DESC;\n~~~\n\n### A view is always up to date\n\nThe view runs its query each time you read it, so it sees every change:\n\n~~~sql\nCREATE VIEW open_incidents AS SELECT id, place FROM incidents WHERE status = 'open';\nUPDATE incidents SET status = 'open' WHERE id = 1;\nSELECT * FROM open_incidents;\n~~~\n\n### CREATE INDEX: faster lookups\n\nAn index is a sorted list of one column's values with pointers to the rows, like the index at the back of a book. Searches, joins and sorts on that column get much faster on big tables.\n\n~~~sql\nCREATE INDEX idx_calls_caller ON phone_calls(caller);\nSELECT name, tbl_name FROM sqlite_master WHERE type = 'index';\n~~~\n\n<code>sqlite_master</code> lists everything in the database. Indexes named <code>sqlite_autoindex_...</code> are made automatically for PRIMARY KEY and UNIQUE text columns.\n\n### When to add an index\n\nIndex columns you often filter on (WHERE), join on (ON) or sort by. Do not index everything: each index takes space and slows INSERT, UPDATE and DELETE a little. <code>DROP VIEW name;</code> and <code>DROP INDEX name;</code> remove them. The index needs a name: <code>CREATE INDEX ON t(c)</code> is an error.",
+    "ask": "Create a view <code>evidence_room_log</code> with columns name, title, direction and scanned_at: every badge scan at the door <code>'Evidence room'</code>, joined to employees on badge_no. Then create an index <code>idx_scans_door</code> on badge_scans(door).",
+    "starter": "CREATE VIEW evidence_room_log AS\n",
+    "solution": "CREATE VIEW evidence_room_log AS\nSELECT e.name, e.title, b.direction, b.scanned_at\nFROM badge_scans b\nJOIN employees e ON e.badge_no = b.badge_no\nWHERE b.door = 'Evidence room';\nCREATE INDEX idx_scans_door ON badge_scans(door);",
+    "ordered": false,
+    "hint": "CREATE VIEW ... AS SELECT ... ; then CREATE INDEX idx_scans_door ON badge_scans(door);",
+    "clue": "On the night of 26 October, three people entered the evidence room: Sergeant Amos Reed from 19:02 to 19:10, cleaner Pete Novak from 22:10 to 22:40, and Lieutenant Carla Voss from 23:47 to 23:58. Dana Wu arrived at 08:01 and found the locker empty.",
+    "verify": [
+     "SELECT name, title, direction, scanned_at FROM evidence_room_log WHERE scanned_at BETWEEN '2025-10-26 18:00' AND '2025-10-27 09:00'",
+     "SELECT name, tbl_name FROM sqlite_master WHERE type = 'index' AND name = 'idx_scans_door'",
+     "SELECT name FROM pragma_index_info('idx_scans_door')"
+    ]
+   },
+   {
+    "title": "A trigger that catches the forger",
+    "covers": [
+     "sql-trigger"
+    ],
+    "xp": 45,
+    "brief": "A trigger is SQL that runs by itself when a table changes. It is perfect for an audit log nobody can forget to fill.\n\n### An AFTER INSERT trigger with NEW\n\n~~~sql\nCREATE TABLE statement_alerts (incident_id INTEGER, witness TEXT);\nCREATE TRIGGER alert_new_statement\nAFTER INSERT ON witness_statements\nBEGIN\n    INSERT INTO statement_alerts VALUES (NEW.incident_id, NEW.witness);\nEND;\nINSERT INTO witness_statements (incident_id, witness) VALUES (8, 'Anonymous caller');\nSELECT * FROM statement_alerts;\n~~~\n\n- AFTER INSERT ON table: when it fires. BEFORE also exists: it runs before the change.\n- BEGIN ... END;: the statements to run, each ending with a semicolon.\n- NEW.column: the new row's values.\n\n### OLD: the row before the change\n\nIn a DELETE trigger only OLD exists; in an INSERT trigger only NEW. UPDATE triggers have both.\n\n~~~sql\nCREATE TABLE deleted_scans (badge_no TEXT, scanned_at TEXT);\nCREATE TRIGGER keep_deleted_scans\nAFTER DELETE ON badge_scans\nBEGIN\n    INSERT INTO deleted_scans VALUES (OLD.badge_no, OLD.scanned_at);\nEND;\nDELETE FROM badge_scans WHERE source = 'manual';\nSELECT * FROM deleted_scans;\n~~~\n\n### UPDATE OF a column, and WHEN\n\n<code>AFTER UPDATE OF status</code> fires only when that column is in the SET. <code>WHEN condition</code>, written between the event line and BEGIN, fires only if the test is true: <code>OLD.status &lt;&gt; NEW.status</code> means \"really changed\". <code>DEFAULT CURRENT_TIMESTAMP</code> stamps a column with the current date and time.\n\n~~~sql\nCREATE TABLE status_log (incident_id INTEGER, old_status TEXT, new_status TEXT, logged_at TEXT DEFAULT CURRENT_TIMESTAMP);\nCREATE TRIGGER log_status\nAFTER UPDATE OF status ON incidents\nWHEN OLD.status <> NEW.status\nBEGIN\n    INSERT INTO status_log (incident_id, old_status, new_status) VALUES (NEW.id, OLD.status, NEW.status);\nEND;\nUPDATE incidents SET status = 'closed' WHERE id = 3;\nUPDATE incidents SET status = status WHERE id = 4;\nSELECT incident_id, old_status, new_status FROM status_log;\n~~~\n\nOnly one row: the second UPDATE changed nothing.\n\n### Listing and removing triggers\n\n~~~sql\nCREATE TRIGGER noop AFTER INSERT ON accounts BEGIN SELECT 1; END;\nSELECT type, name, tbl_name FROM sqlite_master WHERE type = 'trigger';\n~~~\n\n<code>DROP TRIGGER name;</code> removes one. Common mistakes: a missing <code>END;</code>, WHEN placed after BEGIN, and using <code>=</code> when you mean \"changed\".",
+    "ask": "Create <code>custody_log(item_id INTEGER, old_locker TEXT, new_locker TEXT, changed_by TEXT, changed_at TEXT)</code> and a trigger <code>log_locker</code> that, after an UPDATE of locker on evidence_items that really changes it, logs NEW.id, OLD.locker, NEW.locker, NEW.updated_by and NEW.updated_at. The checker will then replay the terminal journal of 26 October and read your log.",
+    "starter": "CREATE TABLE custody_log (\n\n);\nCREATE TRIGGER log_locker\n",
+    "solution": "CREATE TABLE custody_log (item_id INTEGER, old_locker TEXT, new_locker TEXT, changed_by TEXT, changed_at TEXT);\nCREATE TRIGGER log_locker\nAFTER UPDATE OF locker ON evidence_items\nWHEN OLD.locker <> NEW.locker\nBEGIN\n    INSERT INTO custody_log (item_id, old_locker, new_locker, changed_by, changed_at)\n    VALUES (NEW.id, OLD.locker, NEW.locker, NEW.updated_by, NEW.updated_at);\nEND;",
+    "ordered": false,
+    "hint": "AFTER UPDATE OF locker ON evidence_items WHEN OLD.locker <> NEW.locker BEGIN INSERT ...; END;",
+    "clue": "The replayed journal logs two real changes to item 4, the fuel can. At 23:50 c.voss moved it from L-4 to OUT. At 23:56 someone signing as a.reed put it back to L-4 on paper. But Amos Reed left the room at 19:10: only Carla Voss was inside at 23:56. The 19:05 edit by a.reed changed nothing and is rightly not logged.",
+    "verify": [
+     "UPDATE evidence_items SET locker = 'L-2', updated_by = 'a.reed', updated_at = '2025-10-26 19:05' WHERE id = 6;\nUPDATE evidence_items SET locker = 'OUT', updated_by = 'c.voss', updated_at = '2025-10-26 23:50' WHERE id = 4;\nUPDATE evidence_items SET locker = 'L-4', updated_by = 'a.reed', updated_at = '2025-10-26 23:56' WHERE id = 4;\nSELECT item_id, old_locker, new_locker, changed_by, changed_at FROM custody_log"
+    ]
+   },
+   {
+    "title": "Move the evidence safely",
+    "covers": [
+     "sql-tx"
+    ],
+    "xp": 35,
+    "brief": "A transaction groups statements so that they all happen, or none do.\n\n### BEGIN and COMMIT\n\n~~~sql\nBEGIN;\nUPDATE evidence_items SET locker = 'L-6' WHERE id = 7;\nINSERT INTO evidence_items (incident_id, item, locker) VALUES (12, 'Second jerrycan', 'L-6');\nCOMMIT;\nSELECT id, item, locker FROM evidence_items WHERE locker = 'L-6';\n~~~\n\nBetween BEGIN and COMMIT, other users do not see half the work. COMMIT makes it permanent.\n\n### ROLLBACK: undo everything since BEGIN\n\n~~~sql\nBEGIN;\nDELETE FROM evidence_items;\nSELECT COUNT(*) AS during_transaction FROM evidence_items;\nROLLBACK;\nSELECT COUNT(*) AS after_rollback FROM evidence_items;\n~~~\n\n### The classic example: a transfer\n\nMoney must leave one account and arrive in the other, never just one of the two. Here the recovered 4860 goes back from the evidence safe to Harbor Market:\n\n~~~sql\nBEGIN;\nUPDATE accounts SET balance = balance - 4860 WHERE owner = 'HCPD evidence safe';\nUPDATE accounts SET balance = balance + 4860 WHERE owner = 'Harbor Market';\nCOMMIT;\nSELECT * FROM accounts;\n~~~\n\n### Several transactions in one script, and the rules\n\nOne script can hold several transactions: each BEGIN is closed by its own COMMIT or ROLLBACK. Rules: BEGIN cannot be nested; a ROLLBACK after COMMIT undoes nothing; a transaction left open is lost when the connection closes.",
+    "ask": "In one script: first BEGIN, run the clumsy <code>UPDATE evidence_items SET locker = NULL;</code> (no WHERE), and ROLLBACK. Then a second transaction: move item 4 to locker <code>L-1</code> with updated_by <code>hcpd.detective</code> and updated_at <code>2025-10-28 10:00</code>, insert a new item for incident 14: <code>Car key of HC-4417</code>, locker <code>L-1</code>, same updated_by, updated_at <code>2025-10-28 10:05</code>, and COMMIT.",
+    "starter": "BEGIN;\n",
+    "solution": "BEGIN;\nUPDATE evidence_items SET locker = NULL;\nROLLBACK;\nBEGIN;\nUPDATE evidence_items SET locker = 'L-1', updated_by = 'hcpd.detective', updated_at = '2025-10-28 10:00' WHERE id = 4;\nINSERT INTO evidence_items (incident_id, item, locker, updated_by, updated_at)\nVALUES (14, 'Car key of HC-4417', 'L-1', 'hcpd.detective', '2025-10-28 10:05');\nCOMMIT;",
+    "ordered": false,
+    "hint": "BEGIN; ...; ROLLBACK; then BEGIN; UPDATE ... WHERE id = 4; INSERT ...; COMMIT;",
+    "clue": "The fuel can turned up in the trunk of HC-4417, Carla Voss's car, filmed on Justice Way at 23:40 and 00:03 that night. It is back in L-1 with her car key, and the clumsy update never touched the records.",
+    "verify": [
+     "SELECT id, incident_id, item, locker, updated_by, updated_at FROM evidence_items"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "case-8",
+  "title": "The Harbor King",
+  "covers": [
+   "sql-rec",
+   "sql-multi",
+   "sql-group",
+   "sql-boss",
+   "sql-join"
+  ],
+  "story": "Mira Solberg is in custody, but she only shrugs: \"I sign papers. I do not give orders.\" The money from Cobalt Trust's companies flows out to people across the city: a crooked lieutenant, dockers, bar staff. Captain Okoye wants the one name above them all. This is your last case in the backlog, and the hardest.",
+  "suspects": [
+   {
+    "name": "Mira Solberg",
+    "note": "owner of Cobalt Trust, in custody, says she is only a front"
+   },
+   {
+    "name": "Conrad Vale",
+    "note": "city councilman, owner of Vale Estates, says he has never met these people"
+   },
+   {
+    "name": "Lucia Ferrante",
+    "note": "lawyer of every company in the network, received legal fees from it"
+   },
+   {
+    "name": "Desmond Achebe",
+    "note": "car dealer with large cash deposits, says his business is clean"
+   }
+  ],
+  "culprit": "Conrad Vale",
+  "closing": "The network's money goes to one top receiver in each district: Kit Barros, Yara Haddad, Carla Voss and Sal Romano. These four lieutenants have exactly one contact in common in October: every one of them phoned Conrad Vale. Mira, who owns the trust on paper, was called by only three of them; the orders came from the councilman.",
+  "xp_accuse": 80,
+  "steps": [
+   {
+    "title": "Who is on the network's payroll?",
+    "covers": [
+     "sql-rec",
+     "sql-multi",
+     "sql-group"
+    ],
+    "xp": 50,
+    "brief": "The boss case uses everything at once. Build the answer in named steps, test each piece, then put them together. A recursive CTE can be the first step of a bigger WITH: write <code>WITH RECURSIVE</code> once, at the start, even if only one of the CTEs is recursive.\n\n~~~sql\nWITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < 3),\nsquares AS (SELECT x, x * x AS sq FROM n)\nSELECT * FROM squares;\n~~~\n\nThe CTE <code>network</code> can then be joined like any table.",
+    "ask": "Using a recursive CTE <code>network</code> with every company under Cobalt Trust (Cobalt included), show for each person who received transfers from those companies: their name, the name of their district as <code>district</code> (NULL if none) and the total received as <code>received</code>, highest first.",
+    "starter": "WITH RECURSIVE network(id) AS (\n\n)\nSELECT ",
+    "solution": "WITH RECURSIVE network(id) AS (\n    SELECT id FROM businesses WHERE name = 'Cobalt Trust'\n    UNION ALL\n    SELECT b.id FROM businesses b JOIN network n ON b.owner_business_id = n.id\n)\nSELECT p.name, d.name AS district, SUM(t.amount) AS received\nFROM transfers t\nJOIN network n ON n.id = t.from_business_id\nJOIN people p ON p.id = t.to_person_id\nLEFT JOIN districts d ON d.id = p.district_id\nGROUP BY p.id\nORDER BY received DESC;",
+    "ordered": true,
+    "hint": "Join transfers to network on from_business_id, then to people and (LEFT) to districts, and GROUP BY p.id.",
+    "clue": "Nico Varga, a drifter with no address, got one 25000 cash advance. After him: Sal Romano 18000, Carla Voss 15000, Yara Haddad 14000, Kit Barros 12500, then small fry like Ray Kim (9000) and Lucia Ferrante (6000)."
+   },
+   {
+    "title": "One lieutenant per district",
+    "covers": [
+     "sql-boss"
+    ],
+    "xp": 60,
+    "brief": "### Why you need a CTE to filter on a rank\n\nWHERE runs before window functions, so <code>WHERE ROW_NUMBER() OVER (...) = 1</code> is an error. Compute the number in a CTE, filter outside.\n\n### Step pattern: top earner per business\n\n~~~sql\nWITH ranked AS (\n    SELECT business_id, name, salary,\n           ROW_NUMBER() OVER (PARTITION BY business_id ORDER BY salary DESC) AS rn\n    FROM employees\n)\nSELECT business_id, name, salary FROM ranked WHERE rn = 1 ORDER BY business_id;\n~~~\n\n### The same pattern elsewhere: newest car per kind\n\n~~~sql\nWITH ranked AS (\n    SELECT kind, plate, year, ROW_NUMBER() OVER (PARTITION BY kind ORDER BY year DESC) AS rn\n    FROM vehicles\n)\nSELECT kind, plate, year FROM ranked WHERE rn = 1 ORDER BY kind;\n~~~\n\n### Aggregate first, then rank\n\nWhen the value to rank must be computed, add a CTE before: totals, then ranking, then the final filter.\n\n~~~sql\nWITH spend AS (\n    SELECT cp.person_id, b.district_id, SUM(cp.amount) AS total\n    FROM card_payments cp JOIN businesses b ON b.id = cp.business_id\n    GROUP BY cp.person_id, b.district_id\n),\nranked AS (\n    SELECT person_id, district_id, total,\n           ROW_NUMBER() OVER (PARTITION BY district_id ORDER BY total DESC) AS rn\n    FROM spend\n)\nSELECT p.name, r.district_id, ROUND(r.total, 2) AS total\nFROM ranked r JOIN people p ON p.id = r.person_id\nWHERE r.rn = 1 ORDER BY r.district_id;\n~~~\n\n### Dropping rows before ranking\n\nRows that must not compete are removed in the first step, with WHERE. People with no district would form a NULL group of their own; <code>WHERE p.district_id IS NOT NULL</code> keeps them out. Remember: <code>= NULL</code> never works.\n\n### ROW_NUMBER or RANK?\n\nROW_NUMBER gives exactly one number 1 per group, even with ties. RANK gives 1 to every tied row, so <code>WHERE rnk = 1</code> can return two winners. Use ROW_NUMBER when the question wants exactly one row per group. Round and sort only in the final SELECT, and do not forget the final ORDER BY.",
+    "ask": "Continue from the network: for every district, show the district name as <code>district</code>, the name of the person who received the most from the network there, and the amount <code>received</code>. Ignore people with no district. Order by district name.",
+    "starter": "WITH RECURSIVE network(id) AS (\n    SELECT id FROM businesses WHERE name = 'Cobalt Trust'\n    UNION ALL\n    SELECT b.id FROM businesses b JOIN network n ON b.owner_business_id = n.id\n),\ntotals AS (\n\n),\nranked AS (\n\n)\nSELECT ",
+    "solution": "WITH RECURSIVE network(id) AS (\n    SELECT id FROM businesses WHERE name = 'Cobalt Trust'\n    UNION ALL\n    SELECT b.id FROM businesses b JOIN network n ON b.owner_business_id = n.id\n),\ntotals AS (\n    SELECT p.id, p.name, p.district_id, SUM(t.amount) AS received\n    FROM transfers t\n    JOIN network n ON n.id = t.from_business_id\n    JOIN people p ON p.id = t.to_person_id\n    WHERE p.district_id IS NOT NULL\n    GROUP BY p.id\n),\nranked AS (\n    SELECT name, district_id, received,\n           ROW_NUMBER() OVER (PARTITION BY district_id ORDER BY received DESC) AS rn\n    FROM totals\n)\nSELECT d.name AS district, r.name, r.received\nFROM ranked r\nJOIN districts d ON d.id = r.district_id\nWHERE r.rn = 1\nORDER BY district;",
+    "ordered": true,
+    "hint": "Three CTEs: network, totals (WHERE p.district_id IS NOT NULL, GROUP BY p.id), ranked (ROW_NUMBER per district_id). Keep rn = 1.",
+    "clue": "The four lieutenants: Kit Barros runs Harbor Front, Yara Haddad Northpoint, Carla Voss Old Town and Sal Romano the Pier District. Nico Varga is a one-off courier, not a lieutenant."
+   },
+   {
+    "title": "Who do the lieutenants call?",
+    "covers": [
+     "sql-group",
+     "sql-join"
+    ],
+    "xp": 60,
+    "brief": "To join a table twice, give it two aliases, exactly like a self join. Here <code>people</code> appears once as the caller and once as the receiver of each call:\n\n~~~sql\nSELECT a.name AS caller, b.name AS receiver, c.called_at\nFROM phone_calls c\nJOIN people a ON a.phone = c.caller\nJOIN people b ON b.phone = c.receiver\nWHERE a.name = 'Mira Solberg';\n~~~\n\n<code>COUNT(DISTINCT column)</code> inside a GROUP BY counts different values per group, which is how you ask \"called by how many different people?\".",
+    "ask": "In October 2025 (called_at from '2025-10-01'), for every person called by the four lieutenants (Carla Voss, Kit Barros, Sal Romano, Yara Haddad), show the receiver's name, how many different lieutenants called them as <code>lieutenants</code> and the number of calls as <code>calls</code>. Keep only people called by all four.",
+    "starter": "SELECT r.name, COUNT(DISTINCT c.caller) AS lieutenants, COUNT(*) AS calls\nFROM phone_calls c\n",
+    "solution": "SELECT r.name, COUNT(DISTINCT c.caller) AS lieutenants, COUNT(*) AS calls\nFROM phone_calls c\nJOIN people l ON l.phone = c.caller\nJOIN people r ON r.phone = c.receiver\nWHERE l.name IN ('Carla Voss', 'Kit Barros', 'Sal Romano', 'Yara Haddad')\n  AND c.called_at >= '2025-10-01'\nGROUP BY r.id\nHAVING COUNT(DISTINCT c.caller) = 4;",
+    "ordered": false,
+    "hint": "Join people twice (caller and receiver), filter the lieutenants and the date, GROUP BY the receiver, HAVING COUNT(DISTINCT c.caller) = 4.",
+    "clue": "Exactly one person was called by all four lieutenants in October, ten calls in all, mostly late in the evening: Councilman Conrad Vale. Mira Solberg was called by only three, Lucia Ferrante by two."
+   }
+  ]
+ }
+]

@@ -1,0 +1,770 @@
+[
+ {
+  "id": "m-d-power-ledger",
+  "chapter": "The Control Room",
+  "title": "The power ledger",
+  "covers": [
+   "auto-csv"
+  ],
+  "xp": 25,
+  "story": "Bit rolls off the factory floor and into the control room: dusty desks, dead screens, a printer still humming. The office door is sealed by WARDEN with a code. A sticky note on the frame says the code is last night's total energy use, read from power.csv, with 2 decimals.",
+  "power": "CSV means \"comma separated values\". It is the plain text format every spreadsheet, bank and back office can export. The first line is the <b>header</b> (the column names); every other line is one <b>record</b>, with its values separated by commas.\n\n~~~text\nmachine,kwh\nFurnace,120.5\nPress 2,48.25\n~~~\n\n### Why not just split on commas?\n\nYou could cut each line with <code>split(\",\")</code>, but real exports contain traps. When a value itself contains a comma, the export wraps it in double quotes, and a plain split cuts it in the wrong place. Python's built-in <code>csv</code> module knows these rules.\n\n~~~python\nimport csv\n\nline = '\"Press, line 2\",48.25'\nprint(line.split(\",\"))\nprint(next(csv.reader([line])))\n~~~\n\n- Line 1: <code>import csv</code> loads the standard module that reads and writes CSV files.\n- Line 4: the naive split gives 3 pieces: the machine name is broken in two.\n- Line 5: <code>csv.reader</code> reads lines and gives back each record as a list. It understands the quotes, so you get 2 clean values. <code>next(...)</code> takes the first record it produces.\n\n### csv.reader: each record as a list\n\n~~~python\nimport csv\n\nwith open(\"power.csv\", \"w\") as f:\n    f.write('machine,kwh\\nFurnace,120.5\\n\"Press, line 2\",48.25\\n')\n\nwith open(\"power.csv\") as f:\n    reader = csv.reader(f)\n    header = next(reader)\n    print(\"Columns:\", header)\n    for row in reader:\n        print(row[0], \"used\", row[1])\n~~~\n\n- Lines 3-4: create a small CSV file so the example has something to read.\n- Line 6: open it for reading, as in the Files lesson.\n- Line 7: <code>csv.reader(f)</code> wraps the open file. Each loop turn gives one record as a list of strings, like <code>[\"Furnace\", \"120.5\"]</code>.\n- Line 8: the header is just the first record. <code>next(reader)</code> takes it out, so the loop below only sees real data.\n- Lines 10-11: pick values by position: <code>row[0]</code> is the first column, <code>row[1]</code> the second.\n\n### Every value is text: convert before maths\n\nThe csv module never guesses types. <code>\"120.5\"</code> is a string until you convert it.\n\n~~~python\nprint(\"10\" * 2)\nprint(int(\"10\") * 2)\nprint(float(\"120.5\") + float(\"48.25\"))\ntotal = 168.75\nprint(f\"{total:.2f}\")\nprint(f\"{25.0:.2f}\")\n~~~\n\n- Line 1: multiplying a string repeats it: <code>1010</code>. A classic bug.\n- Line 2: <code>int()</code> turns text into a whole number, so you get 20.\n- Line 3: <code>float()</code> turns text with a decimal point into a decimal number.\n- Lines 4-6: <code>f\"{total:.2f}\"</code> formats a number with exactly 2 decimals: 25.0 prints as <code>25.00</code>. Reports and door codes need this fixed format.",
+  "goal": "Read <code>power.csv</code> with <code>csv.reader</code>, skip the header with <code>next()</code>, and add up the kwh column into <code>total</code>. Print <code>Total: 168.75 kWh</code> (with your total, 2 decimals), then walk to door A, unlock it with that same 2 decimal text and reach the exit.",
+  "starter": "import csv\nfrom robot import *\n\ntotal = 0\n# read power.csv here\n",
+  "solution": "import csv\nfrom robot import *\n\ntotal = 0\nwith open(\"power.csv\") as f:\n    reader = csv.reader(f)\n    next(reader)\n    for row in reader:\n        total += float(row[1])\ncode = f\"{total:.2f}\"\nprint(\"Total:\", code, \"kWh\")\nwhile front() != \"door\":\n    move()\nunlock(code)\nwhile not at_exit():\n    move()\n",
+  "hint": "Inside the loop, row[1] is the kwh text: add float(row[1]) to total. Then f\"{total:.2f}\" is both the printed value and the code.",
+  "par": 16,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "import csv as _c, io as _i\n_r = list(_c.reader(_i.StringIO(_fs['power.csv'])))[1:]\nassert abs(total - sum(float(r[1]) for r in _r)) < 0.001, 'total should be the sum of the kwh column (one machine name contains a comma: use csv.reader, not split)'",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>...A..E#",
+     "##########"
+    ],
+    "fs": {
+     "power.csv": "machine,kwh\nFurnace,120.5\n\"Press, line 2\",48.25\nConveyor,33.1\nWelder,60\n"
+    },
+    "codes": {
+     "A": "261.85"
+    },
+    "output": "Total: 261.85 kWh\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>.....A.E#",
+     "###########"
+    ],
+    "fs": {
+     "power.csv": "machine,kwh\nCrane,75.75\nFurnace,140\n\"Paint booth, east\",12.4\n"
+    },
+    "codes": {
+     "A": "228.15"
+    },
+    "output": "Total: 228.15 kWh\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>..A...E#",
+     "##########"
+    ],
+    "fs": {
+     "power.csv": "machine,kwh\n\"Press, line 1\",51.3\n\"Press, line 2\",49.05\nLights,8.8\nPumps,21.6\nFurnace,99.99\n"
+    },
+    "codes": {
+     "A": "230.74"
+    },
+    "output": "Total: 230.74 kWh\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-monday-report",
+  "chapter": "The Control Room",
+  "title": "The Monday report",
+  "covers": [
+   "auto-csv"
+  ],
+  "xp": 30,
+  "story": "Behind the door, WARDEN's desk is buried in purchase orders. Every Monday it printed a cost report per department, and the inner door only opens for the name of the department that spent the most. Bit has to rebuild the report from orders.csv.",
+  "power": "Positions like <code>row[3]</code> are fragile: if someone adds a column to the export, every index shifts. Reading by column name is safer.\n\n### csv.DictReader: each row as a dict\n\n~~~python\nimport csv\n\nwith open(\"orders.csv\", \"w\") as f:\n    f.write(\"dept,item,qty,unit_cost\\nForge,Bolts,40,0.25\\nPaint,Primer,3,18.50\\nForge,Gloves,4,6.00\\n\")\n\nwith open(\"orders.csv\") as f:\n    for row in csv.DictReader(f):\n        print(row)\n        print(row[\"dept\"], row[\"qty\"])\n~~~\n\n- Line 3-4: create a small file to read.\n- Line 7: <code>csv.DictReader(f)</code> reads the header line once by itself, then gives you one row per loop turn. Each <code>row</code> is a <b>dict</b> whose keys are the column names.\n- Line 9: pick columns by name. A misspelled name, like <code>row[\"Qty\"]</code>, raises a <code>KeyError</code>: keys match the header exactly.\n\n### Adding up per group with a dict\n\nTo get one total per department, keep a dict that maps the group name to a running total. Values are still text, so convert first.\n\n~~~python\nimport csv\n\nwith open(\"orders.csv\", \"w\") as f:\n    f.write(\"dept,item,qty,unit_cost\\nForge,Bolts,40,0.25\\nPaint,Primer,3,18.50\\nForge,Gloves,4,6.00\\n\")\n\ntotals = {}\nwith open(\"orders.csv\") as f:\n    for row in csv.DictReader(f):\n        cost = int(row[\"qty\"]) * float(row[\"unit_cost\"])\n        totals[row[\"dept\"]] = totals.get(row[\"dept\"], 0) + cost\n        print(totals)\n~~~\n\n- Line 6: start with an empty dict.\n- Line 9: the cost of one line: quantity times unit cost, both converted from text.\n- Line 10: <code>totals.get(dept, 0)</code> returns the total so far, or 0 the first time a department appears. Add this row's cost and store it back. Watch the dict grow on each print.\n\n### Sorting a dict by its values\n\n~~~python\ntotals = {\"Forge\": 34.0, \"Paint\": 55.5, \"Stores\": 12.0}\npairs = sorted(totals.items(), key=lambda kv: kv[1], reverse=True)\nprint(pairs)\nfor name, total in pairs:\n    print(name, f\"{total:.2f}\")\nprint(\"Biggest:\", pairs[0][0])\n~~~\n\n- Line 2: <code>items()</code> gives <code>(key, value)</code> pairs. <code>key=lambda kv: kv[1]</code> tells <code>sorted</code> to compare pairs by their second element, the number. <code>reverse=True</code> puts the biggest first (forget it and you get the smallest first).\n- Line 4: the loop unpacks each pair into two names.\n- Line 6: <code>pairs[0]</code> is the biggest pair and <code>[0]</code> again is its key.\n\n### Writing a CSV with csv.writer\n\n~~~python\nimport csv\n\nwith open(\"summary.csv\", \"w\") as f:\n    w = csv.writer(f)\n    w.writerow([\"dept\", \"total\"])\n    w.writerow([\"Paint\", f\"{55.5:.2f}\"])\n    w.writerow([\"Forge, north\", 34])\n\nwith open(\"summary.csv\") as f:\n    for line in csv.reader(f):\n        print(line)\n~~~\n\n- Line 3: mode <code>\"w\"</code> creates the file or replaces its old content.\n- Line 4: <code>csv.writer(f)</code> wraps the file in a writer object.\n- Line 5: <code>writerow</code> takes a list and writes it as one line, adding the commas. The first row you write is the header. Write it <b>before</b> the loop, or it appears above every row.\n- Line 7: a value with a comma is quoted for you, and numbers are fine.\n- Lines 9-11: read the file back with <code>csv.reader</code> to check it.\n\n### csv.DictWriter: writing dicts\n\nWhen your rows are already dicts, <code>DictWriter</code> writes them by column name.\n\n~~~python\nimport csv\n\nrows = [{\"dept\": \"Paint\", \"total\": \"55.50\"}, {\"dept\": \"Forge\", \"total\": \"34.00\"}]\nwith open(\"summary.csv\", \"w\") as f:\n    w = csv.DictWriter(f, fieldnames=[\"dept\", \"total\"])\n    w.writeheader()\n    for row in rows:\n        w.writerow(row)\n\nwith open(\"summary.csv\") as f:\n    for row in csv.DictReader(f):\n        print(row[\"dept\"], row[\"total\"])\n~~~\n\n- Line 5: <code>fieldnames</code> gives the columns and their order.\n- Line 6: <code>writeheader()</code> writes the header line from those names.\n- Line 8: each dict becomes one line, its values placed under the right columns.",
+  "goal": "Read <code>orders.csv</code> with <code>csv.DictReader</code> and build <code>totals</code>, a dict from dept to cost (qty times unit_cost). Write <code>dept_totals.csv</code> with header <code>dept,total</code> and one row per dept, biggest first, totals with 2 decimals. Print <code>Top: </code> followed by the biggest dept, then unlock door A with that dept name and reach the exit.",
+  "starter": "import csv\nfrom robot import *\n\ntotals = {}\n",
+  "solution": "import csv\nfrom robot import *\n\ntotals = {}\nwith open(\"orders.csv\") as f:\n    for row in csv.DictReader(f):\n        cost = int(row[\"qty\"]) * float(row[\"unit_cost\"])\n        totals[row[\"dept\"]] = totals.get(row[\"dept\"], 0) + cost\nranking = sorted(totals.items(), key=lambda kv: kv[1], reverse=True)\nwith open(\"dept_totals.csv\", \"w\") as f:\n    w = csv.writer(f)\n    w.writerow([\"dept\", \"total\"])\n    for dept, total in ranking:\n        w.writerow([dept, f\"{total:.2f}\"])\nprint(\"Top:\", ranking[0][0])\nwhile front() != \"door\":\n    move()\nunlock(ranking[0][0])\nwhile not at_exit():\n    move()\n",
+  "hint": "sorted(totals.items(), key=lambda kv: kv[1], reverse=True) gives (dept, total) pairs, biggest first; write the header once, before the loop.",
+  "par": 21,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "import csv as _c, io as _i\n_want = {}\nfor _r in _c.DictReader(_i.StringIO(_fs['orders.csv'])):\n    _want[_r['dept']] = _want.get(_r['dept'], 0) + int(_r['qty']) * float(_r['unit_cost'])\nassert {k: round(v, 2) for k, v in totals.items()} == {k: round(v, 2) for k, v in _want.items()}, 'totals should be %r' % _want\nassert 'dept_totals.csv' in _fs, 'dept_totals.csv was not written'\n_got = [r for r in _c.reader(_i.StringIO(_fs['dept_totals.csv'])) if r]\n_exp = [['dept', 'total']] + [[k, '%.2f' % v] for k, v in sorted(_want.items(), key=lambda kv: -kv[1])]\nassert _got == _exp, 'dept_totals.csv should be:\\n' + '\\n'.join(','.join(r) for r in _exp)",
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>....A..E#",
+     "###########"
+    ],
+    "fs": {
+     "orders.csv": "date,dept,item,qty,unit_cost\n2025-03-03,Forge,Bolts,40,0.25\n2025-03-03,Paint,Primer,3,18.50\n2025-03-04,Forge,Gloves,4,6.00\n2025-03-04,Stores,Tape,12,1.10\n2025-03-05,Paint,Brushes,6,2.75\n2025-03-05,Stores,Labels,30,0.40\n"
+    },
+    "codes": {
+     "A": "Paint"
+    },
+    "output": "Top: Paint\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>..A....E#",
+     "###########"
+    ],
+    "fs": {
+     "orders.csv": "date,dept,item,qty,unit_cost\n2025-04-01,Stores,Boxes,50,0.90\n2025-04-01,Forge,Coal,8,4.20\n2025-04-02,Paint,Thinner,2,9.99\n2025-04-02,Forge,Tongs,1,15.00\n2025-04-03,Stores,Tape,10,1.10\n"
+    },
+    "codes": {
+     "A": "Stores"
+    },
+    "output": "Top: Stores\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>......A.E#",
+     "############"
+    ],
+    "fs": {
+     "orders.csv": "date,dept,item,qty,unit_cost\n2025-05-12,Paint,Red paint,9,7.25\n2025-05-12,Forge,Bolts,100,0.25\n2025-05-13,Paint,Primer,2,18.50\n2025-05-13,Welding,Rods,20,1.75\n"
+    },
+    "codes": {
+     "A": "Paint"
+    },
+    "output": "Top: Paint\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-warden-config",
+  "chapter": "The Control Room",
+  "title": "Rewriting WARDEN's settings",
+  "covers": [
+   "auto-json"
+  ],
+  "xp": 30,
+  "story": "On the main screen Bit finds warden.json, the file WARDEN reads every time it wakes. Change it, and WARDEN will obey without knowing why. Bit wants the alarms off, its own name on the operator list, and the morning lockdown pushed back to the evening.",
+  "power": "Programs keep their settings in <b>config files</b>, and most of them are written in <b>JSON</b> (JavaScript Object Notation). JSON is text that looks almost exactly like Python dicts and lists.\n\n### What JSON looks like\n\n~~~python\nwith open(\"settings.json\", \"w\") as f:\n    f.write('{\"system\": \"WARDEN\", \"version\": 3, \"armed\": true, \"alarm\": null,\\n \"operators\": [\"warden\"], \"lockdown\": {\"hour\": 6, \"minute\": 5}}\\n')\n\nwith open(\"settings.json\") as f:\n    text = f.read()\nprint(text)\nprint(type(text))\n~~~\n\n- Lines 1-2: create a small config file.\n- Lines 4-5: <code>f.read()</code> returns the whole file as one string.\n- You can see curly braces (an <b>object</b>, like a dict), square brackets (an <b>array</b>, like a list), strings in double quotes, numbers, and the words <code>true</code> and <code>null</code>. But it is only text for now: <code>text[\"version\"]</code> would fail.\n\n### json.load: from a file to Python data\n\n~~~python\nimport json\n\nwith open(\"settings.json\", \"w\") as f:\n    f.write('{\"system\": \"WARDEN\", \"version\": 3, \"armed\": true, \"alarm\": null, \"operators\": [\"warden\"], \"lockdown\": {\"hour\": 6, \"minute\": 5}}')\n\nwith open(\"settings.json\") as f:\n    cfg = json.load(f)\n\nprint(type(cfg))\nprint(cfg[\"system\"], cfg[\"version\"], cfg[\"armed\"], cfg[\"alarm\"])\nprint(cfg[\"operators\"])\nprint(cfg[\"lockdown\"][\"hour\"])\n~~~\n\n- Line 1: <code>import json</code> loads the standard JSON module.\n- Line 7: <code>json.load(f)</code> reads the open file and turns the JSON text into Python objects. <code>cfg</code> is now a real dict.\n- Line 10: JSON <code>true</code> became Python <code>True</code>, and <code>null</code> became <code>None</code>. Likewise <code>false</code> becomes <code>False</code>.\n- Line 11: a JSON array became a Python list.\n- Line 12: <b>nested data</b>: <code>lockdown</code> is a dict inside the dict, so you chain two lookups: first <code>cfg[\"lockdown\"]</code>, then <code>[\"hour\"]</code> on the result.\n\n### Changing the data\n\nOnce loaded, the config is ordinary Python data, so you change it with tools you already know.\n\n~~~python\ncfg = {\"version\": 3, \"armed\": True, \"operators\": [\"warden\"], \"lockdown\": {\"hour\": 6, \"minute\": 5}}\ncfg[\"armed\"] = False\ncfg[\"version\"] += 1\ncfg[\"operators\"].append(\"bit\")\ncfg[\"lockdown\"][\"minute\"] += 30\nprint(cfg)\n~~~\n\n- Line 2: assigning to a key replaces its value.\n- Line 3: <code>+=</code> adds to the number stored there.\n- Line 4: <code>append</code> adds an item to the list inside the dict.\n- Line 5: the nested number changes from 5 to 35.\n- These changes live only in memory. The file on disk is still the old one until you save it.\n\n### json.dump: saving back to the file\n\n~~~python\nimport json\n\ncfg = {\"system\": \"WARDEN\", \"armed\": True, \"alarm\": None}\ncfg[\"armed\"] = False\n\nwith open(\"settings.json\", \"w\") as f:\n    json.dump(cfg, f, indent=2)\n\nwith open(\"settings.json\") as f:\n    print(f.read())\n~~~\n\n- Line 6: open the file in write mode. This <b>empties</b> it at once, so always load the old content <b>before</b> this line.\n- Line 7: <code>json.dump(cfg, f, indent=2)</code> turns Python data back into JSON text and writes it. <code>indent=2</code> puts each key on its own line, indented by 2 spaces, so humans can still read it. <code>False</code> is written as <code>false</code> and <code>None</code> as <code>null</code>.\n- Lines 9-10: read the file again to check what was saved.\n\n### Showing a time with zero padding\n\nConfigs store hours and minutes as numbers. The format spec <code>:02d</code> means \"whole number, at least 2 characters, pad with zeros on the left\".\n\n~~~python\nhour, minute = 6, 5\nprint(f\"{hour}:{minute}\")\nprint(f\"{hour:02d}:{minute:02d}\")\n~~~\n\n- Line 2: without padding you get <code>6:5</code>, which nobody reads as a time.\n- Line 3: with <code>:02d</code> you get <code>06:05</code>.",
+  "goal": "Load <code>warden.json</code>, set <code>armed</code> to false, add 1 to <code>version</code>, append <code>\"bit\"</code> to <code>operators</code> and set the lockdown <code>hour</code> to 23. Save it with <code>indent=2</code>. Build <code>lock_time</code> like <code>23:05</code> from the lockdown hour and minute, print <code>Version 8 lockdown at 23:05</code> (with the real values), then reach the exit.",
+  "starter": "import json\nfrom robot import *\n\nwith open(\"warden.json\") as f:\n    cfg = json.load(f)\n",
+  "solution": "import json\nfrom robot import *\n\nwith open(\"warden.json\") as f:\n    cfg = json.load(f)\ncfg[\"armed\"] = False\ncfg[\"version\"] += 1\ncfg[\"operators\"].append(\"bit\")\ncfg[\"lockdown\"][\"hour\"] = 23\nwith open(\"warden.json\", \"w\") as f:\n    json.dump(cfg, f, indent=2)\nlock = cfg[\"lockdown\"]\nlock_time = f\"{lock['hour']:02d}:{lock['minute']:02d}\"\nprint(\"Version\", cfg[\"version\"], \"lockdown at\", lock_time)\nwhile not at_exit():\n    move()\n",
+  "hint": "Change everything in memory first, then open the file with \"w\" and json.dump(cfg, f, indent=2); :02d pads the minute to 2 digits.",
+  "par": 17,
+  "check": {
+   "exit": true
+  },
+  "test": "import json as _j\n_c = _j.loads(_fs['warden.json'])\nassert _c['armed'] is False, 'armed should be false in the saved file'\nassert _c['operators'][-1] == 'bit', 'operators should end with \"bit\" in the saved file'\nassert _c['lockdown']['hour'] == 23, 'the lockdown hour should be 23 in the saved file'\nassert set(_c) == {'system', 'version', 'armed', 'alarm', 'operators', 'lockdown'}, 'keep every other key of the config'\nassert '\\n  \"' in _fs['warden.json'], 'save with json.dump(cfg, f, indent=2) so the file stays readable'\nassert lock_time == '23:%02d' % _c['lockdown']['minute'], 'lock_time should look like 23:05'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>....E#",
+     "########"
+    ],
+    "fs": {
+     "warden.json": "{\n  \"system\": \"WARDEN\",\n  \"version\": 7,\n  \"armed\": true,\n  \"alarm\": null,\n  \"operators\": [\n    \"warden\"\n  ],\n  \"lockdown\": {\n    \"hour\": 6,\n    \"minute\": 0\n  }\n}\n"
+    },
+    "output": "Version 8 lockdown at 23:00\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>......E#",
+     "##########"
+    ],
+    "fs": {
+     "warden.json": "{\n  \"system\": \"WARDEN\",\n  \"version\": 12,\n  \"armed\": true,\n  \"alarm\": \"siren\",\n  \"operators\": [\n    \"warden\",\n    \"night-guard\"\n  ],\n  \"lockdown\": {\n    \"hour\": 5,\n    \"minute\": 45\n  }\n}\n"
+    },
+    "output": "Version 13 lockdown at 23:45\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>...E#",
+     "#######"
+    ],
+    "fs": {
+     "warden.json": "{\n  \"system\": \"WARDEN\",\n  \"version\": 2,\n  \"armed\": true,\n  \"alarm\": null,\n  \"operators\": [],\n  \"lockdown\": {\n    \"hour\": 7,\n    \"minute\": 5\n  }\n}\n"
+    },
+    "output": "Version 3 lockdown at 23:05\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-radio-channel",
+  "chapter": "The Control Room",
+  "title": "The radio channel",
+  "covers": [
+   "auto-json"
+  ],
+  "xp": 25,
+  "story": "A terminal on the wall still listens to WARDEN's radio channel. The messages arrive as JSON text, and one of them names the next door and its code. Bit has to decode the message and answer in the same language, or the channel will raise an alarm.",
+  "power": "Files are not the only place JSON lives. Web services and radio links send JSON as a <b>string</b>: a message, not a file. The <code>json</code> functions with an extra <b>s</b> (for \"string\") work on strings.\n\n### json.loads: from a string to Python data\n\n~~~python\nimport json\n\nreply = '{\"status\": \"ok\", \"count\": 2, \"error\": null, \"door\": {\"id\": \"C\", \"code\": 9021}}'\ndata = json.loads(reply)\nprint(type(reply), type(data))\nprint(data[\"status\"], data[\"count\"], data[\"error\"])\nprint(data[\"door\"][\"code\"] + 1)\n~~~\n\n- Line 3: a JSON string, like a message just received.\n- Line 4: <code>json.loads</code> turns the string into a dict.\n- Line 6: <code>null</code> arrived as <code>None</code>.\n- Line 7: the nested <code>door</code> object is a dict, and its <code>code</code> is a real number you can do maths with.\n\n### json.dumps: from Python data to a string\n\n~~~python\nimport json\n\nanswer = {\"unit\": \"B-17\", \"ok\": True, \"parts\": [1, 2], \"note\": None}\ntext = json.dumps(answer)\nprint(text)\nprint(type(text))\nprint(json.dumps(answer, indent=2))\n~~~\n\n- Line 4: <code>json.dumps</code> does the opposite: Python data to a JSON string, ready to send. <code>True</code> becomes <code>true</code> and <code>None</code> becomes <code>null</code>.\n- Line 7: <code>indent</code> works here too.\n\n### Four functions, two pairs\n\n~~~python\nimport json\n\ndata = {\"a\": 1}\nwith open(\"data.json\", \"w\") as f:\n    json.dump(data, f)\nwith open(\"data.json\") as f:\n    print(json.load(f))\nprint(json.loads(json.dumps(data)) == data)\n~~~\n\n- <code>json.load(f)</code> and <code>json.dump(data, f)</code> read and write <b>files</b>.\n- <code>json.loads(text)</code> and <code>json.dumps(data)</code> read and write <b>strings</b>.\n- Line 8: a round trip through a string gives back an equal dict. Mixing up the pairs (for example <code>json.load</code> on a string) is the most common mistake.",
+  "goal": "Walk onto terminal 1 and turn <code>scan()</code> (a JSON string) into a dict with <code>json.loads</code>. Print <code>Status: ok | error: None</code> using the message's <code>status</code> and <code>error</code>, then print the reply <code>json.dumps({\"unit\": \"B-17\", \"door\": ..., \"ok\": True})</code> with the door's <code>id</code>. Unlock the door with the door's <code>code</code> and reach the exit.",
+  "starter": "import json\nfrom robot import *\n\nwhile here() != \"terminal\":\n    move()\n",
+  "solution": "import json\nfrom robot import *\n\nwhile here() != \"terminal\":\n    move()\nmsg = json.loads(scan())\ndoor = msg[\"door\"]\nprint(\"Status:\", msg[\"status\"], \"| error:\", msg[\"error\"])\nprint(json.dumps({\"unit\": \"B-17\", \"door\": door[\"id\"], \"ok\": True}))\nwhile front() != \"door\":\n    move()\nunlock(door[\"code\"])\nwhile not at_exit():\n    move()\n",
+  "hint": "msg = json.loads(scan()); the door is nested, so its code is msg[\"door\"][\"code\"].",
+  "par": 15,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>.1.A...E#",
+     "###########"
+    ],
+    "data": {
+     "1": "{\"status\": \"ok\", \"door\": {\"id\": \"A\", \"code\": 4417}, \"error\": null}"
+    },
+    "codes": {
+     "A": "4417"
+    },
+    "output": "Status: ok | error: None\n{\"unit\": \"B-17\", \"door\": \"A\", \"ok\": true}\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>1.B.....E#",
+     "############"
+    ],
+    "data": {
+     "1": "{\"status\": \"degraded\", \"door\": {\"id\": \"B\", \"code\": 1088}, \"error\": \"relay 4 noisy\"}"
+    },
+    "codes": {
+     "B": "1088"
+    },
+    "output": "Status: degraded | error: relay 4 noisy\n{\"unit\": \"B-17\", \"door\": \"B\", \"ok\": true}\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>...1.C..E#",
+     "############"
+    ],
+    "data": {
+     "1": "{\"status\": \"ok\", \"door\": {\"id\": \"C\", \"code\": 7350}, \"error\": null}"
+    },
+    "codes": {
+     "C": "7350"
+    },
+    "output": "Status: ok | error: None\n{\"unit\": \"B-17\", \"door\": \"C\", \"ok\": true}\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-night-log",
+  "chapter": "The Control Room",
+  "title": "WARDEN's night log",
+  "covers": [
+   "auto-logs"
+  ],
+  "xp": 30,
+  "story": "WARDEN wrote down everything that went wrong in the night, in warden.log. The archive door listens for a passphrase: the error WARDEN complained about most. Bit also wants an hour by hour count, and an alert line when the night was really bad.",
+  "power": "A <b>log</b> is a text file where a program writes one line for every event. WARDEN's log looks like this: date, time, level (INFO, WARNING or ERROR), then a free text message.\n\n~~~text\n2025-03-01 02:14:09 ERROR Coolant pump offline\n~~~\n\n### Reading a log line by line\n\nLooping over an open file gives one line per turn. It keeps memory low, even for a huge log.\n\n~~~python\nwith open(\"night.log\", \"w\") as f:\n    f.write(\"2025-03-01 01:00:00 INFO Night shift\\n\\n2025-03-01 02:14:09 ERROR Pump offline\\n\\n\")\n\ncount = 0\nwith open(\"night.log\") as f:\n    for line in f:\n        line = line.strip()\n        if not line:\n            continue\n        count += 1\nprint(count, \"lines\")\nprint(repr(line))\n~~~\n\n- Line 6: each <code>line</code> still ends with the newline character.\n- Line 7: <code>strip()</code> removes spaces and the newline from both ends.\n- Lines 8-9: an empty string counts as false, so <code>if not line</code> spots blank lines (logs often end with one). <code>continue</code> jumps to the next turn. Without this, a blank line would break the unpacking below.\n- Line 12: <code>repr</code> shows the last line with quotes: the newline is gone.\n\n### Splitting with a limit: split(\" \", 3)\n\n~~~python\nline = \"2025-03-01 02:14:09 ERROR Coolant pump offline\"\nprint(line.split(\" \"))\nprint(line.split(\" \", 3))\ndate, time, level, message = line.split(\" \", 3)\nprint(level, \"|\", message)\nprint(time[:2])\n~~~\n\n- Line 2: a plain split cuts at every space and breaks the message into pieces: unpacking into 4 names would fail with \"too many values to unpack\".\n- Line 3: <code>split(\" \", 3)</code> cuts at most 3 times, so you always get 4 pieces and the message keeps its spaces.\n- Line 4: <b>unpacking</b> puts the 4 pieces into 4 variables at once.\n- Line 6: the slice <code>[:2]</code> takes the first 2 characters of the time: the hour <code>\"02\"</code>. It stays a string, which is fine as a dict key.\n\n### Counting per group with a dict\n\n~~~python\nlines = [\"01:10:00 INFO ok\", \"02:14:09 ERROR pump\", \"02:40:00 ERROR fan\", \"03:01:00 ERROR pump\"]\nby_hour = {}\nfor line in lines:\n    time, level, message = line.split(\" \", 2)\n    if level == \"ERROR\":\n        hour = time[:2]\n        by_hour[hour] = by_hour.get(hour, 0) + 1\nprint(by_hour)\n~~~\n\n- Line 5: only ERROR lines are counted. String comparison is case sensitive: <code>\"error\"</code> would never match.\n- Line 7: <code>by_hour.get(hour, 0)</code> returns the count so far, or 0 for a new hour. Add 1 and store it back.\n\n### collections.Counter: a dict made for counting\n\n<code>Counter</code> lives in the standard module <code>collections</code>. It is a dict where a missing key counts as 0, so <code>+= 1</code> works without <code>get</code>.\n\n~~~python\nfrom collections import Counter\n\nproblems = Counter()\nfor p in [\"pump\", \"fan\", \"pump\", \"door\", \"pump\", \"fan\"]:\n    problems[p] += 1\n\nprint(problems)\nprint(problems[\"pump\"], problems[\"printer\"])\nprint(problems.most_common(2))\nprint(problems.most_common(1)[0][0])\nprint(sum(problems.values()))\n~~~\n\n- Line 1: imports only <code>Counter</code> from the module.\n- Line 5: even the first time a word appears, <code>+= 1</code> works.\n- Line 8: 3 for <code>\"pump\"</code>, and 0 for a key never seen (no <code>KeyError</code>).\n- Line 9: <code>most_common(2)</code> returns a <b>list</b> of the 2 biggest <code>(item, count)</code> pairs, biggest first.\n- Line 10: <code>[0]</code> takes the first pair, <code>[0]</code> again takes its item: <code>\"pump\"</code>.\n- Line 11: <code>values()</code> gives the counts and <code>sum</code> adds them: the total.\n\n### Turning counts into an alert\n\nA monitor compares the total with a <b>threshold</b> and raises an alert when it is reached.\n\n~~~python\ntotal = 6\nif total >= 5:\n    print(\"ALERT:\", total, \"errors\")\n~~~",
+  "goal": "Read <code>warden.log</code> line by line (skip blank lines). Build <code>errors_by_hour</code>, a dict from hour (<code>\"02\"</code>) to the number of ERROR lines, and <code>top_error</code>, the most frequent ERROR message (use a <code>Counter</code>). Print one line per hour in sorted order like <code>02 2</code>, then <code>ALERT: 6 errors</code> only if there are 5 errors or more. Unlock door A with <code>top_error</code> and reach the exit.",
+  "starter": "from collections import Counter\nfrom robot import *\n\nerrors_by_hour = {}\nmessages = Counter()\n",
+  "solution": "from collections import Counter\nfrom robot import *\n\nerrors_by_hour = {}\nmessages = Counter()\nwith open(\"warden.log\") as f:\n    for line in f:\n        line = line.strip()\n        if not line:\n            continue\n        date, time, level, message = line.split(\" \", 3)\n        if level == \"ERROR\":\n            hour = time[:2]\n            errors_by_hour[hour] = errors_by_hour.get(hour, 0) + 1\n            messages[message] += 1\ntop_error = messages.most_common(1)[0][0]\ntotal = sum(errors_by_hour.values())\nfor hour in sorted(errors_by_hour):\n    print(hour, errors_by_hour[hour])\nif total >= 5:\n    print(\"ALERT:\", total, \"errors\")\nwhile front() != \"door\":\n    move()\nunlock(top_error)\nwhile not at_exit():\n    move()\n",
+  "hint": "line.split(\" \", 3) gives date, time, level and the whole message; time[:2] is the hour and messages.most_common(1)[0][0] is the top message.",
+  "par": 26,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "from collections import Counter as _C\n_h, _m = {}, _C()\nfor _l in _fs['warden.log'].splitlines():\n    if _l.strip():\n        _d, _t, _v, _s = _l.strip().split(' ', 3)\n        if _v == 'ERROR':\n            _h[_t[:2]] = _h.get(_t[:2], 0) + 1\n            _m[_s] += 1\nassert errors_by_hour == _h, 'errors_by_hour should be %r, got %r' % (_h, errors_by_hour)\nassert top_error == _m.most_common(1)[0][0], 'top_error should be %r' % _m.most_common(1)[0][0]",
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>...A...E#",
+     "###########"
+    ],
+    "fs": {
+     "warden.log": "2025-03-01 01:05:12 INFO Night shift started\n2025-03-01 02:14:09 ERROR Coolant pump offline\n2025-03-01 02:20:41 WARNING Fan slow\n\n2025-03-01 02:31:00 ERROR Coolant pump offline\n2025-03-01 03:02:55 ERROR Door sensor stuck\n2025-03-01 03:10:10 INFO Patrol done\n2025-03-01 04:44:01 ERROR Coolant pump offline\n2025-03-01 04:50:00 ERROR Camera 3 dark\n2025-03-01 05:00:00 ERROR Door sensor stuck\n\n"
+    },
+    "codes": {
+     "A": "Coolant pump offline"
+    },
+    "output": "02 2\n03 1\n04 2\n05 1\nALERT: 6 errors\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>.....A.E#",
+     "###########"
+    ],
+    "fs": {
+     "warden.log": "2025-03-01 22:00:00 INFO Lockdown armed\n2025-03-01 22:15:30 ERROR Badge reader jammed\n\n2025-03-01 23:01:11 WARNING Fan slow\n2025-03-01 23:40:00 ERROR Badge reader jammed\n2025-03-01 23:59:59 INFO Midnight check\n\n"
+    },
+    "codes": {
+     "A": "Badge reader jammed"
+    },
+    "output": "22 1\n23 1\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>..A....E#",
+     "###########"
+    ],
+    "fs": {
+     "warden.log": "2025-03-01 06:00:00 INFO Morning check\n2025-03-01 06:12:00 ERROR Camera 3 dark\n2025-03-01 07:00:01 ERROR Printer out of paper\n2025-03-01 07:05:00 ERROR Camera 3 dark\n2025-03-01 07:30:00 WARNING Fan slow\n2025-03-01 08:00:00 ERROR Camera 3 dark\n2025-03-01 08:01:00 ERROR Printer out of paper\n2025-03-01 08:45:10 INFO Shift change\n\n"
+    },
+    "codes": {
+     "A": "Camera 3 dark"
+    },
+    "output": "06 1\n07 2\n08 2\nALERT: 5 errors\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-scan-pile",
+  "chapter": "The Control Room",
+  "title": "The scan pile",
+  "covers": [
+   "auto-rename"
+  ],
+  "xp": 30,
+  "story": "The scanner tray dumped years of documents into the scans folder, all named like SCAN 2025-03-07 Boiler Room.PDF. Somewhere in that pile are the plans of WARDEN's core, and Bit cannot search a mess. Time to give every scan a clean, sortable name.",
+  "power": "Scanners, cameras and exports produce messy names like <code>SCAN 2025-03-07 Boiler Room.PDF</code>. A script can rename hundreds of them into a clean pattern like <code>2025-03-07_boiler-room.pdf</code> in a second. The <code>os</code> module (operating system) gives Python access to folders and files.\n\n### Listing a folder with os.listdir\n\n~~~python\nimport os\n\nos.makedirs(\"inbox\", exist_ok=True)\nfor name in [\"SCAN 2025-03-05 Pump.PDF\", \"readme.txt\"]:\n    with open(os.path.join(\"inbox\", name), \"w\") as f:\n        f.write(\"scan\")\n\nnames = os.listdir(\"inbox\")\nprint(names)\nfor name in sorted(names):\n    print(name)\n~~~\n\n- Line 1: <code>import os</code> loads the standard module for files and folders.\n- Line 3: <code>os.makedirs(\"inbox\", exist_ok=True)</code> creates the folder. <code>exist_ok=True</code> means \"no error if it already exists\".\n- Lines 4-6: create two files in it, so the example has something to list.\n- Line 8: <code>os.listdir(\"inbox\")</code> returns a list of the names inside the folder. Only the names, not the folder path.\n- Line 10: the order of <code>listdir</code> is not guaranteed, so <code>sorted</code> makes it predictable.\n\n### Splitting off the extension with os.path.splitext\n\nThe <b>extension</b> (<code>.PDF</code>, <code>.txt</code>) tells you the file type. <code>os.path.splitext</code> cuts a name into the <b>stem</b> and the extension.\n\n~~~python\nimport os\n\nfor name in [\"SCAN 2025-03-05 Pump.PDF\", \"plan.final.pdf\", \"readme.txt\", \"notes\"]:\n    stem, ext = os.path.splitext(name)\n    is_pdf = ext.lower() in (\".pdf\",)\n    print(repr(stem), repr(ext), is_pdf)\n~~~\n\n- Line 4: <code>splitext</code> returns a pair: everything before the <b>last</b> dot, and the extension including its dot. A name with no dot gets an empty extension.\n- Line 5: scanners write <code>.PDF</code>, <code>.pdf</code> or <code>.Pdf</code>. Lowercasing first catches them all. For several types, check membership in a tuple: <code>ext.lower() in (\".jpg\", \".jpeg\")</code>.\n- Line 6: <code>repr</code> shows the quotes, so you can see empty strings.\n\n### Cutting a name into parts with slices\n\nWhen names follow a fixed pattern, slicing by position is the simplest tool.\n\n~~~python\nstem = \"SCAN 2025-03-07 Boiler Room\"\nprint(stem.startswith(\"SCAN \"))\ndate = stem[5:15]\ntitle = stem[16:]\nprint(date)\nprint(title)\nslug = title.strip().lower().replace(\" \", \"-\")\nprint(slug)\nprint(f\"{date}_{slug}.pdf\")\n~~~\n\n- Line 2: <code>startswith</code> checks the beginning of the text. Use it as a guard before slicing, so names like <code>readme.txt</code> are never cut up.\n- Line 3: <code>\"SCAN \"</code> is 5 characters (indexes 0 to 4), so the date starts at index 5. A date like <code>2025-03-07</code> is 10 characters, so it ends just before index 15.\n- Line 4: index 15 is the space after the date; the title starts at 16 and runs to the end.\n- Line 7: three steps chained: remove stray spaces at the ends, lowercase, replace each space with a hyphen. Such a clean name is called a <b>slug</b>.\n- Line 9: an f-string glues the new name together. Write the new extension yourself (always <code>.pdf</code>), do not copy the old one.\n\n### Full paths with os.path.join, then os.rename\n\n<code>listdir</code> gives bare names, but <code>rename</code> needs the path including the folder. <code>os.path.join</code> builds it with the right separator for the computer.\n\n~~~python\nimport os\n\nos.makedirs(\"inbox\", exist_ok=True)\nwith open(\"inbox/old.txt\", \"w\") as f:\n    f.write(\"hello\")\n\nold = os.path.join(\"inbox\", \"old.txt\")\nnew = os.path.join(\"inbox\", \"new.txt\")\nos.rename(old, new)\nprint(os.path.exists(old), os.path.exists(new))\nprint(sorted(os.listdir(\"inbox\")))\nos.remove(new)\n~~~\n\n- Lines 7-8: <code>os.path.join(\"inbox\", \"old.txt\")</code> gives <code>inbox/old.txt</code> (with a backslash on Windows).\n- Line 9: <code>os.rename(old, new)</code> renames the file. Passing only the bare name would make Python look in the current folder, not in <code>inbox</code>.\n- Line 10: <code>os.path.exists</code> returns <code>True</code> or <code>False</code>: here <code>False True</code>.\n- Line 12: <code>os.remove</code> deletes a file, to tidy up after the example.\n\n### Plan first, then apply\n\nA rename cannot be undone with Ctrl+Z. The safe habit is a <b>dry run</b>: build the list of planned renames, print it, check it, and only then apply it.\n\n~~~python\nimport os\n\nnames = [\"SCAN 2025-03-05 Pump.PDF\", \"readme.txt\", \"SCAN 2025-03-07 Boiler Room.pdf\"]\nplan = []\nfor name in sorted(names):\n    stem, ext = os.path.splitext(name)\n    if ext.lower() != \".pdf\" or not stem.startswith(\"SCAN \"):\n        continue\n    plan.append((name, stem[5:15] + \"_\" + stem[16:].lower().replace(\" \", \"-\") + \".pdf\"))\n\nfor old, new in plan:\n    print(old, \"->\", new)\nprint(len(plan), \"file(s) would be renamed\")\n~~~\n\n- Lines 7-8: files that do not match the rule are skipped and stay untouched.\n- Line 9: each planned rename is stored as a pair.\n- Lines 11-13: print the plan. To apply it, loop over <code>plan</code> and call <code>os.rename</code> with full paths, adding 1 to a counter after each rename.",
+  "goal": "In the <code>scans</code> folder, rename every PDF (any case) whose name starts with <code>SCAN </code> from <code>SCAN 2025-03-07 Boiler Room.PDF</code> to <code>2025-03-07_boiler-room.pdf</code>. Leave every other file alone. Go through the names in sorted order, print <code>old -> new</code> for each rename, count them in <code>renamed</code>, print <code>3 file(s) renamed</code> (your count) and reach the exit.",
+  "starter": "import os\nfrom robot import *\n\nrenamed = 0\nfor name in sorted(os.listdir(\"scans\")):\n    print(name)\n",
+  "solution": "import os\nfrom robot import *\n\nrenamed = 0\nfor name in sorted(os.listdir(\"scans\")):\n    stem, ext = os.path.splitext(name)\n    if ext.lower() != \".pdf\" or not stem.startswith(\"SCAN \"):\n        continue\n    date = stem[5:15]\n    slug = stem[16:].strip().lower().replace(\" \", \"-\")\n    new = f\"{date}_{slug}.pdf\"\n    os.rename(os.path.join(\"scans\", name), os.path.join(\"scans\", new))\n    print(name, \"->\", new)\n    renamed += 1\nprint(renamed, \"file(s) renamed\")\nwhile not at_exit():\n    move()\n",
+  "hint": "stem[5:15] is the date and stem[16:] the title; rename with os.path.join(\"scans\", name) on both sides.",
+  "par": 18,
+  "check": {
+   "exit": true
+  },
+  "test": "import re as _re\n_left = [k for k in _fs if k.startswith('scans/') and k[6:].startswith('SCAN ') and k.lower().endswith('.pdf')]\nassert not _left, 'these scans were not renamed: %r' % _left\nfor _k in ['scans/readme.txt', 'scans/SCAN notes.txt']:\n    assert _k in _fs, _k + ' should be left alone'\n_new = [k for k in _fs if _re.match(r'scans/\\d{4}-\\d\\d-\\d\\d_[-a-z0-9]+\\.pdf$', k)]\nassert renamed == len(_new), 'renamed should count the renamed files (%d)' % len(_new)",
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>...E#",
+     "#######"
+    ],
+    "fs": {
+     "scans/SCAN 2025-03-07 Boiler Room.PDF": "(scan)",
+     "scans/SCAN 2025-02-11 Night Shift.pdf": "(scan)",
+     "scans/readme.txt": "(scan)",
+     "scans/SCAN notes.txt": "(scan)",
+     "scans/map.png": "(scan)"
+    },
+    "output": "SCAN 2025-02-11 Night Shift.pdf -> 2025-02-11_night-shift.pdf\nSCAN 2025-03-07 Boiler Room.PDF -> 2025-03-07_boiler-room.pdf\n2 file(s) renamed\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>.....E#",
+     "#########"
+    ],
+    "fs": {
+     "scans/SCAN 2024-12-24 Gate Log.Pdf": "(scan)",
+     "scans/readme.txt": "(scan)",
+     "scans/SCAN notes.txt": "(scan)",
+     "scans/SCAN 2025-01-02  Roof Leak .pdf": "(scan)",
+     "scans/SCAN 2025-01-30 Payroll.PDF": "(scan)",
+     "scans/badge.pdf": "(scan)"
+    },
+    "output": "SCAN 2024-12-24 Gate Log.Pdf -> 2024-12-24_gate-log.pdf\nSCAN 2025-01-02  Roof Leak .pdf -> 2025-01-02_roof-leak.pdf\nSCAN 2025-01-30 Payroll.PDF -> 2025-01-30_payroll.pdf\n3 file(s) renamed\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>..E#",
+     "######"
+    ],
+    "fs": {
+     "scans/readme.txt": "(scan)",
+     "scans/SCAN notes.txt": "(scan)",
+     "scans/SCAN 2025-06-01 Coolant Tank Two.PDF": "(scan)"
+    },
+    "output": "SCAN 2025-06-01 Coolant Tank Two.PDF -> 2025-06-01_coolant-tank-two.pdf\n1 file(s) renamed\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-archive",
+  "chapter": "The Control Room",
+  "title": "Archive the shift reports",
+  "covers": [
+   "auto-rename"
+  ],
+  "xp": 30,
+  "story": "WARDEN's reports folder is a mix of shift reports, rotas and half written temp files. Before Bit pulls the plug, every report must be kept safe in an archive folder, and WARDEN's temp files must go. One careless pattern and the rota is gone too.",
+  "power": "<code>os.listdir</code> gives every name in a folder, and you filter them yourself. When you only want names that match a pattern, the <code>glob</code> module is shorter.\n\n### glob.glob: files that match a pattern\n\n~~~python\nimport glob\nimport os\n\nos.makedirs(\"reports\", exist_ok=True)\nfor name in [\"mon.txt\", \"tue.txt\", \"rota.csv\", \"cache.tmp\"]:\n    with open(os.path.join(\"reports\", name), \"w\") as f:\n        f.write(\"data for \" + name)\n\nprint(sorted(glob.glob(\"reports/*.txt\")))\nprint(sorted(glob.glob(\"reports/*\")))\nprint(glob.glob(\"reports/t?e.txt\"))\nprint(glob.glob(\"reports/*.pdf\"))\n~~~\n\n- Line 9: <code>glob.glob(pattern)</code> returns a list of paths that match. In a pattern, <code>*</code> means \"any characters\", so <code>reports/*.txt</code> is every file in <code>reports</code> ending in <code>.txt</code>. Unlike <code>listdir</code>, you get full paths, folder included, ready for <code>open</code> or <code>rename</code>.\n- Line 10: <code>*</code> alone matches every file in the folder.\n- Line 11: <code>?</code> means exactly one character: <code>t?e.txt</code> matches <code>tue.txt</code>.\n- Line 12: no match gives an empty list, not an error. Like <code>listdir</code>, the order is not guaranteed, so wrap it in <code>sorted</code>.\n\n### More os.path helpers\n\n~~~python\nimport os\n\nos.makedirs(\"reports\", exist_ok=True)\nwith open(\"reports/mon.txt\", \"w\") as f:\n    f.write(\"12 parts checked\")\n\npath = os.path.join(\"reports\", \"mon.txt\")\nprint(os.path.basename(path))\nprint(os.path.dirname(path))\nprint(os.path.getsize(path))\nprint(os.path.isfile(path), os.path.isdir(\"reports\"))\nprint(os.path.exists(\"reports/sun.txt\"))\n~~~\n\n- Line 8: <code>basename</code> keeps only the last part of a path: the file name <code>mon.txt</code>.\n- Line 9: <code>dirname</code> keeps everything before it: the folder.\n- Line 10: <code>getsize</code> gives the file size in bytes. For plain text, that is one per character: 16 here.\n- Line 11: <code>isfile</code> and <code>isdir</code> tell files and folders apart.\n- Line 12: <code>exists</code> is <code>False</code> for a file that is not there.\n\n### Moving files and deleting files\n\n<code>os.rename</code> can also <b>move</b> a file: give it a new path in another folder. The target folder must exist, so create it first with <code>os.makedirs(name, exist_ok=True)</code>. <code>os.remove(path)</code> deletes a file for good.\n\n~~~python\nimport glob\nimport os\n\nos.makedirs(\"drafts\", exist_ok=True)\nfor name in [\"mon.txt\", \"junk.tmp\"]:\n    with open(os.path.join(\"drafts\", name), \"w\") as f:\n        f.write(\"x\")\n\nos.makedirs(\"kept\", exist_ok=True)\nfor path in glob.glob(\"drafts/*.txt\"):\n    name = os.path.basename(path)\n    os.rename(path, os.path.join(\"kept\", name))\nfor path in glob.glob(\"drafts/*.tmp\"):\n    os.remove(path)\n\nprint(os.listdir(\"kept\"))\nprint(os.listdir(\"drafts\"))\nos.remove(\"kept/mon.txt\")\n~~~\n\n- Line 9: make sure the destination folder exists.\n- Lines 10-12: every text file moves to <code>kept</code>, keeping its name thanks to <code>basename</code>.\n- Lines 13-14: temporary files are deleted. There is no recycle bin: check your pattern before running a delete loop.\n- Line 18: tidy up so the example can run again.",
+  "goal": "Create an <code>archive</code> folder. Go through <code>reports/*.txt</code> with <code>glob</code>, sorted: for each one print its file name and size (like <code>mon.txt 17</code>), then move it to <code>archive/</code> with the same name. Count the moves in <code>moved</code>. Delete every <code>reports/*.tmp</code> file. Leave the other files alone, print <code>2 moved</code> (your count) and reach the exit.",
+  "starter": "import glob\nimport os\nfrom robot import *\n\nmoved = 0\n",
+  "solution": "import glob\nimport os\nfrom robot import *\n\nos.makedirs(\"archive\", exist_ok=True)\nmoved = 0\nfor path in sorted(glob.glob(\"reports/*.txt\")):\n    name = os.path.basename(path)\n    print(name, os.path.getsize(path))\n    os.rename(path, os.path.join(\"archive\", name))\n    moved += 1\nfor path in glob.glob(\"reports/*.tmp\"):\n    os.remove(path)\nprint(moved, \"moved\")\nwhile not at_exit():\n    move()\n",
+  "hint": "os.path.basename(path) is the file name, os.path.getsize(path) its size, and os.rename(path, os.path.join(\"archive\", name)) moves it.",
+  "par": 16,
+  "check": {
+   "exit": true
+  },
+  "test": "assert not [k for k in _fs if k.startswith('reports/') and k.endswith('.txt')], 'every reports/*.txt file should have moved to archive/'\nassert not [k for k in _fs if k.endswith('.tmp')], 'every .tmp file should be deleted'\nassert 'reports/rota.csv' in _fs, 'reports/rota.csv must be left alone'\n_a = [k for k in _fs if k.startswith('archive/')]\nassert _a and moved == len(_a), 'moved should be the number of files now in archive/'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>....E#",
+     "########"
+    ],
+    "fs": {
+     "reports/mon.txt": "12 parts checked\n",
+     "reports/tue.txt": "9 parts checked\nfan noisy\n",
+     "reports/rota.csv": "day,name\nmon,bit\n",
+     "reports/cache.tmp": "zz",
+     "reports/lock.tmp": "1"
+    },
+    "output": "mon.txt 17\ntue.txt 26\n2 moved\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>..E#",
+     "######"
+    ],
+    "fs": {
+     "reports/week-10.txt": "quiet week\n",
+     "reports/rota.csv": "day,name\n",
+     "reports/boiler.txt": "pressure ok\npressure ok\npressure high\n",
+     "reports/a.tmp": "",
+     "reports/notes.md": "keep me\n"
+    },
+    "output": "boiler.txt 38\nweek-10.txt 11\n2 moved\n"
+   },
+   {
+    "map": [
+     "##########",
+     "#>......E#",
+     "##########"
+    ],
+    "fs": {
+     "reports/rota.csv": "day,name\ntue,bit\n",
+     "reports/final.txt": "WARDEN shutdown plan\n",
+     "reports/x.tmp": "temp"
+    },
+    "output": "final.txt 21\n1 moved\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-crew-letters",
+  "chapter": "The Control Room",
+  "title": "Letters to the night crew",
+  "covers": [
+   "auto-merge"
+  ],
+  "xp": 30,
+  "story": "When WARDEN goes dark, the people who still hold badges must be warned. WARDEN used to write these notices by hand, one by one. Bit has a template, notice.txt, and the crew list, crew.csv: one loop can write them all.",
+  "power": "Sending the same letter to many people, each with their own name, badge and date, is called <b>mail merge</b>. Offices use it for reminders, invoices and certificates. You need a template, a list of people and a loop that writes one file per person.\n\n### string.Template: text with blanks to fill\n\nA template is normal text with <b>placeholders</b>: a dollar sign followed by a name, like <code>$name</code>. The <code>Template</code> class from the standard <code>string</code> module fills them in.\n\n~~~python\nfrom string import Template\n\nt = Template(\"Hi $name, your badge $badge expires on $until.\")\nprint(t.substitute(name=\"Ada\", badge=\"B-04\", until=\"2025-03-31\"))\nprint(t.substitute(name=\"Leo\", badge=\"B-11\", until=\"2025-04-15\"))\n~~~\n\n- Line 1: imports the <code>Template</code> class.\n- Line 3: creates a template object. Nothing is filled in yet.\n- Line 4: <code>substitute</code> returns a <b>new string</b> with every placeholder replaced by the matching keyword argument. The template itself does not change.\n- Line 5: one template, as many people as you like.\n\n### Filling from a dict, and when a value is missing\n\n<code>substitute</code> also accepts a dict whose keys match the placeholder names. Extra keys are ignored. A missing key is an error.\n\n~~~python\nfrom string import Template\n\nt = Template(\"Dear $name, report to the $shift shift.\")\nperson = {\"name\": \"Ada Kim\", \"shift\": \"night\", \"email\": \"ada@ironworks.com\"}\nprint(t.substitute(person))\n\ntry:\n    print(t.substitute({\"name\": \"Leo\"}))\nexcept KeyError as e:\n    print(\"Missing value for:\", e)\n~~~\n\n- Line 5: works; <code>email</code> is simply not used.\n- Lines 7-10: <code>shift</code> is missing, so <code>substitute</code> raises a <code>KeyError</code> naming it. That is a feature: better a crash than a letter saying \"the $shift shift\". Placeholders must match the keys exactly: <code>$Name</code> is not <code>name</code>.\n\n### The same idea with str.format\n\nPlain strings can do a mail merge too: <code>{name}</code> marks a blank and <code>format</code> fills it. <code>**person</code> unpacks a dict into keyword arguments.\n\n~~~python\nletter = \"Dear {name}, report to the {shift} shift.\"\nperson = {\"name\": \"Ada Kim\", \"shift\": \"night\"}\nprint(letter.format(name=\"Leo\", shift=\"day\"))\nprint(letter.format(**person))\n~~~\n\nBoth work. <code>Template</code> is the usual choice when the text is written by someone else, because a dollar placeholder is simpler and safer than braces.\n\n### Loading the template from a file\n\nLong letters live in their own file, edited by a colleague who never touches the code.\n\n~~~python\nfrom string import Template\n\nwith open(\"notice.txt\", \"w\") as f:\n    f.write(\"Hello $name,\\n\\nYour badge $badge is valid until $until.\\n\")\n\nwith open(\"notice.txt\") as f:\n    template = Template(f.read())\nprint(template.substitute(name=\"Test\", badge=\"B-00\", until=\"2030-01-01\"))\n~~~\n\n- Lines 6-7: read the whole file as one string and turn it into a <code>Template</code>. Calling <code>substitute</code> on the plain string would fail: it must be a <code>Template</code> object.\n- Line 8: fill it with sample values to check the placeholders.\n\n### CSV rows are already dicts\n\n<code>csv.DictReader</code> gives each row as a dict keyed by the header. When the header names match the placeholders, a row goes straight into <code>substitute</code>.\n\n~~~python\nimport csv\nfrom string import Template\n\nwith open(\"crew.csv\", \"w\") as f:\n    f.write(\"name,badge,until\\nAda Kim,B-04,2025-03-31\\nLeo Park,B-11,2025-04-15\\n\")\n\nt = Template(\"$name ($badge) until $until\")\nwith open(\"crew.csv\") as f:\n    for row in csv.DictReader(f):\n        print(t.substitute(row))\n~~~\n\n### One output file per person\n\nEach letter needs its own file name, built from the data, or every letter overwrites the previous one.\n\n~~~python\nimport os\n\nos.makedirs(\"letters\", exist_ok=True)\nfull = \"Ada Kim\"\nfirst = full.split()[0].lower()\npath = f\"letters/{first}.txt\"\nwith open(path, \"w\") as out:\n    out.write(\"Hello \" + full + \"\\n\")\n\nwith open(path) as f:\n    print(path, \"contains:\", f.read())\n~~~\n\n- Line 3: make sure the output folder exists.\n- Line 5: <code>split()</code> gives <code>[\"Ada\", \"Kim\"]</code>, <code>[0]</code> takes the first word, <code>lower()</code> gives <code>\"ada\"</code>.\n- Line 6: an f-string builds the path.\n- Lines 7-8: mode <code>\"w\"</code>, not <code>\"a\"</code>: with append, running the script twice would double every letter. You can open this file <b>inside</b> another <code>with</code> block, for example inside the loop over the CSV rows.",
+  "goal": "Fill <code>notice.txt</code> (a <code>Template</code>) for every row of <code>crew.csv</code> and write each letter to <code>notices/&lt;first name in lowercase&gt;.txt</code>, for example <code>notices/ada.txt</code>. Print <code>Wrote ada</code> after each file, then reach the exit.",
+  "starter": "import csv\nimport os\nfrom string import Template\nfrom robot import *\n",
+  "solution": "import csv\nimport os\nfrom string import Template\nfrom robot import *\n\nwith open(\"notice.txt\") as f:\n    template = Template(f.read())\nos.makedirs(\"notices\", exist_ok=True)\nwith open(\"crew.csv\") as f:\n    for row in csv.DictReader(f):\n        first = row[\"name\"].split()[0].lower()\n        with open(f\"notices/{first}.txt\", \"w\") as out:\n            out.write(template.substitute(row))\n        print(\"Wrote\", first)\nwhile not at_exit():\n    move()\n",
+  "hint": "Template(f.read()).substitute(row) fills every placeholder from one CSV row; row[\"name\"].split()[0].lower() is the file name.",
+  "par": 16,
+  "check": {
+   "exit": true
+  },
+  "test": "import csv as _c, io as _i\nfrom string import Template as _T\n_rows = list(_c.DictReader(_i.StringIO(_fs['crew.csv'])))\nfor _r in _rows:\n    _p = 'notices/%s.txt' % _r['name'].split()[0].lower()\n    assert _p in _fs, _p + ' was not created'\n    assert _fs[_p] == _T(_fs['notice.txt']).substitute(_r), _p + ' does not match the filled template'\nassert len([k for k in _fs if k.startswith('notices/')]) == len(_rows), 'write exactly one notice per crew member'",
+  "worlds": [
+   {
+    "map": [
+     "#######",
+     "#>...E#",
+     "#######"
+    ],
+    "fs": {
+     "crew.csv": "name,badge,shift,until,locker,email\nAda Kim,B-04,night,2025-03-31,12,ada@ironworks.com\nLeo Park,B-11,day,2025-04-15,3,leo@ironworks.com\nMia Costa,B-19,night,2025-03-20,27,mia@ironworks.com\n",
+     "notice.txt": "Hello $name,\n\nWARDEN is being shut down tonight. Your badge $badge stays valid for the $shift shift until $until.\nPlease collect your things from locker $locker.\n\nB-17, control room\n"
+    },
+    "output": "Wrote ada\nWrote leo\nWrote mia\n"
+   },
+   {
+    "map": [
+     "########",
+     "#>....E#",
+     "########"
+    ],
+    "fs": {
+     "crew.csv": "name,badge,shift,until,locker,email\nOmar Haddad,B-02,day,2025-05-01,8,omar@ironworks.com\nInes Duval,B-07,evening,2025-05-02,15,ines@ironworks.com\n",
+     "notice.txt": "Hello $name,\n\nWARDEN is being shut down tonight. Your badge $badge stays valid for the $shift shift until $until.\nPlease collect your things from locker $locker.\n\nB-17, control room\n"
+    },
+    "output": "Wrote omar\nWrote ines\n"
+   },
+   {
+    "map": [
+     "######",
+     "#>..E#",
+     "######"
+    ],
+    "fs": {
+     "crew.csv": "name,badge,shift,until,locker,email\nTom Bauer,B-30,night,2025-06-30,1,tom@ironworks.com\nZoe Martin,B-31,day,2025-07-01,2,zoe@ironworks.com\nRaj Patel,B-32,evening,2025-07-02,40,raj@ironworks.com\nEva Novak,B-33,day,2025-07-03,41,eva@ironworks.com\n",
+     "notice.txt": "Hello $name,\n\nWARDEN is being shut down tonight. Your badge $badge stays valid for the $shift shift until $until.\nPlease collect your things from locker $locker.\n\nB-17, control room\n"
+    },
+    "output": "Wrote tom\nWrote zoe\nWrote raj\nWrote eva\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-factory-db",
+  "chapter": "The Control Room",
+  "title": "Building the factory database",
+  "covers": [
+   "auto-sqlite"
+  ],
+  "xp": 35,
+  "story": "WARDEN never let anyone see the stock: the only copy is a CSV export, parts.csv. Bit wants a real database it can query, factory.db. The stockroom door opens for the total number of parts in the building.",
+  "power": "A spreadsheet gets slow and messy when the data grows. Many automations load CSV files into a small <b>database</b>, then answer questions with one short query. Python ships with <code>sqlite3</code>, a complete database engine that needs no server.\n\n### Tables, and connecting to a database\n\nA database stores data in <b>tables</b>: named grids with fixed columns, like a spreadsheet tab where every column has a type. You talk to it in <b>SQL</b>, a language of short commands.\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE parts (part TEXT, bay TEXT, qty INTEGER, price REAL)\")\nprint(\"Table created\")\n~~~\n\n- Line 3: <code>sqlite3.connect</code> opens a database and returns a <b>connection</b> object, <code>con</code>. The special name <code>\":memory:\"</code> keeps everything in memory, perfect for a database you only need while the script runs. A file name like <code>\"factory.db\"</code> saves it to disk (and creates the file if it does not exist yet).\n- Line 4: <code>con.execute</code> sends one SQL command. <code>CREATE TABLE parts (...)</code> creates a table with four columns, each with a type: <code>TEXT</code> for strings, <code>INTEGER</code> for whole numbers, <code>REAL</code> for decimals.\n\n### Inserting rows with ? placeholders\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE parts (part TEXT, bay TEXT, qty INTEGER)\")\ncon.execute(\"INSERT INTO parts VALUES (?, ?, ?)\", (\"Gear\", \"B1\", 12))\ncon.execute(\"INSERT INTO parts VALUES (?, ?, ?)\", (\"Valve\", \"B2\", 3))\ncon.commit()\n\nrows = con.execute(\"SELECT * FROM parts\").fetchall()\nprint(rows)\nprint(rows[0][0], rows[0][2] + 1)\n~~~\n\n- Line 5: <code>INSERT INTO parts VALUES (...)</code> adds one row. Each <code>?</code> is a <b>placeholder</b>: sqlite3 fills them in order with the values of the tuple given as second argument. The number of <code>?</code> must match the number of values.\n- Line 7: <code>commit()</code> makes the changes permanent. With a file database, anything not committed is lost when the script ends, and another connection will not see it.\n- Line 9: <code>SELECT * FROM parts</code> asks for every column (<code>*</code>) of every row. <code>execute</code> returns a <b>cursor</b> (a reader over the result), and <code>fetchall()</code> collects all result rows into a list.\n- Line 10: each row is a tuple, and numbers come back as numbers.\n\n### Why placeholders, never string building\n\nIt is tempting to write <code>f\"INSERT ... VALUES ('{name}')\"</code>. Don't. A value with a quote breaks the SQL, and a malicious value can run its own commands. This attack is called <b>SQL injection</b>. With <code>?</code>, the value is always treated as data.\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE staff (name TEXT)\")\ncon.execute(\"INSERT INTO staff VALUES (?)\", (\"O'Hara\",))\nprint(con.execute(\"SELECT name FROM staff\").fetchall())\n~~~\n\n- Line 5: the quote in the name would break hand-built SQL; with <code>?</code> it just works. Note the comma in <code>(\"O'Hara\",)</code>: a tuple with one item needs it, because <code>(\"O'Hara\")</code> is just a string in brackets.\n\n### Many rows at once with executemany\n\n~~~python\nimport csv\nimport sqlite3\n\nwith open(\"parts.csv\", \"w\") as f:\n    f.write(\"part,bay,qty\\nGear,B1,12\\nValve,B2,3\\nBelt,B1,7\\nFuse,B2,2\\n\")\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE parts (part TEXT, bay TEXT, qty INTEGER)\")\nwith open(\"parts.csv\") as f:\n    rows = [(r[\"part\"], r[\"bay\"], int(r[\"qty\"])) for r in csv.DictReader(f)]\nprint(rows[:2])\n\ncon.executemany(\"INSERT INTO parts VALUES (?, ?, ?)\", rows)\nprint(con.execute(\"SELECT part, qty FROM parts WHERE qty < ?\", (5,)).fetchall())\n~~~\n\n- Line 10: a list comprehension turns each CSV row (a dict of strings) into a tuple. Converting <code>qty</code> with <code>int</code> makes the database store a number, so sums work.\n- Line 13: <code>executemany</code> runs the same INSERT once per tuple in the list.\n- Line 14: <code>WHERE qty &lt; ?</code> keeps only the rows that match a condition; the value 5 also goes through a placeholder.\n\n### Totals per group: GROUP BY and SUM\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE parts (part TEXT, bay TEXT, qty INTEGER)\")\ncon.executemany(\"INSERT INTO parts VALUES (?, ?, ?)\", [(\"Gear\", \"B1\", 12), (\"Valve\", \"B2\", 3), (\"Belt\", \"B1\", 7)])\n\nresult = con.execute(\"SELECT bay, SUM(qty) FROM parts GROUP BY bay\").fetchall()\nprint(result)\nstock = dict(result)\nprint(stock[\"B1\"])\n~~~\n\n- Line 7: <code>GROUP BY bay</code> puts all rows with the same bay into one group, and <code>SUM(qty)</code> adds up the quantities inside each group. You get one <code>(bay, total)</code> row per group.\n- Line 9: <code>dict()</code> turns a list of 2-item tuples into a dict: first item as key, second as value.\n- Line 10: bay B1 holds 12 + 7 = 19.",
+  "goal": "Connect to <code>factory.db</code>, create a table <code>parts (part TEXT, bay TEXT, qty INTEGER, price REAL)</code>, load every row of <code>parts.csv</code> with <code>executemany</code> and <code>commit()</code>. With one <code>GROUP BY</code> query build <code>stock_by_bay</code>, a dict from bay to total qty, and with a <code>WHERE qty &lt; ?</code> query build <code>low</code>, the list of rows of parts with fewer than 5 in stock. Unlock door A with the total of all quantities and reach the exit.",
+  "starter": "import csv\nimport sqlite3\nfrom robot import *\n\ncon = sqlite3.connect(\"factory.db\")\n",
+  "solution": "import csv\nimport sqlite3\nfrom robot import *\n\ncon = sqlite3.connect(\"factory.db\")\ncon.execute(\"CREATE TABLE parts (part TEXT, bay TEXT, qty INTEGER, price REAL)\")\nwith open(\"parts.csv\") as f:\n    rows = [(r[\"part\"], r[\"bay\"], int(r[\"qty\"]), float(r[\"price\"])) for r in csv.DictReader(f)]\ncon.executemany(\"INSERT INTO parts VALUES (?, ?, ?, ?)\", rows)\ncon.commit()\nstock_by_bay = dict(con.execute(\"SELECT bay, SUM(qty) FROM parts GROUP BY bay\").fetchall())\nlow = con.execute(\"SELECT part FROM parts WHERE qty < ?\", (5,)).fetchall()\nprint(stock_by_bay)\nprint(\"Low stock:\", low)\nwhile front() != \"door\":\n    move()\nunlock(sum(stock_by_bay.values()))\nwhile not at_exit():\n    move()\n",
+  "hint": "rows = [(r[\"part\"], r[\"bay\"], int(r[\"qty\"]), float(r[\"price\"])) for r in csv.DictReader(f)]; then dict(con.execute(\"SELECT bay, SUM(qty) FROM parts GROUP BY bay\").fetchall()).",
+  "par": 20,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "import csv as _c, io as _i, sqlite3 as _s\n_rows = list(_c.DictReader(_i.StringIO(_fs['parts.csv'])))\n_want = {}\nfor _r in _rows:\n    _want[_r['bay']] = _want.get(_r['bay'], 0) + int(_r['qty'])\n_db = _s.connect('factory.db')\ntry:\n    _n = _db.execute('SELECT COUNT(*), SUM(qty) FROM parts').fetchone()\nexcept Exception:\n    _n = None\nassert _n is not None, 'factory.db should contain a table called parts'\nassert _n[0] == len(_rows), 'factory.db should hold all %d parts: did you call con.commit()?' % len(_rows)\nassert _n[1] == sum(_want.values()), 'qty should be stored as numbers (convert with int)'\nassert stock_by_bay == _want, 'stock_by_bay should be %r' % _want\nassert sorted(r[0] for r in low) == sorted(r['part'] for r in _rows if int(r['qty']) < 5), 'low should hold the parts with qty below 5'",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>..A...E#",
+     "##########"
+    ],
+    "fs": {
+     "parts.csv": "part,bay,qty,price\nGear,B1,12,4.50\nValve,B2,3,18.00\nBelt,B1,7,9.90\nFuse,B3,2,0.80\nBolt,B3,140,0.05\n"
+    },
+    "dbs": {
+     "factory.db": "-- empty: Bit builds it"
+    },
+    "codes": {
+     "A": "164"
+    }
+   },
+   {
+    "map": [
+     "###########",
+     "#>....A..E#",
+     "###########"
+    ],
+    "fs": {
+     "parts.csv": "part,bay,qty,price\nPump,A1,1,250.00\nHose,A1,9,12.00\nSeal,A2,30,0.70\nFilter,A2,4,15.50\n"
+    },
+    "dbs": {
+     "factory.db": "-- empty: Bit builds it"
+    },
+    "codes": {
+     "A": "44"
+    }
+   },
+   {
+    "map": [
+     "#############",
+     "#>...A.....E#",
+     "#############"
+    ],
+    "fs": {
+     "parts.csv": "part,bay,qty,price\nMotor,C1,2,320.00\nChain,C2,11,22.00\nSprocket,C2,6,8.25\nGrease,C1,3,5.00\nLamp,C3,25,1.20\nFan,C3,4,30.00\n"
+    },
+    "dbs": {
+     "factory.db": "-- empty: Bit builds it"
+    },
+    "codes": {
+     "A": "51"
+    }
+   }
+  ]
+ },
+ {
+  "id": "m-d-badge-keys",
+  "chapter": "The Control Room",
+  "title": "Revoking WARDEN's keys",
+  "covers": [
+   "auto-sqlite"
+  ],
+  "xp": 35,
+  "story": "The office database, office.db, holds every door badge in the building, and WARDEN has given itself a badge for each door. Bit reads WARDEN's code for door A, switches off all of WARDEN's badges, and registers a badge of its own. Then it walks through.",
+  "power": "Most of the time the database already exists: someone else built it, and your script reads it and changes it. The tools are the same: <code>connect</code>, <code>execute</code> with <code>?</code>, <code>commit</code>.\n\n### Reading one row with fetchone\n\n<code>fetchall()</code> returns every result row in a list. When you expect a single row, <code>fetchone()</code> returns just that row (a tuple), or <code>None</code> if nothing matched.\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE badges (holder TEXT, door TEXT, code TEXT, active INTEGER)\")\ncon.executemany(\"INSERT INTO badges VALUES (?, ?, ?, ?)\",\n                [(\"WARDEN\", \"A\", \"5521\", 1), (\"O'Hara\", \"A\", \"1200\", 1), (\"WARDEN\", \"B\", \"8080\", 1)])\n\nrow = con.execute(\"SELECT code FROM badges WHERE holder = ? AND door = ?\", (\"WARDEN\", \"B\")).fetchone()\nprint(row)\nprint(row[0])\nprint(con.execute(\"SELECT code FROM badges WHERE holder = ?\", (\"nobody\",)).fetchone())\ncount = con.execute(\"SELECT COUNT(*) FROM badges WHERE active = 1\").fetchone()[0]\nprint(count, \"active badges\")\n~~~\n\n- Line 8: two conditions joined with <code>AND</code>, two placeholders, a tuple of two values.\n- Lines 9-10: the row is a tuple with one value, so <code>row[0]</code> is the code itself.\n- Line 11: no matching row gives <code>None</code>.\n- Line 12: <code>COUNT(*)</code> counts the matching rows. The answer is a row with one number in it, hence <code>fetchone()[0]</code>.\n\n### Changing rows with UPDATE\n\n<code>UPDATE table SET column = value WHERE condition</code> changes every row that matches the condition. Forget the <code>WHERE</code> and it changes <b>every</b> row of the table.\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE badges (holder TEXT, door TEXT, active INTEGER)\")\ncon.executemany(\"INSERT INTO badges VALUES (?, ?, ?)\", [(\"WARDEN\", \"A\", 1), (\"Ada\", \"A\", 1), (\"WARDEN\", \"B\", 1)])\n\ncur = con.execute(\"UPDATE badges SET active = ? WHERE holder = ?\", (0, \"WARDEN\"))\nprint(cur.rowcount, \"rows changed\")\ncon.commit()\nprint(con.execute(\"SELECT * FROM badges\").fetchall())\n~~~\n\n- Line 7: the new value and the condition value both go through placeholders.\n- Line 8: <code>rowcount</code> on the returned cursor tells how many rows were changed.\n- Line 9: <code>commit()</code> saves the change. With a file database, a script that forgets it changes nothing at all once it ends.\n\n### Adding a row to an existing table\n\n<code>INSERT</code> works the same on a table you did not create. The values must come in the order of the table's columns.\n\n~~~python\nimport sqlite3\n\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE badges (holder TEXT, door TEXT, active INTEGER)\")\ncon.execute(\"INSERT INTO badges VALUES (?, ?, ?)\", (\"B-17\", \"A\", 1))\ncon.commit()\nfor holder, door, active in con.execute(\"SELECT * FROM badges\"):\n    print(holder, door, active)\n~~~\n\n- Line 7: you can also loop straight over the cursor, unpacking each row tuple.",
+  "goal": "Connect to <code>office.db</code>. Read WARDEN's <code>code</code> for door <code>A</code> from the <code>badges</code> table with <code>?</code> placeholders and <code>fetchone()</code>. Set <code>active</code> to 0 for every WARDEN badge, insert the badge <code>(\"B-17\", \"A\", code, 1)</code> and <code>commit()</code>. Count WARDEN's active badges again and print <code>WARDEN badges still active: 0</code>, then unlock door A with the code and reach the exit.",
+  "starter": "import sqlite3\nfrom robot import *\n\ncon = sqlite3.connect(\"office.db\")\n",
+  "solution": "import sqlite3\nfrom robot import *\n\ncon = sqlite3.connect(\"office.db\")\nrow = con.execute(\"SELECT code FROM badges WHERE holder = ? AND door = ?\", (\"WARDEN\", \"A\")).fetchone()\ncode = row[0]\ncon.execute(\"UPDATE badges SET active = 0 WHERE holder = ?\", (\"WARDEN\",))\ncon.execute(\"INSERT INTO badges VALUES (?, ?, ?, ?)\", (\"B-17\", \"A\", code, 1))\ncon.commit()\nleft = con.execute(\"SELECT COUNT(*) FROM badges WHERE holder = ? AND active = 1\", (\"WARDEN\",)).fetchone()[0]\nprint(\"WARDEN badges still active:\", left)\nwhile front() != \"door\":\n    move()\nunlock(code)\nwhile not at_exit():\n    move()\n",
+  "hint": "con.execute(\"SELECT code FROM badges WHERE holder = ? AND door = ?\", (\"WARDEN\", \"A\")).fetchone()[0] is the code; a one-value tuple needs a comma: (\"WARDEN\",).",
+  "par": 16,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "import sqlite3 as _s\n_db = _s.connect('office.db')\nassert _db.execute(\"SELECT COUNT(*) FROM badges WHERE holder = 'WARDEN' AND active = 1\").fetchone()[0] == 0, 'every WARDEN badge should have active = 0 in office.db (did you commit?)'\nassert _db.execute(\"SELECT COUNT(*) FROM badges WHERE holder <> 'WARDEN' AND holder <> 'B-17' AND active = 0\").fetchone()[0] <= 1, 'only change WARDEN badges'\n_b = _db.execute(\"SELECT door, code, active FROM badges WHERE holder = 'B-17'\").fetchall()\n_w = _db.execute(\"SELECT code FROM badges WHERE holder = 'WARDEN' AND door = 'A'\").fetchone()[0]\nassert _b == [('A', _w, 1)], 'office.db should hold exactly one badge (\"B-17\", \"A\", code, 1)'",
+  "worlds": [
+   {
+    "map": [
+     "##########",
+     "#>...A..E#",
+     "##########"
+    ],
+    "dbs": {
+     "office.db": "CREATE TABLE badges (holder TEXT, door TEXT, code TEXT, active INTEGER);\nINSERT INTO badges VALUES ('WARDEN', 'A', '5521', 1);\nINSERT INTO badges VALUES ('O''Hara', 'A', '1200', 1);\nINSERT INTO badges VALUES ('WARDEN', 'B', '8080', 1);\nINSERT INTO badges VALUES ('Ada Kim', 'B', '3141', 0);\n"
+    },
+    "codes": {
+     "A": "5521"
+    },
+    "output": "WARDEN badges still active: 0\n"
+   },
+   {
+    "map": [
+     "############",
+     "#>.....A..E#",
+     "############"
+    ],
+    "dbs": {
+     "office.db": "CREATE TABLE badges (holder TEXT, door TEXT, code TEXT, active INTEGER);\nINSERT INTO badges VALUES ('Leo Park', 'A', '7777', 1);\nINSERT INTO badges VALUES ('WARDEN', 'C', '0420', 1);\nINSERT INTO badges VALUES ('WARDEN', 'A', '6093', 1);\n"
+    },
+    "codes": {
+     "A": "6093"
+    },
+    "output": "WARDEN badges still active: 0\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>..A....E#",
+     "###########"
+    ],
+    "dbs": {
+     "office.db": "CREATE TABLE badges (holder TEXT, door TEXT, code TEXT, active INTEGER);\nINSERT INTO badges VALUES ('WARDEN', 'A', '1906', 1);\nINSERT INTO badges VALUES ('WARDEN', 'D', '2200', 0);\nINSERT INTO badges VALUES ('Mia Costa', 'A', '4545', 1);\nINSERT INTO badges VALUES ('WARDEN', 'B', '3030', 1);\n"
+    },
+    "codes": {
+     "A": "1906"
+    },
+    "output": "WARDEN badges still active: 0\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-shutdown-calendar",
+  "chapter": "The Control Room",
+  "title": "The shutdown calendar",
+  "covers": [
+   "auto-schedule"
+  ],
+  "xp": 35,
+  "story": "Shutting WARDEN down is not one switch: every working day at 07:30 a cleanup job must run until the last module is gone. The terminal shows the moment Bit took control. From there, Bit has to plan the next runs, and weekends do not count.",
+  "power": "Every recurring job needs to know when it runs next: the backup at 02:00, the report every weekday at 09:00. Python's <code>datetime</code> module does the calendar maths, so you never count the days of a month yourself.\n\n### Making a date and time\n\n~~~python\nfrom datetime import datetime\n\nstart = datetime(2025, 3, 7, 10, 30)\nprint(start)\nprint(start.year, start.month, start.day, start.hour, start.minute)\n~~~\n\n- Line 1: imports the <code>datetime</code> class from the <code>datetime</code> module (they share a name).\n- Line 3: creates a moment: year, month, day, hour, minute. Seconds and microseconds default to 0.\n- Line 4: prints <code>2025-03-07 10:30:00</code>.\n- Line 5: each part is an attribute holding an <code>int</code>.\n\n### Text to datetime with strptime, datetime to text with strftime\n\nDates usually arrive as text. <code>datetime.strptime</code> (\"string parse time\") reads text using a format; <code>strftime</code> (\"string format time\") does the reverse.\n\n~~~python\nfrom datetime import datetime\n\nd = datetime.strptime(\"2025-03-07 10:30\", \"%Y-%m-%d %H:%M\")\nprint(d)\nprint(d.strftime(\"%a %d %b %H:%M\"))\nprint(d.strftime(\"%A %d/%m/%Y\"))\ntry:\n    datetime.strptime(\"07/03/2025\", \"%Y-%m-%d\")\nexcept ValueError:\n    print(\"That text does not fit the format\")\n~~~\n\n- Line 3: the codes in the format say where each part is: <code>%Y</code> 4-digit year, <code>%m</code> month number, <code>%d</code> day, <code>%H</code> hour (00 to 23), <code>%M</code> minutes. The other characters (hyphens, the space, the colon) must match exactly.\n- Line 5: <code>%a</code> is the short day name and <code>%b</code> the short month name: <code>Fri 07 Mar 10:30</code>.\n- Line 6: <code>%A</code> is the full day name.\n- Lines 7-10: text that does not fit the format raises a <code>ValueError</code>.\n\n### Which day of the week? weekday()\n\n~~~python\nfrom datetime import datetime\n\nfor day in range(7, 11):\n    d = datetime(2025, 3, day)\n    print(d.strftime(\"%a\"), d.weekday(), d.weekday() < 5)\n~~~\n\n- <code>weekday()</code> returns a number: 0 is Monday, 1 Tuesday, up to 4 Friday, 5 Saturday and 6 Sunday. Monday is 0, not 1. Working days are those with <code>weekday() &lt; 5</code>.\n\n### Changing some parts with replace, and comparing\n\nA datetime cannot be changed in place. <code>replace</code> returns a <b>new</b> datetime with only the parts you name changed.\n\n~~~python\nfrom datetime import datetime\n\nnow = datetime(2025, 3, 7, 10, 30, 15)\nrun = now.replace(hour=7, minute=30, second=0, microsecond=0)\nprint(now)\nprint(run)\nprint(run < now, run <= now, run == now)\n~~~\n\n- Line 4: same day, exactly 07:30:00. Reset seconds and microseconds too, or leftovers from <code>now</code> stay in the result.\n- Line 7: datetimes compare like numbers: earlier is smaller. If a job must run <b>strictly after</b> a moment, a candidate that is <code>&lt;=</code> that moment is too early.\n\n### Moving in time with timedelta\n\nA <code>timedelta</code> is a duration. Adding it to a datetime moves forward, and month and year ends are handled for you. Never add 1 to the day number by hand: day 32 does not exist.\n\n~~~python\nfrom datetime import datetime, timedelta\n\nd = datetime(2025, 2, 27, 7, 30)\nprint(d + timedelta(days=1))\nprint(d + timedelta(days=2))\nprint(d + timedelta(hours=36))\nd += timedelta(weeks=1)\nprint(d)\nprint(datetime(2025, 3, 10) - datetime(2025, 3, 7))\n~~~\n\n- Line 5: two days after 27 February rolls over into March.\n- Line 6: durations can be in days, hours, minutes or weeks.\n- Line 7: <code>+=</code> moves <code>d</code> itself forward.\n- Line 9: subtracting two datetimes gives a timedelta: 3 days.\n\n### Walking day by day and skipping weekends\n\nSchedules are built by stepping one day at a time and keeping only the days that match a rule. A <code>while</code> loop stops as soon as there are enough.\n\n~~~python\nfrom datetime import datetime, timedelta\n\nt = datetime(2025, 3, 7, 17, 0)\nmondays = []\nwhile len(mondays) < 3:\n    t += timedelta(days=1)\n    if t.weekday() == 0:\n        mondays.append(t)\nfor m in mondays:\n    print(m.strftime(\"%a %d %b %H:%M\"))\n~~~\n\n- Line 5: keep looping while fewer than 3 dates are collected.\n- Line 6: one day forward; the time of day stays 17:00.\n- Lines 7-8: only Mondays are kept, so the weekend is stepped over.",
+  "goal": "Write <code>next_runs(start, count)</code> returning the next <code>count</code> datetimes strictly after <code>start</code> for a job that runs Monday to Friday at 07:30. Walk onto terminal 1, parse <code>scan()</code> (text like <code>2025-03-07 10:00</code>) with <code>strptime</code>, print the next 3 runs formatted with <code>\"%a %d %b %H:%M\"</code>, then reach the exit.",
+  "starter": "from datetime import datetime, timedelta\nfrom robot import *\n\ndef next_runs(start, count):\n    runs = []\n    return runs\n",
+  "solution": "from datetime import datetime, timedelta\nfrom robot import *\n\ndef next_runs(start, count):\n    runs = []\n    t = start.replace(hour=7, minute=30, second=0, microsecond=0)\n    if t <= start:\n        t += timedelta(days=1)\n    while len(runs) < count:\n        if t.weekday() < 5:\n            runs.append(t)\n        t += timedelta(days=1)\n    return runs\n\nwhile here() != \"terminal\":\n    move()\nstart = datetime.strptime(scan(), \"%Y-%m-%d %H:%M\")\nfor run in next_runs(start, 3):\n    print(run.strftime(\"%a %d %b %H:%M\"))\nwhile not at_exit():\n    move()\n",
+  "hint": "Start from start.replace(hour=7, minute=30, second=0, microsecond=0); if that is not after start, add a day; then step a day at a time and keep weekday() < 5.",
+  "par": 21,
+  "check": {
+   "exit": true
+  },
+  "test": "from datetime import datetime as _D\nassert next_runs(_D(2025, 3, 7, 10, 0), 3) == [_D(2025, 3, d, 7, 30) for d in (10, 11, 12)], 'From Friday 10:00 the next runs are Mon 10 to Wed 12 March at 07:30'\nassert next_runs(_D(2025, 3, 10, 6, 0), 2) == [_D(2025, 3, 10, 7, 30), _D(2025, 3, 11, 7, 30)], 'From Monday 06:00 the first run is the same day at 07:30'\nassert next_runs(_D(2025, 3, 10, 7, 30), 1) == [_D(2025, 3, 11, 7, 30)], 'Runs must be strictly after start'\nassert next_runs(_D(2025, 3, 8, 12, 0), 1) == [_D(2025, 3, 10, 7, 30)], 'From a Saturday the first run is Monday'\nassert next_runs(_D(2025, 2, 28, 8, 0), 1) == [_D(2025, 3, 3, 7, 30)], 'Month ends must work: use timedelta'",
+  "worlds": [
+   {
+    "map": [
+     "########",
+     "#>.1..E#",
+     "########"
+    ],
+    "data": {
+     "1": "2025-03-07 10:00"
+    },
+    "output": "Mon 10 Mar 07:30\nTue 11 Mar 07:30\nWed 12 Mar 07:30\n"
+   },
+   {
+    "map": [
+     "#######",
+     "#>1..E#",
+     "#######"
+    ],
+    "data": {
+     "1": "2025-03-10 06:15"
+    },
+    "output": "Mon 10 Mar 07:30\nTue 11 Mar 07:30\nWed 12 Mar 07:30\n"
+   },
+   {
+    "map": [
+     "#########",
+     "#>..1..E#",
+     "#########"
+    ],
+    "data": {
+     "1": "2025-02-27 07:30"
+    },
+    "output": "Fri 28 Feb 07:30\nMon 03 Mar 07:30\nTue 04 Mar 07:30\n"
+   }
+  ]
+ },
+ {
+  "id": "m-d-boss-pipeline",
+  "chapter": "The Control Room",
+  "title": "Pulling WARDEN's plug",
+  "covers": [
+   "auto-boss"
+  ],
+  "xp": 60,
+  "story": "The final door. WARDEN's last duty was the client billing pipeline, and it will only power down once the pipeline runs without it. The raw export, jobs_raw.csv, is full of junk: stray spaces, broken costs, impossible dates, missing clients and repeated jobs. Clean it, load it, report it, and the door opens for the number of rows Bit had to throw away.",
+  "power": "This is the last job WARDEN ever did, and the biggest. Real data <b>pipelines</b> follow three stages called <b>ETL</b>:\n\n- <b>Extract</b>: read the raw data.\n- <b>Transform</b>: clean it, validate it, drop duplicates.\n- <b>Load</b>: put the good rows in a database, then report from there.\n\nThe golden rule: a bad row is <b>counted and skipped</b>, it never crashes the run.\n\n### Extract: look at the raw data first\n\n~~~python\nimport csv\n\nwith open(\"jobs_raw.csv\", \"w\") as f:\n    f.write(\"job_id,client,date,cost\\n7001, acme forge ,2025-03-01,120.50\\n7002,Bolt Co,2025-03-01,abc\\n\")\n\nwith open(\"jobs_raw.csv\") as f:\n    for row in csv.DictReader(f):\n        print(row)\n~~~\n\n- Before writing any cleaning code, print the rows and look. Here a client has extra spaces and lowercase letters, and a cost is <code>abc</code>. Real exports are like this.\n\n### Transform 1: cleaning text\n\n~~~python\nraw = \"  acme FORGE \"\nname = raw.strip().title()\nprint(repr(name))\nprint(repr(\"   \".strip().title()), bool(\"\"))\n~~~\n\n- Line 2: <code>strip()</code> removes the spaces at both ends; <code>title()</code> makes the first letter of each word uppercase and the rest lowercase: <code>\"Acme Forge\"</code>. Clean names matter, because <code>acme forge</code> and <code>Acme Forge</code> must count as the same client.\n- Line 4: a blank name stays empty after cleaning, and an empty string is false, so <code>if not name:</code> catches it.\n\n### Transform 2: validating numbers and dates with try/except\n\n<code>float(\"abc\")</code> raises a <code>ValueError</code>. So does <code>datetime.strptime</code> when the text is not a real date in the given format (<code>%Y-%m-%d</code> is year, month, day with hyphens). One <code>try</code> block can test both.\n\n~~~python\nfrom datetime import datetime\n\ndef valid_date(s):\n    try:\n        datetime.strptime(s, \"%Y-%m-%d\")\n        return True\n    except ValueError:\n        return False\n\nprint(valid_date(\"2025-03-04\"), valid_date(\"2025-02-30\"), valid_date(\"soon\"))\n\nfor cost, date in [(\"15.25\", \"2025-03-04\"), (\"abc\", \"2025-03-01\"), (\"250\", \"not-a-date\")]:\n    try:\n        value = float(cost)\n        datetime.strptime(date, \"%Y-%m-%d\")\n        print(\"ok\", value, date)\n    except ValueError:\n        print(\"rejected\", cost, date)\n~~~\n\n- Lines 3-8: a small helper that answers True or False instead of crashing. 30 February is rejected too: <code>strptime</code> knows the calendar.\n- Lines 12-18: if either conversion fails, Python jumps straight to <code>except</code>. Inside a loop over rows you would add 1 to a <code>rejected</code> counter there and <code>continue</code> to the next row. Using <code>try</code> is safer than guessing with <code>if</code> checks which texts are numbers.\n\n### Transform 3: dropping duplicates with a set\n\n~~~python\nseen = set()\nkept = 0\nskipped = 0\nfor job_id in [\"7001\", \"7002\", \"7001\", \"7003\"]:\n    if job_id in seen:\n        skipped += 1\n        continue\n    seen.add(job_id)\n    kept += 1\nprint(kept, \"kept,\", skipped, \"skipped\")\nprint(seen)\n~~~\n\n- Line 1: an empty set (<code>{}</code> would be an empty dict). <code>in</code> on a set is instant, even with millions of ids.\n- Line 8: <code>add</code> records an accepted id. Add it only once the row has passed <b>all</b> the checks, otherwise a rejected row could block a later good copy.\n\n### Load and report: PRIMARY KEY, SUM, AS, ORDER BY\n\nA column declared <code>INTEGER PRIMARY KEY</code> must be unique: the database itself would refuse a duplicate id. In the report query, <code>AS total</code> names the computed column, and <code>ORDER BY total DESC</code> sorts by it, largest first (<code>DESC</code> means descending; the default, <code>ASC</code>, is smallest first).\n\n~~~python\nimport sqlite3\n\ngood = [(1, \"2025-03-01\", \"Ana\", 20.0), (2, \"2025-03-02\", \"Ben\", 99.5), (3, \"2025-03-02\", \"Ana\", 30.25)]\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE jobs (job_id INTEGER PRIMARY KEY, date TEXT, client TEXT, cost REAL)\")\ncon.executemany(\"INSERT INTO jobs VALUES (?, ?, ?, ?)\", good)\ncon.commit()\n\nrows = con.execute(\n    \"SELECT client, SUM(cost) AS total FROM jobs GROUP BY client ORDER BY total DESC\"\n).fetchall()\nprint(rows)\n\nwith open(\"summary.txt\", \"w\") as f:\n    for client, total in rows:\n        f.write(f\"{client}: {total:.2f}\\n\")\nprint(open(\"summary.txt\").read())\n~~~\n\n- Line 3: the cleaned rows, as tuples ready for the database.\n- Lines 5-7: create the table, load every row with <code>executemany</code>, commit.\n- Lines 9-11: one query groups by client, adds the costs and sorts: <code>[(\"Ben\", 99.5), (\"Ana\", 50.25)]</code>.\n- Lines 14-16: one report line per client. <code>write</code> does not add a newline for you, so each line ends with <code>\"\\n\"</code>, and <code>:.2f</code> keeps 2 decimals.\n- Line 17: read the file back to check it.",
+  "goal": "Process <code>jobs_raw.csv</code> (columns <code>job_id,client,date,cost</code>): strip and title-case the client; reject (and count in <code>rejected</code>) rows with an empty client, a cost that is not a number, a date that is not a real <code>%Y-%m-%d</code> date, or a job_id already accepted. Load the good rows into a table <code>clean_jobs</code> in <code>control.db</code> (job_id INTEGER PRIMARY KEY) and commit. With one SQL query (SUM, AS, GROUP BY, ORDER BY total DESC) write <code>report.txt</code> with lines like <code>Acme Forge: 180.50</code>. Print the report, then <code>Rejected: 4</code>, unlock door A with <code>rejected</code> and reach the exit.",
+  "starter": "import csv\nimport sqlite3\nfrom datetime import datetime\nfrom robot import *\n\nrejected = 0\ngood = []\nseen = set()\n",
+  "solution": "import csv\nimport sqlite3\nfrom datetime import datetime\nfrom robot import *\n\nrejected = 0\ngood = []\nseen = set()\nwith open(\"jobs_raw.csv\") as f:\n    for row in csv.DictReader(f):\n        job_id = row[\"job_id\"].strip()\n        client = row[\"client\"].strip().title()\n        try:\n            cost = float(row[\"cost\"])\n            date = datetime.strptime(row[\"date\"].strip(), \"%Y-%m-%d\")\n        except ValueError:\n            rejected += 1\n            continue\n        if not client or job_id in seen:\n            rejected += 1\n            continue\n        seen.add(job_id)\n        good.append((int(job_id), date.strftime(\"%Y-%m-%d\"), client, cost))\ncon = sqlite3.connect(\"control.db\")\ncon.execute(\"CREATE TABLE clean_jobs (job_id INTEGER PRIMARY KEY, date TEXT, client TEXT, cost REAL)\")\ncon.executemany(\"INSERT INTO clean_jobs VALUES (?, ?, ?, ?)\", good)\ncon.commit()\nrows = con.execute(\"SELECT client, SUM(cost) AS total FROM clean_jobs GROUP BY client ORDER BY total DESC\").fetchall()\nwith open(\"report.txt\", \"w\") as f:\n    for client, total in rows:\n        f.write(f\"{client}: {total:.2f}\\n\")\nprint(open(\"report.txt\").read())\nprint(\"Rejected:\", rejected)\nwhile front() != \"door\":\n    move()\nunlock(rejected)\nwhile not at_exit():\n    move()\n",
+  "hint": "Do the float() and strptime() checks inside one try/except ValueError, then check the empty client and the seen set, and only add the id to seen once the row is accepted.",
+  "par": 40,
+  "check": {
+   "exit": true,
+   "doors": true
+  },
+  "test": "import csv as _c, io as _i, sqlite3 as _s\nfrom datetime import datetime as _D\n_rej, _good, _seen = 0, [], set()\nfor _r in _c.DictReader(_i.StringIO(_fs['jobs_raw.csv'])):\n    _id, _cl = _r['job_id'].strip(), _r['client'].strip().title()\n    try:\n        _v = float(_r['cost'])\n        _D.strptime(_r['date'].strip(), '%Y-%m-%d')\n    except ValueError:\n        _rej += 1\n        continue\n    if not _cl or _id in _seen:\n        _rej += 1\n        continue\n    _seen.add(_id)\n    _good.append((_cl, _v))\nassert rejected == _rej, 'rejected should be %d, got %r' % (_rej, rejected)\n_db = _s.connect('control.db')\ntry:\n    _n = _db.execute('SELECT COUNT(*) FROM clean_jobs').fetchone()[0]\nexcept Exception:\n    _n = None\nassert _n == len(_good), 'control.db should hold the %d good rows in clean_jobs (did you commit?)' % len(_good)\n_t = {}\nfor _cl, _v in _good:\n    _t[_cl] = _t.get(_cl, 0) + _v\n_want = ['%s: %.2f' % kv for kv in sorted(_t.items(), key=lambda kv: -kv[1])]\nassert 'report.txt' in _fs, 'report.txt was not written'\n_got = [l.strip() for l in _fs['report.txt'].splitlines() if l.strip()]\nassert _got == _want, 'report.txt should be:\\n' + '\\n'.join(_want) + '\\n\\nIt is:\\n' + '\\n'.join(_got)",
+  "worlds": [
+   {
+    "map": [
+     "###########",
+     "#>..A....E#",
+     "###########"
+    ],
+    "fs": {
+     "jobs_raw.csv": "job_id,client,date,cost\n7001, acme forge ,2025-03-01,120.50\n7002,Bolt Co,2025-03-01,abc\n7003,Bolt Co,2025-03-02,89.90\n7004,,2025-03-02,45.00\n7005,ACME FORGE,2025-03-03,60.00\n7006,Delta Pumps,not-a-date,250.00\n7007,delta pumps,2025-03-04,15.25\n7001, acme forge ,2025-03-01,120.50\n"
+    },
+    "dbs": {
+     "control.db": "-- empty: Bit builds it"
+    },
+    "codes": {
+     "A": "4"
+    },
+    "output": "Acme Forge: 180.50\nBolt Co: 89.90\nDelta Pumps: 15.25\n\nRejected: 4\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>....A..E#",
+     "###########"
+    ],
+    "fs": {
+     "jobs_raw.csv": "job_id,client,date,cost\n8001,Kite Labs,2025-04-01,300\n8002, kite labs,2025-04-02,25.5\n8003,Ore Mining,2025-02-30,99\n8004,ore mining,2025-04-03,410.10\n8004,ore mining,2025-04-03,410.10\n8005,  ,2025-04-04,10\n8006,Nova Glass,2025-04-05,12.40\n"
+    },
+    "dbs": {
+     "control.db": "-- empty: Bit builds it"
+    },
+    "codes": {
+     "A": "3"
+    },
+    "output": "Ore Mining: 410.10\nKite Labs: 325.50\nNova Glass: 12.40\n\nRejected: 3\n"
+   },
+   {
+    "map": [
+     "###########",
+     "#>...A...E#",
+     "###########"
+    ],
+    "fs": {
+     "jobs_raw.csv": "job_id,client,date,cost\n9001,Zed Motors,2025-05-01,1000\n9002,Zed Motors,2025-05-02,one hundred\n9003,yarn & co,2025-05-02,77.70\n9004,Yarn & Co,05/03/2025,5\n9005,Pike Steel,2025-05-03,640.00\n9003,Yarn & Co,2025-05-02,77.70\n"
+    },
+    "dbs": {
+     "control.db": "-- empty: Bit builds it"
+    },
+    "codes": {
+     "A": "3"
+    },
+    "output": "Zed Motors: 1000.00\nPike Steel: 640.00\nYarn & Co: 77.70\n\nRejected: 3\n"
+   }
+  ]
+ }
+]
